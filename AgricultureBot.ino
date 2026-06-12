@@ -29,25 +29,25 @@ Command parseCommand(const char* input)
 }
 
 int servoCommand(Servo servo, int request, int value){
-  if (request == 0){
+  if (request == OFF){
     servo.detach();
     return 0;
-  }else if (request == 1){
+  }else if (request == SET){
     servo.write(value);
-  }else if (request == 2){
+  }else if (request == GET){
     return servo.read();
   }
   return -1;
 }
 int motorCommand(int driverPort, int pwmPort,  int request, int value){
   //Turn off
-  if (request == 0){
+  if (request == OFF){
     digitalWrite(driverPort, LOW);
     analogWrite(pwmPort, 0);
     return 0;
   }
   //set target
-  if (request == 1){
+  if (request == SET){
     if (value < 0){
       digitalWrite(driverPort, LOW);
       value = value * -1;
