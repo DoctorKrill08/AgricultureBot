@@ -64,8 +64,8 @@ int motorCommand(int driverPort, int pwmPort,  int request, int value){
 }
 
 int BAUD_RATE = 9600;
-const int servoPort = 5;
-Servo testServo;
+const int clawPort = 5;
+Servo clawServo;
 
 const int DriveLeftMotorDriverPort = 12;
 const int DriveLeftMotorPWMPort = 4;
@@ -73,38 +73,27 @@ const int DriveLeftMotorPWMPort = 4;
 const int DriveRightMotorDriverPort = 10;
 const int DriveRightMotorPWMPort = 2;
 
-String idToString(int id){
-  if (id == 0){
-    return "S";
-  }
-  if (id == 1 or id == 2){
-    return "M";
-  }
-  return;
-}
 
-
-Servo idToServo(int id){
-  if (id == 0){
-    return testServo;
+Servo getServo(int id){
+  if (id == Claw){
+    return clawServo;
   }
   return;
 }
 
 Motor getMotor(int id){
   //Returns driver port and pwm port
-  if (id == 1){
-    Motor motor;
+  Motor motor = {-1,-1};
+  if (id == DriveRight){
     motor.driverPort = DriveLeftMotorDriverPort;
     motor.pwmPort = DriveLeftMotorPWMPort;
     return motor;
-  }else if (id == 2){
-    Motor motor;
+  }else if (id == DriveRight){
     motor.driverPort = DriveRightMotorDriverPort;
     motor.pwmPort = DriveRightMotorPWMPort;
     return motor;
   }
-  return;
+  return motor;
 }
 
 
@@ -112,7 +101,7 @@ void setup() {
   // put your setup code here, to run once:
  // int result = myFunction(2, 3);
   Serial.begin(BAUD_RATE); 
-  testServo.attach(servoPort);
+  clawServo.attach(clawPort);
   pinMode(DriveLeftMotorDriverPort, OUTPUT);
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
   pinMode(DriveRightMotorDriverPort, OUTPUT);
@@ -127,9 +116,9 @@ void loop() {
 
     Command cmd = parseCommand(message.c_str());
 
-    String type = idToString(cmd.id);
+    char type = getType(cmd.id);
     if (type == SERVO_STRING_VALUE){
-      Servo servo = idToServo(cmd.id);
+      Servo servo = getServo(cmd.id);
       int result = servoCommand(servo,cmd.request,cmd.value);
     }else if (type == MOTOR_STRING_VALUE){
       Motor motor = getMotor(cmd.id);

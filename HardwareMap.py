@@ -48,36 +48,38 @@ def generate_arduino_header():
     header_content = """// AUTOMATICALLY GENERATED FILE - DO NOT EDIT DIRECTLY
 
 // Input char value of device, ex. DriveLeft = '1', output type, ex. 'M' -> Motor
-#ifndef COMMANDS_H
-#define COMMANDS_H
+#ifndef TRANSLATE_H
+#define TRANSLATE_H
 
-char getType(char key){
+#include "Arduino.h"
+
+char getType(int key){
     switch(key){
 """
     command_list = []
     for key,type in hardware_type_map.items():
-        command_list.append(f"\n        case '{key}':\n         return '{type}';")
+        command_list.append(f"\n        case {key}:\n         return '{type}';")
             
     header_content += "\n".join(command_list)
-    header_content += "\n   };\n}\n#endif;"
+    header_content += "\n   };\n};\n#endif"
 
-    header_content += f"\nconst char SERVO_VALUE = '{HardwareType.SERVO.value}';"
-    header_content += f"\nconst char MOTOR_VALUE = '{HardwareType.MOTOR.value}';"
-    header_content += f"\nconst char BATTERY_VALUE = '{HardwareType.BATTERY.value}';"
+    header_content += f"\nstatic const char SERVO_VALUE = '{HardwareType.SERVO.value}';"
+    header_content += f"\nstatic const char MOTOR_VALUE = '{HardwareType.MOTOR.value}';"
+    header_content += f"\nstatic const char BATTERY_VALUE = '{HardwareType.BATTERY.value}';"
 
     #make a struct request -> equivalent of that enum
-    header_content += "\nstruct Request {"
+    header_content += "\nenum Request {"
     command_list.clear()
     for key,item in Request.__members__.items():
-        command_list.append(f"\n    int {key} = {item.value};")
+        command_list.append(f"\n    {key} = {item.value},")
     header_content += "".join(command_list)
     header_content += "\n};"
 
     #make a struct Device -> equivalent of that enum
-    header_content += "\nstruct Device {"
+    header_content += "\nenum Device {"
     command_list.clear()
     for key,item in Device.__members__.items():
-        command_list.append(f"\n    int {key} = {item.value};")
+        command_list.append(f"\n    {key} = {item.value},")
     header_content += "".join(command_list)
     header_content += "\n};"
 
