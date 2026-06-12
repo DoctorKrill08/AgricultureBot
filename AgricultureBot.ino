@@ -15,9 +15,6 @@ struct Command
     int value;
 };
 
-String SERVO_STRING_VALUE = "S";
-String MOTOR_STRING_VALUE = "M";
-
 
 Command parseCommand(const char* input)
 {
@@ -117,10 +114,10 @@ void loop() {
     Command cmd = parseCommand(message.c_str());
 
     char type = getType(cmd.id);
-    if (type == SERVO_STRING_VALUE){
+    if (type == SERVO_VALUE){
       Servo servo = getServo(cmd.id);
       int result = servoCommand(servo,cmd.request,cmd.value);
-    }else if (type == MOTOR_STRING_VALUE){
+    }else if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
     }
