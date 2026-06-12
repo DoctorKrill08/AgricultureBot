@@ -12,12 +12,13 @@ BAUD_RATE = 9600
 def send_command(command):
     print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
+    
 
     print("Encoded Command: ",encoded_command)
 
     arduino.write(encoded_command)
     
-arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=1)
+arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
 
 def close_arduino():
     arduino.close()

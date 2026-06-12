@@ -1,15 +1,26 @@
 from Hardware import*
 import math
 from HardwareMap import Device
+
+
+
 class Drivetrain:
     left_motor = None
     right_motor = None
     CHANGE_THRESHOLD = 0.05
+    telemetry = ""
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
         Drivetrain.drive = 0
         Drivetrain.turn = 0
+    def to_scale(drive,turn):
+        if (abs(drive) + abs(turn) < 1):
+            return drive,turn
+        sum = abs(drive) + abs(turn)
+        scale = 1/sum
+        return (drive * scale),(turn * scale)
+
     def stop():
         Drivetrain.left_motor.stop()
         Drivetrain.right_motor.stop()
@@ -23,9 +34,7 @@ class Drivetrain:
         Drivetrain.drive = drive
         Drivetrain.turn = turn
 
-        scale = abs(drive) + abs(turn)
-        drive = drive * scale
-        turn = turn * scale
+        drive,turn = Drivetrain.to_scale(drive,turn)
         if drive == 0 and turn == 0:
             Drivetrain.left_motor.stop()
             Drivetrain.right_motor.stop()
@@ -34,5 +43,6 @@ class Drivetrain:
        # denominator = max(abs(drive) + abs(turn),1)
         print("Left:", drive + turn)
         print("Right: ", drive - turn)
+        Drivetrain.telemetry = f"Left: {drive + turn}"
         Drivetrain.left_motor.set((drive + turn))
         Drivetrain.right_motor.set((drive - turn))

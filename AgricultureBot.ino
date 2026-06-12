@@ -62,13 +62,17 @@ int motorCommand(int driverPort, int pwmPort,  int request, int value){
 
 int BAUD_RATE = 9600;
 const int clawPort = 5;
-Servo clawServo;
 
 const int DriveLeftMotorDriverPort = 12;
 const int DriveLeftMotorPWMPort = 4;
 
 const int DriveRightMotorDriverPort = 10;
 const int DriveRightMotorPWMPort = 2;
+
+Servo clawServo;
+
+Motor driveLeftMotor = {DriveLeftMotorDriverPort,DriveLeftMotorPWMPort};
+Motor driveRightMotor = {DriveRightMotorDriverPort,DriveRightMotorPWMPort};
 
 
 Servo getServo(int id){
@@ -79,20 +83,24 @@ Servo getServo(int id){
 }
 
 Motor getMotor(int id){
-  //Returns driver port and pwm port
-  Motor motor = {-1,-1};
-  if (id == DriveLeft){
-    motor.driverPort = DriveLeftMotorDriverPort;
-    motor.pwmPort = DriveLeftMotorPWMPort;
-    return motor;
-  }else if (id == DriveRight){
-    motor.driverPort = DriveRightMotorDriverPort;
-    motor.pwmPort = DriveRightMotorPWMPort;
-    return motor;
-  }
-  return motor;
+  switch (id)
+  {
+  case DriveLeft:
+    return driveLeftMotor;
+  case DriveRight:
+    return driveRightMotor;
+  default:
+    return {-1,-1};
+  };
+};
+
+void stop(){
+    int result = motorCommand(driveLeftMotor.driverPort,driveLeftMotor.pwmPort,OFF,0);
+    result = motorCommand(driveRightMotor.driverPort,driveRightMotor.pwmPort,OFF,0);
 }
 
+//IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
+unsigned long startTime; // Stores the starting time
 
 void setup() {
   // put your setup code here, to run once:
@@ -103,15 +111,27 @@ void setup() {
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
   pinMode(DriveRightMotorDriverPort, OUTPUT);
   pinMode(DriveRightMotorPWMPort, OUTPUT);
-
+  startTime = millis(); 
 }
 
+const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 5000;
+
 void loop() {
+  unsigned long elapsedTime = millis() - startTime; 
+  if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS){
+    stop();
+  }
   if (Serial.available() > 0) {
     // Read the incoming byte
     String message = Serial.readStringUntil('\n');
 
     Command cmd = parseCommand(message.c_str());
+
+
+    if (cmd.id >= 0){
+      startTime = millis();
+    }
+
 
     char type = getType(cmd.id);
     if (type == SERVO_VALUE){
