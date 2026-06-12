@@ -1,19 +1,13 @@
 import time
 import serial
 import json
+from HardwareMap import *
 
 from enum import Enum
 
 PORT = "COM5"
 BAUD_RATE = 9600
 
-class request(Enum):
-    OFF = "0"
-    SET = "1"
-    GET = "2"
-class Hardware(Enum):
-    SERVO = 'S'
-    MOTOR = 'M'
 
 def send_command(command):
     print("Command: ",command)
@@ -30,17 +24,17 @@ def close_arduino():
 
 
 class Servo:
-    TYPE = Hardware.SERVO
+    TYPE = HardwareType.SERVO
     def __init__(self,id):
         self.id = id
     def set(self,target):
-        send_command(f'{self.id},{request.SET.value},{target}')
+        send_command(f'{self.id},{Request.SET.value},{target}')
     def get(self):
-        send_command(f'{self.id},{request.GET.value},{None}')
+        send_command(f'{self.id},{Request.GET.value},{None}')
     def turn_off(self):
-        send_command(f'{self.id},{request.OFF.value},{None}')
+        send_command(f'{self.id},{Request.OFF.value},{None}')
 class Motor:
-    TYPE = Hardware.MOTOR
+    TYPE = HardwareType.MOTOR
     def __init__(self,id):
         self.id = id
     def set(self,target):
@@ -49,6 +43,6 @@ class Motor:
         target = int(target)
         if (target > MOTOR_RANGE):
             target = MOTOR_RANGE
-        send_command(f'{self.id},{request.SET.value},{target}')
+        send_command(f'{self.id},{Request.SET.value},{target}')
     def stop(self):
-        send_command(f'{self.id},{request.OFF.value},{None}')
+        send_command(f'{self.id},{Request.OFF.value},{None}')

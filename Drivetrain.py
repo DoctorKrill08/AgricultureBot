@@ -6,8 +6,8 @@ class Drivetrain:
     right_motor = None
     CHANGE_THRESHOLD = 0.05
     def initiate():
-        Drivetrain.left_motor = Motor(Device.DriveLeft)
-        Drivetrain.right_motor = Motor(Device.DriveRight)
+        Drivetrain.left_motor = Motor(Device.DriveLeft.value)
+        Drivetrain.right_motor = Motor(Device.DriveRight.value)
         Drivetrain.drive = 0
         Drivetrain.turn = 0
     def stop():
@@ -19,7 +19,6 @@ class Drivetrain:
         turn_difference = abs(turn - Drivetrain.turn)
         
         if (drive_difference + turn_difference < Drivetrain.CHANGE_THRESHOLD):
-            print("Srop")
             return
         Drivetrain.drive = drive
         Drivetrain.turn = turn
