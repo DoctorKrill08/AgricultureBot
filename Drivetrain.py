@@ -1,12 +1,13 @@
 from Hardware import*
 import math
+from HardwareMap import Device
 class Drivetrain:
     left_motor = None
     right_motor = None
     CHANGE_THRESHOLD = 0.05
     def initiate():
-        Drivetrain.left_motor = Motor("1")
-        Drivetrain.right_motor = Motor("2")
+        Drivetrain.left_motor = Motor(Device.DriveLeft)
+        Drivetrain.right_motor = Motor(Device.DriveRight)
         Drivetrain.drive = 0
         Drivetrain.turn = 0
     def stop():

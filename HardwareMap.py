@@ -1,6 +1,10 @@
 from enum import Enum
 import os
 
+
+
+#READ ME!!!! 
+#If you change info here, run this file so the c++ equivalent updates too!!!!
 class Device(Enum):
     DriveLeft = '1'
     DriveRight = '2'
@@ -39,7 +43,7 @@ hardware_type_map[Device.Blade.value] = HardwareType.SERVO.value
 
 
 
-#If you enjoy readable code, that dies below this point. TURN AWAY!
+#---------------If you enjoy readable code, that dies below this point. TURN AWAY! ---------------------
 
 
 

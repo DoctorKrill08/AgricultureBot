@@ -81,7 +81,7 @@ Servo getServo(int id){
 Motor getMotor(int id){
   //Returns driver port and pwm port
   Motor motor = {-1,-1};
-  if (id == DriveRight){
+  if (id == DriveLeft){
     motor.driverPort = DriveLeftMotorDriverPort;
     motor.pwmPort = DriveLeftMotorPWMPort;
     return motor;

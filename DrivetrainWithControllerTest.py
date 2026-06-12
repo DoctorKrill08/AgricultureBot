@@ -19,7 +19,6 @@ while on and xbox_controller.is_connected():
         on = False
     if (xbox_controller.is_connected()):
         Drivetrain.run(drive = xbox_controller.LeftJoystickY, turn = xbox_controller.RightJoystickX)
-        #print(xbox_controller.LeftJoystickY,xbox_controller.RightJoystickX)
     elapsed = time.perf_counter() - start
     sleep_time = DT - elapsed
 
