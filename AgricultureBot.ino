@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+#include <translate.h>
+
 struct Motor{
   int driverPort;
   int pwmPort;
@@ -65,11 +67,11 @@ int BAUD_RATE = 9600;
 const int servoPort = 5;
 Servo testServo;
 
-const int LeftDriveMotorDriverPort = 12;
-const int LeftDriveMotorPWMPort = 4;
+const int DriveLeftMotorDriverPort = 12;
+const int DriveLeftMotorPWMPort = 4;
 
-const int RightDriveMotorDriverPort = 10;
-const int RightDriveMotorPWMPort = 2;
+const int DriveRightMotorDriverPort = 10;
+const int DriveRightMotorPWMPort = 2;
 
 String idToString(int id){
   if (id == 0){
@@ -89,17 +91,17 @@ Servo idToServo(int id){
   return;
 }
 
-Motor idToMotor(int id){
+Motor getMotor(int id){
   //Returns driver port and pwm port
   if (id == 1){
     Motor motor;
-    motor.driverPort = LeftDriveMotorDriverPort;
-    motor.pwmPort = LeftDriveMotorPWMPort;
+    motor.driverPort = DriveLeftMotorDriverPort;
+    motor.pwmPort = DriveLeftMotorPWMPort;
     return motor;
   }else if (id == 2){
     Motor motor;
-    motor.driverPort = RightDriveMotorDriverPort;
-    motor.pwmPort = RightDriveMotorPWMPort;
+    motor.driverPort = DriveRightMotorDriverPort;
+    motor.pwmPort = DriveRightMotorPWMPort;
     return motor;
   }
   return;
@@ -111,10 +113,10 @@ void setup() {
  // int result = myFunction(2, 3);
   Serial.begin(BAUD_RATE); 
   testServo.attach(servoPort);
-  pinMode(LeftDriveMotorDriverPort, OUTPUT);
-  pinMode(LeftDriveMotorPWMPort, OUTPUT);
-  pinMode(RightDriveMotorDriverPort, OUTPUT);
-  pinMode(RightDriveMotorPWMPort, OUTPUT);
+  pinMode(DriveLeftMotorDriverPort, OUTPUT);
+  pinMode(DriveLeftMotorPWMPort, OUTPUT);
+  pinMode(DriveRightMotorDriverPort, OUTPUT);
+  pinMode(DriveRightMotorPWMPort, OUTPUT);
 
 }
 
@@ -130,7 +132,7 @@ void loop() {
       Servo servo = idToServo(cmd.id);
       int result = servoCommand(servo,cmd.request,cmd.value);
     }else if (type == MOTOR_STRING_VALUE){
-      Motor motor = idToMotor(cmd.id);
+      Motor motor = getMotor(cmd.id);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
     }
   }
