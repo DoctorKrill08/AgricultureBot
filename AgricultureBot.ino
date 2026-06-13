@@ -131,6 +131,13 @@ void loop() {
     if (cmd.id >= 0){
       startTime = millis();
     }
+    if (cmd.id == Ping){
+      return;
+    }
+    if (cmd.id == Stop){
+      stop();
+      return;
+    }
 
 
     char type = getType(cmd.id);

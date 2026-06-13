@@ -2,6 +2,26 @@ from inputs import get_gamepad
 import math
 import threading
 TRIGGER_DOWN_THRESHOLD = 0.2
+
+def create_gamepad():
+    gamepad = None
+    connected = False
+    try:
+        gamepad = XboxController()
+        connected = True
+    finally:
+        pass
+    return gamepad, connected
+def check_gamepad(gamepad):
+    connected = False
+    if gamepad == None:
+       gamepad,connected = create_gamepad()
+    else:
+       connected = gamepad.is_connected()
+       if (not connected):
+           gamepad,connected = create_gamepad()
+    return gamepad,connected
+
 class XboxController(object):
     MAX_TRIG_VAL = math.pow(2, 8)
     MAX_JOY_VAL = math.pow(2, 15)

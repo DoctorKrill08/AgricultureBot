@@ -1,5 +1,5 @@
-from Hardware import *
-motor = Motor("1")
+from System.hardware import *
+motor = Motor(Device.DriveLeft)
 motor.forward()
 motor.set(0.5) #50 percent
 time.sleep(2)
