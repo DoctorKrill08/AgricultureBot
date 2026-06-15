@@ -1,7 +1,9 @@
 from enum import Enum
 from System.subsystems import*
 from System.controller import *
+from System.timer import *
 from pydantic import BaseModel
+
 
 class RobotState(Enum):
     RESTING = "RESTING"
@@ -17,10 +19,14 @@ class TelemetryDataTypes(BaseModel):
 class ClientInputDataTypes():
     command: str
 
+PING_TIME = 0.5 #Every half a second
+
 class Robot:
     on = True
     gamepad = None
     state = RobotState.RESTING
+    ping_stopwatch = Stopwatch();
+
     def set_state(state):
         if (Robot.state == state):
             return
@@ -38,7 +44,9 @@ class Robot:
     def update():
         if (not Robot.on):
             return
-        ping()
+        if (Robot.ping_stopwatch.time_passed() > PING_TIME):
+            ping()
+            Robot.ping_stopwatch.go()
         if (Robot.state == RobotState.GAMEPAD and Robot.gamepad.is_connected()):
             Drivetrain.run(Robot.gamepad.LeftJoystickY,Robot.gamepad.RightJoystickX)
             if (Robot.gamepad.b_was_pressed()):

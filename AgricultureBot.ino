@@ -114,7 +114,7 @@ void setup() {
   startTime = millis(); 
 }
 
-const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 3000;
+const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 1500;
 bool stopped = false;
 
 void loop() {
