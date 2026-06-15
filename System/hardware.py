@@ -10,6 +10,9 @@ BAUD_RATE = 9600
 
 
 def send_command(command):
+    if (not arduino_connected):
+        print("Arduino not connected")
+        return
     print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
     
@@ -17,8 +20,13 @@ def send_command(command):
     print("Encoded Command: ",encoded_command)
 
     arduino.write(encoded_command)
-    
-arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
+
+
+arduino_connected = True
+try:
+    arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
+except:
+    arduino_connected = False
 
 def close_arduino():
     arduino.close()

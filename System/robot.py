@@ -16,8 +16,14 @@ class TelemetryDataTypes(BaseModel):
     heading: float
     status: str
 
-class ClientInputDataTypes():
+class ClientInputDataTypes(BaseModel):
     command: str
+    joy_x: float
+    joy_y: float
+
+def command_to_robot(command: str):
+    print(f"command: {command}")
+    Robot.set_state(command)
 
 PING_TIME = 0.5 #Every half a second
 UPDATE_TIME = 0.05
