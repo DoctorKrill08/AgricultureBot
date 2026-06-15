@@ -15,9 +15,6 @@ while Robot.on:
     if sleep_time > 0:
         time.sleep(sleep_time)
     gamepad = Robot.gamepad
+    Robot.update()
     if (gamepad == None):
         break
-    if (gamepad.a_was_pressed()):
-        break
-    Robot.update()
-Robot.turn_off()

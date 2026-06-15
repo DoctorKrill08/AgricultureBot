@@ -50,7 +50,7 @@ hardware_type_map[Device.Blade.value] = HardwareType.SERVO.value
 
 
 
-#GENERATE THE C++ HEADER FILE
+#Generates a cpp header file that has the same information as above, used so that arduino shares the same data
 def generate_arduino_header():
     header_content = """// AUTOMATICALLY GENERATED FILE - DO NOT EDIT DIRECTLY
 

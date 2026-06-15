@@ -114,7 +114,8 @@ void setup() {
   startTime = millis(); 
 }
 
-const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 5000;
+const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 3000;
+bool stopped = false;
 
 void loop() {
   unsigned long elapsedTime = millis() - startTime; 
@@ -135,6 +136,11 @@ void loop() {
       return;
     }
     if (cmd.id == Stop){
+      stopped = true;
+      stop();
+      return;
+    }
+    if (stopped == true){
       stop();
       return;
     }

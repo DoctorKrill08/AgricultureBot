@@ -9,7 +9,7 @@ class Drivetrain:
     CHANGE_THRESHOLD = 0.05
     MINIMUM_POWER = 0.1
     telemetry = ""
-    def __init__(self):
+    def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
         Drivetrain.drive = 0

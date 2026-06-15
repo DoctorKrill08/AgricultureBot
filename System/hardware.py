@@ -23,10 +23,9 @@ arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
 def close_arduino():
     arduino.close()
 def stop_arduino():
-    send_command(Device.Stop,"0","0")
+    send_command(f"{Device.Stop.value},0,0")
 def ping():
-    send_command(Device.Ping,"0","0")
-
+    send_command(f"{Device.Ping.value},0,0")
 class Servo:
     TYPE = HardwareType.SERVO
     def __init__(self,id):
@@ -48,7 +47,7 @@ class Motor:
     def set(self,target):
         if abs(target) < Motor.MINIMUM_POWER:
             target = 0
-            Motor.stop()
+            self.stop()
             return
         if abs(target - self.target) < Motor.MINIMUM_DIFFERENCE:
             return
