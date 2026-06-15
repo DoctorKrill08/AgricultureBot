@@ -4,6 +4,8 @@ class Timer():
         self.start_time = time.perf_counter()
     def time_passed(self):
         return time.perf_counter() - self.start_time
+    def reset(self):
+        self.start_time = time.perf_counter()
 class Stopwatch(Timer):
     def __init__(self):
         super().__init__()

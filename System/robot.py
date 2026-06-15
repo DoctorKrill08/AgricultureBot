@@ -20,12 +20,14 @@ class ClientInputDataTypes():
     command: str
 
 PING_TIME = 0.5 #Every half a second
+UPDATE_TIME = 0.05
 
 class Robot:
     on = True
     gamepad = None
     state = RobotState.RESTING
     ping_stopwatch = Stopwatch();
+    update_timer = Timer()
 
     def set_state(state):
         if (Robot.state == state):
@@ -41,9 +43,13 @@ class Robot:
         arduino.close()
     def initiate():
         Drivetrain.initiate()
+        time.sleep(0.5)
     def update():
         if (not Robot.on):
             return
+        if (Robot.update_timer.time_passed() < UPDATE_TIME):
+            time.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
+        Robot.update_timer.reset()
         if (Robot.ping_stopwatch.time_passed() > PING_TIME):
             ping()
             Robot.ping_stopwatch.go()
