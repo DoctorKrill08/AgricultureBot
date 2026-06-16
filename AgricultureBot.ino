@@ -103,10 +103,8 @@ void stop(){
 unsigned long startTime; // Stores the starting time
 
 void setup() {
-  // put your setup code here, to run once:
- // int result = myFunction(2, 3);
   Serial.begin(BAUD_RATE); 
-  clawServo.attach(clawPort);
+  clawServo.attach(clawPort); 
   pinMode(DriveLeftMotorDriverPort, OUTPUT);
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
   pinMode(DriveRightMotorDriverPort, OUTPUT);

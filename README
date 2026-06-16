@@ -6,8 +6,8 @@ pip install pyserial
 pip install inputs
 pip install fastapi
 pip install uvicorn
+pip install websockets
 
 #uvicorn file_to_be_ran:app_name -- reload -> runs uvicorn server
 uvicorn main:app --reload
-
-send signal -> Invoke-RestMethod -Uri "http://127.0.0.1:8000/items?item=apple" -Method POST
+uvicorn main:app --host 0.0.0.0 --port 8000

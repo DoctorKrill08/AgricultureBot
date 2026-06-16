@@ -9,8 +9,19 @@ PORT = "COM5"
 BAUD_RATE = 9600
 
 
+class Arduino:
+    serial = None
+    connceted = False
+    def connect_arduino():
+        try:
+            Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
+            Arduino.connceted = True
+        except:
+            Arduino.connceted = False
+        print(f"Arduino connected: {Arduino.connceted}")
+
 def send_command(command):
-    if (not arduino_connected):
+    if (not Arduino.connceted):
         print("Arduino not connected")
         return
     print("Command: ",command)
@@ -19,17 +30,10 @@ def send_command(command):
 
     print("Encoded Command: ",encoded_command)
 
-    arduino.write(encoded_command)
-
-
-arduino_connected = True
-try:
-    arduino = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
-except:
-    arduino_connected = False
+    Arduino.serial.write(encoded_command)
 
 def close_arduino():
-    arduino.close()
+    Arduino.serial.close()
 def stop_arduino():
     send_command(f"{Device.Stop.value},0,0")
 def ping():
