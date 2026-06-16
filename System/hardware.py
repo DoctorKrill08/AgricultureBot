@@ -73,6 +73,8 @@ class Motor:
         return f" {Device(self.id).name} POWER: {self.target} "
     def set(self,target):
         if abs(target) < Motor.MINIMUM_POWER:
+            if (self.target == 0):
+                return
             target = 0
             self.stop()
             return

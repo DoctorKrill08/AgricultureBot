@@ -75,6 +75,7 @@ class Robot:
         print("initiate")
         Robot.state = RobotState.RESTING
         Arduino.connect_arduino()
+        #Robot.ping_stopwatch.go()
         time.sleep(0.25)
         Drivetrain.initiate()
         time.sleep(0.25)
