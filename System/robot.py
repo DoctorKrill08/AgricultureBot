@@ -25,7 +25,7 @@ class ClientInputDataTypes(BaseModel):
     joy_x: float
     joy_y: float
 
-PING_TIME = 0.5 #Every half a second
+PING_TIME = 1 #Every half a second
 UPDATE_TIME = 0.05
 
 
@@ -75,10 +75,8 @@ class Robot:
         print("initiate")
         Robot.state = RobotState.RESTING
         Arduino.connect_arduino()
-        #Robot.ping_stopwatch.go()
-        time.sleep(0.25)
+        Robot.ping_stopwatch.go()
         Drivetrain.initiate()
-        time.sleep(0.25)
         Robot.gamepad,_ = create_gamepad()
     def update():
         Robot.telemetry = TelemetryDataTypes(

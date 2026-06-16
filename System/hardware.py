@@ -31,6 +31,8 @@ def send_command(command):
     print("Encoded Command: ",encoded_command)
 
     Arduino.serial.write(encoded_command)
+    raw_data = Arduino.serial.readline()
+    print(raw_data.decode('utf-8').strip())
 
 def close_arduino():
     if (Arduino.connceted == False):
@@ -40,6 +42,7 @@ def close_arduino():
 def stop_arduino():
     send_command(f"{Device.Stop.value},0,0")
 def ping():
+    print("Ping")
     send_command(f"{Device.Ping.value},0,0")
 class Servo:
     TYPE = HardwareType.SERVO

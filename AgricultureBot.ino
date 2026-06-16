@@ -110,6 +110,7 @@ void setup() {
   pinMode(DriveRightMotorDriverPort, OUTPUT);
   pinMode(DriveRightMotorPWMPort, OUTPUT);
   startTime = millis(); 
+  stop();
 }
 
 const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 1500;
@@ -123,13 +124,14 @@ void loop() {
   if (Serial.available() > 0) {
     // Read the incoming byte
     String message = Serial.readStringUntil('\n');
+    Serial.println(message);
 
     Command cmd = parseCommand(message.c_str());
-
 
     if (cmd.id >= 0){
       startTime = millis();
     }
+    
     if (cmd.id == Ping){
       return;
     }
