@@ -130,7 +130,7 @@ void loop() {
     if (cmd.id >= 0){
       startTime = millis();
     }
-    if (cmd.id == PING){
+    if (cmd.id == Ping){
       return;
     }
     if (cmd.id == Stop){
