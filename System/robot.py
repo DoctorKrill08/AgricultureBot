@@ -37,6 +37,9 @@ class Robot:
     ping_stopwatch = Stopwatch();
     update_timer = Timer()
 
+    joy_x = 0
+    joy_y = 0
+
     telemetry = TelemetryDataTypes(
         mode=state.value,
         battery=12.4,
@@ -48,14 +51,15 @@ class Robot:
         status="",
     )
     
-
+    def set_joystick(values : str):
+        x,y = values.split(",")
+        Robot.joy_x = float(x)
+        Robot.joy_y = float(y)
     def set_state(state):
         if (Robot.state == state):
             return
         if (state == RobotState.GAMEPAD):
             Robot.gamepad,connected = check_gamepad(Robot.gamepad)
-            if (not connected):
-                return
         Robot.state = state
     def turn_off():
         print("Turn off Robot")
@@ -87,6 +91,8 @@ class Robot:
             status=Drivetrain.status(),
         )
         if (not Robot.on):
+            Robot.joy_x = 0
+            Robot.joy_y = 0
             return
         if (Robot.update_timer.time_passed() < UPDATE_TIME):
             time.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
@@ -94,7 +100,10 @@ class Robot:
         if (Robot.ping_stopwatch.time_passed() > PING_TIME):
             ping()
             Robot.ping_stopwatch.go()
-        if (Robot.state == RobotState.GAMEPAD and Robot.gamepad.is_connected()):
-            Drivetrain.run(Robot.gamepad.LeftJoystickY,Robot.gamepad.RightJoystickX)
+        if (Robot.state == RobotState.GAMEPAD):
+            if (Robot.gamepad.is_connected()):
+                Robot.joy_y = Robot.gamepad.LeftJoystickY
+                Robot.joy_x = Robot.gamepad.RightJoystickX
+            Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()

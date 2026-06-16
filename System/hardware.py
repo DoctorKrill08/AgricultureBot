@@ -33,6 +33,8 @@ def send_command(command):
     Arduino.serial.write(encoded_command)
 
 def close_arduino():
+    if (Arduino.connceted == False):
+        return
     Arduino.serial.close()
     Arduino.connceted = False
 def stop_arduino():

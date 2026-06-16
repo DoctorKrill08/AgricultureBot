@@ -33,14 +33,13 @@ async def command_task(websocket: WebSocket):
         data = await websocket.receive_json()
         print(data)
         if data["request"] == "SET_STATE":
-            Robot.set_state(data["values"])
+            Robot.set_state(RobotState(data["values"]))
         elif data["request"] == "OFF":
             Robot.turn_off()
         elif data["request"] == "ON":
             Robot.turn_on()
-        elif data["request"] == "gamepad":
-            Robot.joy_x = data["values"]
-            Robot.joy_y = data["values"]
+        elif data["request"] == "JOYSTICK":
+            Robot.set_joystick(data["values"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
