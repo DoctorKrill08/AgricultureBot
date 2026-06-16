@@ -8,7 +8,7 @@ app = FastAPI()
 
 async def robot_loop():
 
-    while Robot.on:
+    while True:
         Robot.update()
         await asyncio.sleep(0)
 
@@ -20,21 +20,9 @@ async def startup():
 
 async def telemetry_task(websocket: WebSocket):
     while True:
-
-        telemetry = TelemetryDataTypes(
-            mode=Robot.state.value,
-            battery=12.4,
-            longitude=10,
-            latitude=0,
-            heading=0,
-            status="Running",
-            fps=20,
-            ping=10
-        )
-
         await websocket.send_json({
             "type": "telemetry",
-            **telemetry.model_dump()
+            **Robot.telemetry.model_dump()
         })
 
         await asyncio.sleep(0.1)
@@ -44,12 +32,15 @@ async def command_task(websocket: WebSocket):
 
         data = await websocket.receive_json()
         print(data)
-        if data["type"] == "command":
-            command_to_robot(data["command"])
-
-        elif data["type"] == "joystick":
-            Robot.joy_x = data["joy_x"]
-            Robot.joy_y = data["joy_y"]
+        if data["request"] == "SET_STATE":
+            Robot.set_state(data["values"])
+        elif data["request"] == "OFF":
+            Robot.turn_off()
+        elif data["request"] == "ON":
+            Robot.turn_on()
+        elif data["request"] == "gamepad":
+            Robot.joy_x = data["values"]
+            Robot.joy_y = data["values"]
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

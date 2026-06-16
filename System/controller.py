@@ -22,6 +22,11 @@ def check_gamepad(gamepad):
            gamepad,connected = create_gamepad()
     return gamepad,connected
 
+def gamepad_connected(gamepad):
+    if (not isinstance(gamepad,XboxController)):
+        return False
+    return gamepad.is_connected()
+
 class XboxController(object):
     MAX_TRIG_VAL = math.pow(2, 8)
     MAX_JOY_VAL = math.pow(2, 15)

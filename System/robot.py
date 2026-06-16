@@ -16,21 +16,14 @@ class TelemetryDataTypes(BaseModel):
     longitude: float
     latitude: float
     heading: float
+    arduino_connected: bool
+    gamepad_connected: bool
     status: str
-    fps: float
-    ping: float
 
 class ClientInputDataTypes(BaseModel):
     command: str
     joy_x: float
     joy_y: float
-
-def command_to_robot(command: str):
-    print(f"command: {command}")
-    if (command == RobotState.OFF.value):
-        Robot.turn_off()
-        return
-    Robot.set_state(RobotState[command])
 
 PING_TIME = 0.5 #Every half a second
 UPDATE_TIME = 0.05
@@ -43,6 +36,17 @@ class Robot:
     state = RobotState.RESTING
     ping_stopwatch = Stopwatch();
     update_timer = Timer()
+
+    telemetry = TelemetryDataTypes(
+        mode=state.value,
+        battery=12.4,
+        longitude=10,
+        latitude=0,
+        heading=0,
+        arduino_connected=False,
+        gamepad_connected=False,
+        status="",
+    )
     
 
     def set_state(state):
@@ -54,16 +58,34 @@ class Robot:
                 return
         Robot.state = state
     def turn_off():
+        print("Turn off Robot")
         Robot.on = False
+        Robot.set_state(RobotState.RESTING)
         stop_arduino()
         close_arduino()
+    def turn_on():
+        print("Turn on Robot")
+        Robot.initiate()
+        Robot.on = True
     def initiate():
         print("initiate")
+        Robot.state = RobotState.RESTING
         Arduino.connect_arduino()
-        time.sleep(0.5)
+        time.sleep(0.25)
         Drivetrain.initiate()
-        time.sleep(0.5)
+        time.sleep(0.25)
+        Robot.gamepad,_ = create_gamepad()
     def update():
+        Robot.telemetry = TelemetryDataTypes(
+            mode=Robot.state.value,
+            battery=12.4,
+            longitude=10,
+            latitude=0,
+            heading=0,
+            gamepad_connected=gamepad_connected(Robot.gamepad),
+            arduino_connected=Arduino.connceted,
+            status=Drivetrain.status(),
+        )
         if (not Robot.on):
             return
         if (Robot.update_timer.time_passed() < UPDATE_TIME):
@@ -76,16 +98,3 @@ class Robot:
             Drivetrain.run(Robot.gamepad.LeftJoystickY,Robot.gamepad.RightJoystickX)
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()
-
-
-
-telemetry = TelemetryDataTypes(
-    mode=Robot.state.value,
-    battery=12.4,
-    longitude=-79.791,
-    latitude=36.072,
-    heading=45.2,
-    status="Driving",
-    fps=0,
-    ping=0
-)

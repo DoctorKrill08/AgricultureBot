@@ -14,6 +14,13 @@ class Drivetrain:
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
         Drivetrain.drive = 0
         Drivetrain.turn = 0
+    def status():
+        telemetry = "--- DRIVETRAIN ---\n"
+        telemetry += f" DRIVE: {Drivetrain.drive}"
+        telemetry += f" TURN: {Drivetrain.turn}"
+        telemetry += Drivetrain.left_motor.status()
+        telemetry += Drivetrain.right_motor.status()
+        return telemetry
     def to_scale(drive,turn):
         if (abs(drive) + abs(turn) < 1):
             return drive,turn

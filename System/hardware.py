@@ -34,15 +34,21 @@ def send_command(command):
 
 def close_arduino():
     Arduino.serial.close()
+    Arduino.connceted = False
 def stop_arduino():
     send_command(f"{Device.Stop.value},0,0")
 def ping():
     send_command(f"{Device.Ping.value},0,0")
 class Servo:
     TYPE = HardwareType.SERVO
+    id = None
+    initiated = False
+    target = 0
     def __init__(self,id):
         self.id = id
+        self.initiated = True
     def set(self,target):
+        self.target = target
         send_command(f'{self.id},{Request.SET.value},{target}')
     def get(self):
         send_command(f'{self.id},{Request.GET.value},{None}')
@@ -53,9 +59,16 @@ class Motor:
     target = 0
     MINIMUM_DIFFERENCE = 0.05
     MINIMUM_POWER = 0.1
+    id = None
+    initiated = False
     def __init__(self,id):
         self.id = id
         self.target = 0
+        self.initiated = True
+    def status(self):
+        if (self.id == None):
+            return ""
+        return f" {Device(self.id).name} POWER: {self.target} "
     def set(self,target):
         if abs(target) < Motor.MINIMUM_POWER:
             target = 0
