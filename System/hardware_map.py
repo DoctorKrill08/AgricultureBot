@@ -6,6 +6,7 @@ import os
 #READ ME!!!! 
 #If you change info here, run this file so the c++ equivalent updates too!!!!
 class Device(Enum):
+    Start = '-2' #Tells the arduino the robot is ready -> start
     Stop = '-1' #Stop is a signal telling the arduino to stop everything
     Ping = '0' #Ping is an empty signal that just lets the arduino know the computer hasn't crashed
     #Specific devices -> 1 and up

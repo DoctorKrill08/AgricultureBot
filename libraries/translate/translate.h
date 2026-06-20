@@ -53,6 +53,7 @@ enum Request {
     GET = 2,
 };
 enum Device {
+    Start = -2,
     Stop = -1,
     Ping = 0,
     DriveLeft = 1,

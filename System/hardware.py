@@ -16,6 +16,7 @@ class Arduino:
         try:
             Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
             Arduino.connceted = True
+            send_command(f'{Device.Start},0,0')
         except:
             Arduino.connceted = False
         print(f"Arduino connected: {Arduino.connceted}")
@@ -26,9 +27,6 @@ def send_command(command):
         return
     print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
-    
-
-    print("Encoded Command: ",encoded_command)
 
     Arduino.serial.write(encoded_command)
     raw_data = Arduino.serial.readline()
@@ -42,7 +40,6 @@ def close_arduino():
 def stop_arduino():
     send_command(f"{Device.Stop.value},0,0")
 def ping():
-    print("Ping")
     send_command(f"{Device.Ping.value},0,0")
 class Servo:
     TYPE = HardwareType.SERVO

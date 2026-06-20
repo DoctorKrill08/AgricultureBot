@@ -69,6 +69,8 @@ const int DriveLeftMotorPWMPort = 4;
 const int DriveRightMotorDriverPort = 10;
 const int DriveRightMotorPWMPort = 2;
 
+bool connected = false;
+
 Servo clawServo;
 
 Motor driveLeftMotor = {DriveLeftMotorDriverPort,DriveLeftMotorPWMPort};
@@ -128,6 +130,14 @@ void loop() {
 
     Command cmd = parseCommand(message.c_str());
 
+    if (cmd.id == Start){
+      connected = true;
+    }
+
+    if (connected == false){
+      stop();
+      return;
+    }
     if (cmd.id >= 0){
       startTime = millis();
     }
