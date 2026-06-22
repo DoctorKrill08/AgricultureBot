@@ -2,6 +2,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
+import './interface_map'
+import { COMMAND, Command, RobotState } from "./interface_map";
 
 
 type TelemetryData = {
@@ -52,7 +54,7 @@ export default function RobotControlPanel() {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "telemetry") {
+      if (data[COMMAND] === Command.TELEMETRY) {
         setTelemetry({
           mode: data.mode,
           battery: data.battery,
@@ -71,7 +73,7 @@ export default function RobotControlPanel() {
     };
   }, []);
 
-  const sendCommand = (request: string, values: string) => {
+  const sendCommand = (command: string, values: string) => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
       console.warn("Socket not connected");
       return;
@@ -79,7 +81,7 @@ export default function RobotControlPanel() {
 
     socketRef.current.send(
       JSON.stringify({
-        request: request,
+        command: command,
         values: values,
       })
     );
@@ -89,7 +91,7 @@ export default function RobotControlPanel() {
     x = Math.pow(x,3)
     y = Math.pow(y,3)
     console.log("Joystick:", x, y);
-    sendCommand("JOYSTICK",`${x},${y}`)
+    sendCommand(Command.JOYSTICK,`${x},${y}`)
   };
 
 
@@ -147,21 +149,21 @@ export default function RobotControlPanel() {
             <h2>Command</h2>
 
             <div>
-              <button className="off-button" onClick={() => sendCommand("OFF","")}>
+              <button className="off-button" onClick={() => sendCommand(Command.OFF,"")}>
                 Off
               </button>
-              <button className="on-button" onClick={() => sendCommand("ON","")}>
+              <button className="on-button" onClick={() => sendCommand(Command.ON,"")}>
                 On
               </button>
-              <button className="button" onClick={() => sendCommand("SET_STATE","RESTING")}>
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.RESTING)}>
                 Resting
               </button>
 
-              <button className="button" onClick={() => sendCommand("SET_STATE","GAMEPAD")}>
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.GAMEPAD)}>
                 Gamepad
               </button>
 
-              <button className="button" onClick={() => sendCommand("SET_STATE","AUTONOMOUS")}>
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
             </div>

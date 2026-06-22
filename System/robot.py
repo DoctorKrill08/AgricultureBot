@@ -9,7 +9,6 @@ class RobotState(Enum):
     RESTING = "RESTING"
     GAMEPAD = "GAMEPAD"
     AUTONOMOUS = "AUTONOMOUS"
-    OFF = "OFF"
 class TelemetryDataTypes(BaseModel):
     mode: str
     battery: float

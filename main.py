@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket
-from System.robot import *
+from System.robot import Robot, RobotState
+from System.interface_map import *
 import asyncio
 
 
@@ -21,7 +22,7 @@ async def startup():
 async def telemetry_task(websocket: WebSocket):
     while True:
         await websocket.send_json({
-            "type": "telemetry",
+            COMMAND: Command.TELEMETRY,
             **Robot.telemetry.model_dump()
         })
 
@@ -32,14 +33,14 @@ async def command_task(websocket: WebSocket):
 
         data = await websocket.receive_json()
         print(data)
-        if data["request"] == "SET_STATE":
-            Robot.set_state(RobotState(data["values"]))
-        elif data["request"] == "OFF":
+        if data[COMMAND] == Command.SET_STATE:
+            Robot.set_state(RobotState(data[VALUES]))
+        elif data[COMMAND] == Command.OFF:
             Robot.turn_off()
-        elif data["request"] == "ON":
+        elif data[COMMAND] == Command.ON:
             Robot.turn_on()
-        elif data["request"] == "JOYSTICK":
-            Robot.set_joystick(data["values"])
+        elif data[COMMAND] == Command.JOYSTICK:
+            Robot.set_joystick(data[VALUES])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

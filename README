@@ -4,7 +4,10 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 for pip installs do pip3 install import_name
 
-
+---For automatic hotspot:
+1. Turn on automatic log in.
+2. Go to startup applications
+3. Add -> Call it auto hotspot -> give it the following command assuming the hotspot name is robot: nmcli connection up robot
 
 python -m venv venv
 venv/Scripts/Activate
