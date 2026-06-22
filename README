@@ -36,13 +36,20 @@ journalctl -u agbot -f
 source ~/AgricultureBot/venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000
 
-TODO: npm stuff
-
 pip3 install pyserial
 pip3 install inputs
 pip3 install fastapi
 pip3 install uvicorn
 pip3 install websockets
+
+
+
+install node js:
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+npm install
+--- In Interface ---
+npm run dev -- --webpack
 
 ---For automatic hotspot:
 1. Turn on automatic log in.

@@ -33,8 +33,9 @@ export default function RobotControlPanel() {
 
   const socketRef = useRef<WebSocket | null>(null);
 
+  //Nano -> 172.17.0.1
   useEffect(() => {
-    const socket = new WebSocket("ws://10.225.60.141:8000/ws");
+    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
 
     socketRef.current = socket;
 
