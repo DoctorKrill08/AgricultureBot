@@ -10,8 +10,9 @@ sudo nano /etc/systemd/system/agbot.service
 
 ---------
 [Unit]
-Description=Agriculture Bot FastAPI Server
-After=network.target
+Description=Agriculture Bot Server
+After=NetworkManager.service network-online.target
+Wants=network-online.target
 
 [Service]
 User=<YOUR_USERNAME>
@@ -56,7 +57,14 @@ npm run dev -- --webpack
 2. Go to startup applications
 3. Add -> Call it auto hotspot -> give it the following command assuming the hotspot name is robot: nmcli connection up robot
 
+Check wifi settings:
+nmcli device
+nmcli show robot
 
+Set correct wifi interface:
+nmcli connection modify robot connection.interface-name wlP1p1s0
+
+http://10.42.0.124:3000/
 
 
 
