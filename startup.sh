@@ -2,6 +2,8 @@
 
 sleep 30
 
+nmcli connection up robot
+
 cd ~/AgricultureBot
 
 exec /home/jarm/AgricultureBot/venv/bin/uvicorn \

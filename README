@@ -1,14 +1,61 @@
 ---Jetson commands ---
-source ~/AgricultureBot/venv/Scripts/activate
+
+Create venv:
+cd AgricultureBot
+python3 -m venv venv
+source venv/bin/activate
+
+Create agbot (should only have to do once):
+sudo nano /etc/systemd/system/agbot.service
+
+---------
+[Unit]
+Description=Agriculture Bot FastAPI Server
+After=network.target
+
+[Service]
+User=<YOUR_USERNAME>
+WorkingDirectory=/home/<YOUR_USERNAME>/AgricultureBot
+
+ExecStart=/bin/bash /home/<YOUR_USERNAME>/AgricultureBot/startup.sh
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+-----------
+sudo systemctl daemon-reload
+sudo systemctl enable agbot
+sudo systemctl start agbot
+sudo systemctl status agbot
+journalctl -u agbot -f
+
+
+source ~/AgricultureBot/venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000
 
-for pip installs do pip3 install import_name
+TODO: npm stuff
+
+pip3 install pyserial
+pip3 install inputs
+pip3 install fastapi
+pip3 install uvicorn
+pip3 install websockets
 
 ---For automatic hotspot:
 1. Turn on automatic log in.
 2. Go to startup applications
 3. Add -> Call it auto hotspot -> give it the following command assuming the hotspot name is robot: nmcli connection up robot
 
+
+
+
+
+
+
+----WINDOWS-----
 python -m venv venv
 venv/Scripts/Activate
 

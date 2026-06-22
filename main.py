@@ -22,7 +22,7 @@ async def startup():
 async def telemetry_task(websocket: WebSocket):
     while True:
         await websocket.send_json({
-            COMMAND: Command.TELEMETRY,
+            "COMMAND": Command.TELEMETRY.value,
             **Robot.telemetry.model_dump()
         })
 
@@ -33,13 +33,13 @@ async def command_task(websocket: WebSocket):
 
         data = await websocket.receive_json()
         print(data)
-        if data[COMMAND] == Command.SET_STATE:
+        if data[COMMAND] == Command.SET_STATE.value:
             Robot.set_state(RobotState(data[VALUES]))
-        elif data[COMMAND] == Command.OFF:
+        elif data[COMMAND] == Command.OFF.value:
             Robot.turn_off()
-        elif data[COMMAND] == Command.ON:
+        elif data[COMMAND] == Command.ON.value:
             Robot.turn_on()
-        elif data[COMMAND] == Command.JOYSTICK:
+        elif data[COMMAND] == Command.JOYSTICK.value:
             Robot.set_joystick(data[VALUES])
 
 @app.websocket("/ws")

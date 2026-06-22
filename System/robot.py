@@ -2,13 +2,10 @@ from enum import Enum
 from System.subsystems import*
 from System.controller import *
 from System.timer import *
+from System.interface_map import RobotState
 from pydantic import BaseModel
 
 
-class RobotState(Enum):
-    RESTING = "RESTING"
-    GAMEPAD = "GAMEPAD"
-    AUTONOMOUS = "AUTONOMOUS"
 class TelemetryDataTypes(BaseModel):
     mode: str
     battery: float

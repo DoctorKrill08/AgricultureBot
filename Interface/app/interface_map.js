@@ -1,17 +1,16 @@
 export const Command = Object.freeze({
-    "OFF" : "-1",
-    "TELEMETRY" : "0",
-    "ON" : "1",
-    "SET_STATE" : "2",
-    "JOYSTICK" : "3"
-});
+  OFF : "OFF",
+  TELEMETRY : "TELEMETRY",
+  ON : "ON",
+  SET_STATE : "SET_STATE",
+  JOYSTICK : "JOYSTICK",
 
+});
 export const RobotState = Object.freeze({
-    "RESTING" : "RESTING",
-    "AUTONOMOUS" : "AUTONOMOUS",
-    "GAMEPAD" : "GAMEPAD"
-});
+  RESTING : "RESTING",
+  GAMEPAD : "GAMEPAD",
+  AUTONOMOUS : "AUTONOMOUS",
 
+});
 export const COMMAND = "COMMAND";
 export const VALUES = "VALUES";
-

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
 import './interface_map'
-import { COMMAND, Command, RobotState } from "./interface_map";
+import { COMMAND, Command, RobotState, VALUES } from "./interface_map";
 
 
 type TelemetryData = {
@@ -34,7 +34,7 @@ export default function RobotControlPanel() {
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
+    const socket = new WebSocket("ws://10.225.60.141:8000/ws");
 
     socketRef.current = socket;
 
@@ -81,8 +81,8 @@ export default function RobotControlPanel() {
 
     socketRef.current.send(
       JSON.stringify({
-        command: command,
-        values: values,
+        COMMAND: command,
+        VALUES: values,
       })
     );
   };
