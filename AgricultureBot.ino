@@ -60,7 +60,6 @@ int motorCommand(int driverPort, int pwmPort,  int request, int value){
   return -1;
 }
 
-int BAUD_RATE = 9600;
 const int clawPort = 5;
 
 const int DriveLeftMotorDriverPort = 12;
@@ -126,18 +125,9 @@ void loop() {
   if (Serial.available() > 0) {
     // Read the incoming byte
     String message = Serial.readStringUntil('\n');
-    Serial.println(message);
 
     Command cmd = parseCommand(message.c_str());
 
-    if (cmd.id == Start){
-      connected = true;
-    }
-
-    if (connected == false){
-      stop();
-      return;
-    }
     if (cmd.id >= 0){
       startTime = millis();
     }
@@ -162,6 +152,7 @@ void loop() {
       int result = servoCommand(servo,cmd.request,cmd.value);
     }else if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
+      Serial.println(cmd.request);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
     }
   }

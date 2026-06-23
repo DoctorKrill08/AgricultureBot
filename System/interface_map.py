@@ -2,19 +2,19 @@
 from enum import Enum
 
 class Command(Enum):
-    OFF = "OFF"
-    TELEMETRY = "TELEMETRY"
-    ON = "ON"
-    SET_STATE = "SET_STATE"
-    JOYSTICK = "JOYSTICK"
+    OFF = "-1"
+    TELEMETRY = "0"
+    ON = "1"
+    SET_STATE = "2"
+    JOYSTICK = "3"
 
 class RobotState(Enum):
     RESTING = "RESTING"
     GAMEPAD = "GAMEPAD"
     AUTONOMOUS = "AUTONOMOUS"
 
-COMMAND = "COMMAND"
-VALUES = "VALUES"
+COMMAND = '0'
+VALUES = '1'
 
 
 

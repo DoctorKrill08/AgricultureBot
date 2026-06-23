@@ -22,7 +22,7 @@ async def startup():
 async def telemetry_task(websocket: WebSocket):
     while True:
         await websocket.send_json({
-            "COMMAND": Command.TELEMETRY.value,
+            COMMAND: Command.TELEMETRY.value,
             **Robot.telemetry.model_dump()
         })
 

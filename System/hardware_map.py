@@ -30,6 +30,7 @@ class Request(Enum):
     SET = "1"
     GET = "2"
 
+BAUD_RATE = 9600
 
 hardware_type_map = {}
 hardware_type_map[Device.DriveLeft.value] = HardwareType.MOTOR.value
@@ -74,6 +75,7 @@ char getType(int key){
     header_content += f"\nstatic const char SERVO_VALUE = '{HardwareType.SERVO.value}';"
     header_content += f"\nstatic const char MOTOR_VALUE = '{HardwareType.MOTOR.value}';"
     header_content += f"\nstatic const char BATTERY_VALUE = '{HardwareType.BATTERY.value}';"
+    header_content += f"\nstatic const int BAUD_RATE = {BAUD_RATE};"
 
     #make a struct request -> equivalent of that enum
     header_content += "\nenum Request {"

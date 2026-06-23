@@ -1,10 +1,7 @@
-from System.subsystems import Drivetrain
-import time
-Drivetrain.initiate()
-Drivetrain.stop()
-time.sleep(1)
-Drivetrain.run(drive = 0, turn = 0.5)
-time.sleep(3)
-Drivetrain.run(drive = 0,turn = -0.5)
-time.sleep(3)
-Drivetrain.stop()
+
+from System.robot import *
+Robot.turn_on()
+time.sleep(.5)
+Drivetrain.run(drive = 0.1,turn =0)
+time.sleep(2)
+Robot.turn_off()

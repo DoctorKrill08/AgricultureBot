@@ -1,9 +1,9 @@
 export const Command = Object.freeze({
-  OFF : "OFF",
-  TELEMETRY : "TELEMETRY",
-  ON : "ON",
-  SET_STATE : "SET_STATE",
-  JOYSTICK : "JOYSTICK",
+  OFF : "-1",
+  TELEMETRY : "0",
+  ON : "1",
+  SET_STATE : "2",
+  JOYSTICK : "3",
 
 });
 export const RobotState = Object.freeze({
@@ -12,5 +12,5 @@ export const RobotState = Object.freeze({
   AUTONOMOUS : "AUTONOMOUS",
 
 });
-export const COMMAND = "COMMAND";
-export const VALUES = "VALUES";
+export const COMMAND = "0";
+export const VALUES = "1";

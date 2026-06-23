@@ -7,7 +7,7 @@ from enum import Enum
 
 PORT = "COM5"
 JETSON_PORT = '/dev/ttyTHS1'
-BAUD_RATE = 9600
+TIMEOUT = 0.1
 
 
 class Arduino:
@@ -15,14 +15,14 @@ class Arduino:
     connceted = False
     def connect_arduino():
         try:
-            Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=2)
+            Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
             Arduino.connceted = True
-            send_command(f'{Device.Start},0,0')
+            print(PORT)
         except:
             try:
-                Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=2)
+                Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
                 Arduino.connceted = True
-                send_command(f'{Device.Start},0,0')
+                print(JETSON_PORT)
             except:
                 Arduino.connceted = False
         print(f"Arduino connected: {Arduino.connceted}")
@@ -35,8 +35,9 @@ def send_command(command):
     encoded_command = (command + "\n").encode('utf-8')
 
     Arduino.serial.write(encoded_command)
-    raw_data = Arduino.serial.readline()
-    print(raw_data.decode('utf-8').strip())
+
+    #raw_data = Arduino.serial.readline()
+    #print(raw_data.decode('utf-8').strip())
 
 def close_arduino():
     if (Arduino.connceted == False):
@@ -59,9 +60,9 @@ class Servo:
         self.target = target
         send_command(f'{self.id},{Request.SET.value},{target}')
     def get(self):
-        send_command(f'{self.id},{Request.GET.value},{None}')
+        send_command(f'{self.id},{Request.GET.value},{"0"}')
     def turn_off(self):
-        send_command(f'{self.id},{Request.OFF.value},{None}')
+        send_command(f'{self.id},{Request.OFF.value},{"0"}')
 class Motor:
     TYPE = HardwareType.MOTOR
     target = 0
@@ -96,4 +97,4 @@ class Motor:
         send_command(f'{self.id},{Request.SET.value},{target}')
     def stop(self):
         self.target = 0
-        send_command(f'{self.id},{Request.OFF.value},{None}')
+        send_command(f'{self.id},{Request.OFF.value},{"0"}')

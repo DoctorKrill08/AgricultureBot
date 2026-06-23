@@ -34,8 +34,9 @@ export default function RobotControlPanel() {
   const socketRef = useRef<WebSocket | null>(null);
 
   //Nano -> 172.17.0.1
+  //Rokoko ->10.54.132.8
   useEffect(() => {
-    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.8:8000/ws");
 
     socketRef.current = socket;
 
@@ -82,8 +83,8 @@ export default function RobotControlPanel() {
 
     socketRef.current.send(
       JSON.stringify({
-        COMMAND: command,
-        VALUES: values,
+        "0": command,
+        "1": values,
       })
     );
   };
