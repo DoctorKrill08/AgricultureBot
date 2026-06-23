@@ -6,6 +6,7 @@ from System.hardware_map import *
 from enum import Enum
 
 PORT = "COM5"
+JETSON_PORT = '/dev/ttyTHS1'
 BAUD_RATE = 9600
 
 
@@ -18,7 +19,12 @@ class Arduino:
             Arduino.connceted = True
             send_command(f'{Device.Start},0,0')
         except:
-            Arduino.connceted = False
+            try:
+                Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=2)
+                Arduino.connceted = True
+                send_command(f'{Device.Start},0,0')
+            except:
+                Arduino.connceted = False
         print(f"Arduino connected: {Arduino.connceted}")
 
 def send_command(command):
