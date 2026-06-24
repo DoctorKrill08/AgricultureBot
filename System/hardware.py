@@ -6,7 +6,7 @@ from System.hardware_map import *
 from enum import Enum
 
 PORT = "COM5"
-JETSON_PORT = '/dev/ttyTHS1'
+JETSON_PORT = '/dev/ttyACM0'
 TIMEOUT = 0.1
 
 
@@ -36,8 +36,8 @@ def send_command(command):
 
     Arduino.serial.write(encoded_command)
 
-    #raw_data = Arduino.serial.readline()
-    #print(raw_data.decode('utf-8').strip())
+    raw_data = Arduino.serial.readline()
+    print(raw_data.decode('utf-8').strip())
 
 def close_arduino():
     if (Arduino.connceted == False):

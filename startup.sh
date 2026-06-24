@@ -4,7 +4,9 @@ sleep 30
 
 cd ~/AgricultureBot
 
-/home/ethan/AgricultureBot/venv/bin/uvicorn \
+/home/ethan/AgricultureBot/venv/bin/activate
+
+/home/ethan/AgricultureBot/venv/bin/python -u -m uvicorn \
     main:app \
     --host 0.0.0.0 \
     --port 8000 &

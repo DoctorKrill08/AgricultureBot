@@ -127,6 +127,7 @@ void loop() {
     String message = Serial.readStringUntil('\n');
 
     Command cmd = parseCommand(message.c_str());
+    Serial.println(message);
 
     if (cmd.id >= 0){
       startTime = millis();
@@ -152,7 +153,6 @@ void loop() {
       int result = servoCommand(servo,cmd.request,cmd.value);
     }else if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
-      Serial.println(cmd.request);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
     }
   }
