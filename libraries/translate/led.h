@@ -4,7 +4,7 @@
 #include "Arduino.h"
 const long BLINK_TIME = 300;
 long ledBlinkStartTime = millis();
-bool ledBlinking = false;
+bool ledBlinking = true;
 bool ledOn = false;
 
 const int LED_PORT = 7;
