@@ -101,6 +101,12 @@ void stop(){
     result = motorCommand(driveRightMotor.driverPort,driveRightMotor.pwmPort,OFF,0);
 }
 
+void turnOff(){
+  connected = false;
+  ledBlink();
+  stop();
+}
+
 
 //IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
 unsigned long startTime; // Stores the starting time
@@ -124,7 +130,7 @@ bool stopped = false;
 void loop() {
   unsigned long elapsedTime = millis() - startTime; 
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS){
-    stop();
+    turnOff();
   }
   ledUpdate();
   if (Serial.available() > 0) {
@@ -147,9 +153,7 @@ void loop() {
       return;
     }
     if (cmd.id == Stop){
-      connected = false;
-      ledBlink();
-      stop();
+      turnOff();
       return;
     }
     if (connected == false){
