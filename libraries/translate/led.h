@@ -7,7 +7,7 @@ long ledBlinkStartTime = millis();
 bool ledBlinking = false;
 bool ledOn = false;
 
-const int LED_PORT = 3;
+const int LED_PORT = 7;
 
 void ledUpdate(){
     unsigned long blink_elapsed_time = millis() - ledBlinkStartTime;
