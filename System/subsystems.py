@@ -8,20 +8,17 @@ class Drivetrain:
     right_motor = None
     telemetry = ""
     MAX_POWER = 0.75
-    MAX_TURN = 0.5
+    TURN_SENSITIVITY = 0.5
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
     def status():
         telemetry = "--- DRIVETRAIN ---\n"
-        telemetry += f" DRIVE: {Drivetrain.drive}"
-        telemetry += f" TURN: {Drivetrain.turn}"
         telemetry += Drivetrain.left_motor.status()
         telemetry += Drivetrain.right_motor.status()
         return telemetry
     def to_scale(drive,turn):
-        if (abs(turn) > Drivetrain.MAX_TURN):
-            turn = (turn/abs(turn)) * Drivetrain.MAX_POWER
+        turn = turn * Drivetrain.TURN_SENSITIVITY
         if (abs(drive) + abs(turn) < Drivetrain.MAX_POWER):
             return drive,turn
         sum = abs(drive) + abs(turn)
@@ -32,7 +29,6 @@ class Drivetrain:
         Drivetrain.right_motor.stop()
     def run(drive,turn):
         drive = -drive
-        turn = -turn
         drive,turn = Drivetrain.to_scale(drive,turn)
         Drivetrain.left_motor.set((drive + turn))
         Drivetrain.right_motor.set((drive - turn))
