@@ -2,6 +2,7 @@
 #include <Servo.h>
 
 #include <translate.h>
+#include <led.h>
 
 struct Motor{
   int driverPort;
@@ -100,6 +101,7 @@ void stop(){
     result = motorCommand(driveRightMotor.driverPort,driveRightMotor.pwmPort,OFF,0);
 }
 
+
 //IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
 unsigned long startTime; // Stores the starting time
 
@@ -110,9 +112,11 @@ void setup() {
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
   pinMode(DriveRightMotorDriverPort, OUTPUT);
   pinMode(DriveRightMotorPWMPort, OUTPUT);
+  pinMode(LED_PORT,OUTPUT);
   startTime = millis(); 
   stop();
 }
+
 
 const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 1500;
 bool stopped = false;
@@ -122,12 +126,18 @@ void loop() {
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS){
     stop();
   }
+  ledUpdate();
   if (Serial.available() > 0) {
     // Read the incoming byte
     String message = Serial.readStringUntil('\n');
 
     Command cmd = parseCommand(message.c_str());
     Serial.println(message);
+
+    if (cmd.id == Start){
+      connected = true;
+      ledStayOn();
+    }
 
     if (cmd.id >= 0){
       startTime = millis();
@@ -137,12 +147,12 @@ void loop() {
       return;
     }
     if (cmd.id == Stop){
-      stopped = true;
+      connected = false;
+      ledBlink();
       stop();
       return;
     }
-    if (stopped == true){
-      stop();
+    if (connected == false){
       return;
     }
 

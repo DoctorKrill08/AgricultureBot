@@ -17,11 +17,13 @@ class Arduino:
         try:
             Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
             Arduino.connceted = True
+            send_command(f"{Device.Start.value},0,0")
             print(PORT)
         except:
             try:
                 Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
                 Arduino.connceted = True
+                send_command(f"{Device.Start.value},0,0")
                 print(JETSON_PORT)
             except:
                 Arduino.connceted = False
