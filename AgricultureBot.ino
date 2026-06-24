@@ -129,7 +129,7 @@ bool stopped = false;
 
 void loop() {
   unsigned long elapsedTime = millis() - startTime; 
-  if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS){
+  if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
     turnOff();
   }
   ledUpdate();
