@@ -73,7 +73,7 @@ class Robot:
         Arduino.connect_arduino()
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
-        Robot.gamepad,_ = create_gamepad()
+        #Robot.gamepad,_ = create_gamepad()
     def update():
         Robot.telemetry = TelemetryDataTypes(
             mode=Robot.state.value,
