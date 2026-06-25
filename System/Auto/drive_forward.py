@@ -1,4 +1,4 @@
-from ..robot import *
+from System.robot import *
 if __name__ == "__main__":
     Robot.turn_on()
     RUN_TIME = 3000
