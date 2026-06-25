@@ -12,27 +12,26 @@ TIMEOUT = 0.1
 
 class Arduino:
     serial = None
-    connceted = False
+    connected = False
     def connect_arduino():
         try:
             Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
-            Arduino.connceted = True
-            time.sleep(.1)
-            send_command(f"{Device.Start.value},0,0")
+            Arduino.connected = True
             print(PORT)
         except:
             try:
                 Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
-                Arduino.connceted = True
-                time.sleep(.1)
-                send_command(f"{Device.Start.value},0,0")
+                Arduino.connected = True
                 print(JETSON_PORT)
             except:
-                Arduino.connceted = False
-        print(f"Arduino connected: {Arduino.connceted}")
+                Arduino.connected = False
+        print(f"Arduino connected: {Arduino.connected}")
+        time.sleep(1)
+        if (Arduino.connected):
+            send_command(f"{Device.Start.value},0,0")
 
 def send_command(command):
-    if (not Arduino.connceted):
+    if (not Arduino.connected):
         print("Arduino not connected")
         return
     print("Command: ",command)
@@ -44,10 +43,10 @@ def send_command(command):
     print(raw_data.decode('utf-8').strip())
 
 def close_arduino():
-    if (Arduino.connceted == False):
+    if (Arduino.connected == False):
         return
     Arduino.serial.close()
-    Arduino.connceted = False
+    Arduino.connected = False
 def stop_arduino():
     send_command(f"{Device.Stop.value},0,0")
 def ping():

@@ -116,11 +116,13 @@ void setup() {
   clawServo.attach(clawPort); 
   pinMode(DriveLeftMotorDriverPort, OUTPUT);
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
+
   pinMode(DriveRightMotorDriverPort, OUTPUT);
   pinMode(DriveRightMotorPWMPort, OUTPUT);
+
   pinMode(LED_PORT,OUTPUT);
   startTime = millis(); 
-  stop();
+  connected = false;
 }
 
 
@@ -138,11 +140,17 @@ void loop() {
     String message = Serial.readStringUntil('\n');
 
     Command cmd = parseCommand(message.c_str());
-    Serial.println(message);
+    String strConnected = "NOT CONNECTED";
+    if (connected){
+      strConnected = "CONNECTED";
+    }
+    Serial.println(message + strConnected);
 
     if (cmd.id == Start){
       connected = true;
+      startTime = millis();
       ledStayOn();
+      return;
     }
 
     if (cmd.id >= 0){
@@ -157,6 +165,7 @@ void loop() {
       return;
     }
     if (connected == false){
+      stop();
       return;
     }
 

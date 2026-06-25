@@ -81,7 +81,7 @@ class Robot:
             latitude=0,
             heading=0,
             gamepad_connected=gamepad_connected(Robot.gamepad),
-            arduino_connected=Arduino.connceted,
+            arduino_connected=Arduino.connected,
             status=Drivetrain.status(),
         )
         if (not Robot.on):
