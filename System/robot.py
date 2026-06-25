@@ -2,6 +2,8 @@ from enum import Enum
 from System.subsystems import*
 from System.controller import *
 from System.timer import *
+from System.Camera import Camera
+from System.Auto import Auto,DriveForwardWithCamera
 from System.interface_map import RobotState
 from pydantic import BaseModel
 
@@ -36,6 +38,8 @@ class Robot:
     joy_x = 0
     joy_y = 0
 
+    auto = Auto()
+
     telemetry = TelemetryDataTypes(
         mode=state.value,
         battery=12.4,
@@ -58,6 +62,8 @@ class Robot:
             return
         if (state == RobotState.GAMEPAD):
             Robot.gamepad,connected = check_gamepad(Robot.gamepad)
+        if (state == RobotState.AUTONOMOUS):
+            Robot.auto = DriveForwardWithCamera()
         Robot.state = state
     def turn_off():
         print("Turn off Robot")
@@ -65,6 +71,7 @@ class Robot:
         Robot.set_state(RobotState.RESTING)
         stop_arduino()
         close_arduino()
+        Camera.stop()
     def turn_on():
         print("Turn on Robot")
         Robot.initiate()
@@ -75,6 +82,7 @@ class Robot:
         Arduino.connect_arduino()
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
+        Camera.start()
     def update():
         Robot.telemetry = TelemetryDataTypes(
             mode=Robot.state.value,
@@ -86,6 +94,7 @@ class Robot:
             arduino_connected=Arduino.connected,
             status=Drivetrain.status(),
         )
+        Camera.read()
         if (not Robot.on or Robot.state == RobotState.RESTING):
             Robot.joy_x = 0
             Robot.joy_y = 0
@@ -103,4 +112,6 @@ class Robot:
                 Robot.joy_x = Robot.gamepad.RightJoystickX
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()
+        elif (Robot.state == RobotState.RESTING):
+            Robot.auto.loop()
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)

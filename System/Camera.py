@@ -18,36 +18,36 @@ class Camera:
     MIN_NUM_OF_CLOSE_RAYS = 30
     to_close = False
     pipe = None
+    on = False
     def start():
-        Camera.pipe = rs.pipeline()
-        cfg  = rs.config()
+        try:
+            Camera.pipe = rs.pipeline()
+            cfg  = rs.config()
 
-        cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
-        cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
+            cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
+            cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
 
-        Camera.pipe.start(cfg)
+            Camera.pipe.start(cfg)
+            Camera.on = True
+        except:
+            Camera.on = False
     def read():
         Camera.to_close = False
+        if (not Camera.on):
+            return
         frame = Camera.pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
         color_frame = frame.get_color_frame()
 
-        depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
-        depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,
-                                        alpha = 0.03), cv2.COLORMAP_JET)
         canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
         canvas_black[20, 20] = [0, 0, 255]
         Camera.pixels_within_distance(canvas_black,depth_frame)
 
-        
-
-        #cv2.imshow('rgb', color_image)
-       # cv2.imshow('depth', depth_cm)
         #cv2.imshow('to close', canvas_black)
 
     def stop():
         Camera.pipe.stop()
+        Camera.on = False
     def pixels_within_distance(canvas,depth_frame):
         close_rays = 0
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
