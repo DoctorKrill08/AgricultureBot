@@ -26,7 +26,7 @@ class Arduino:
             except:
                 Arduino.connected = False
         print(f"Arduino connected: {Arduino.connected}")
-        time.sleep(1)
+        time.sleep(2)
         if (Arduino.connected):
             send_command(f"{Device.Start.value},0,0")
 

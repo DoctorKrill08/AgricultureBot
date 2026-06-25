@@ -42,9 +42,9 @@ class Camera:
 
         
 
-        cv2.imshow('rgb', color_image)
-        cv2.imshow('depth', depth_cm)
-        cv2.imshow('to close', canvas_black)
+        #cv2.imshow('rgb', color_image)
+       # cv2.imshow('depth', depth_cm)
+        #cv2.imshow('to close', canvas_black)
 
     def stop():
         Camera.pipe.stop()
