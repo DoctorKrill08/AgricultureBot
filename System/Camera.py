@@ -1,3 +1,4 @@
+
 class Camera:
     MIN_DISTANCE = 100
     FPS = 5
