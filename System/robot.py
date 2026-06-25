@@ -86,7 +86,7 @@ class Robot:
             arduino_connected=Arduino.connected,
             status=Drivetrain.status(),
         )
-        if (not Robot.on or RobotState.state == RobotState.RESTING):
+        if (not Robot.on or Robot.state == RobotState.RESTING):
             Robot.joy_x = 0
             Robot.joy_y = 0
             return
