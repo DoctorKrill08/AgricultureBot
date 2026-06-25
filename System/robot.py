@@ -103,6 +103,4 @@ class Robot:
                 Robot.joy_x = Robot.gamepad.RightJoystickX
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()
-        elif (Robot.state == RobotState.AUTONOMOUS):
-            pass
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
