@@ -48,6 +48,8 @@ class Robot:
     )
     
     def set_joystick(values : str):
+        if (not Robot.state == RobotState.GAMEPAD):
+            return
         x,y = values.split(",")
         Robot.joy_x = float(x)
         Robot.joy_y = float(y)
@@ -84,7 +86,7 @@ class Robot:
             arduino_connected=Arduino.connected,
             status=Drivetrain.status(),
         )
-        if (not Robot.on):
+        if (not Robot.on or RobotState.state == RobotState.RESTING):
             Robot.joy_x = 0
             Robot.joy_y = 0
             return
@@ -98,6 +100,8 @@ class Robot:
             if (Robot.gamepad.is_connected()):
                 Robot.joy_y = Robot.gamepad.LeftJoystickY
                 Robot.joy_x = Robot.gamepad.RightJoystickX
-            Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()
+        elif (Robot.state == RobotState.AUTONOMOUS):
+            pass
+        Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
