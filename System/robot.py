@@ -89,6 +89,7 @@ class Robot:
         if (not Robot.on or Robot.state == RobotState.RESTING):
             Robot.joy_x = 0
             Robot.joy_y = 0
+        if (not Robot.on):
             return
         if (Robot.update_timer.time_passed() < UPDATE_TIME):
             time.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
