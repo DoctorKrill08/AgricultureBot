@@ -1,7 +1,7 @@
 from System.robot import *
 if __name__ == "__main__":
     Robot.turn_on()
-    RUN_TIME = 5000
+    RUN_TIME = 5
     timer = Timer()
     time.sleep(.1)
     Robot.set_state(RobotState.AUTONOMOUS)
