@@ -1,9 +1,19 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
+import sys
+from pathlib import Path
+
+# Adds 'my_project' (the grandparent of this file) to the python path
+parent_dir = str(Path(__file__).resolve().parents[1])
+sys.path.append(parent_dir)
+
+from System.timer import *
+
 def meters_to_inches(meters):
     return meters * 39.3701
 class Camera:
+    PERIOD = .1
     MIN_DISTANCE = 20 #inches
     FPS = 30
     distance = 0
@@ -19,6 +29,11 @@ class Camera:
     to_close = False
     pipe = None
     on = False
+    timer = Timer()
+
+    angle = [0,0,0] #pitch roll yaw
+
+    
     def start():
         try:
             Camera.pipe = rs.pipeline()
@@ -26,22 +41,44 @@ class Camera:
 
             cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
             cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
+            cfg.enable_stream(rs.stream.accel)
+            cfg.enable_stream(rs.stream.gyro)
 
             Camera.pipe.start(cfg)
             Camera.on = True
+            Camera.timer.reset()
         except:
             Camera.on = False
     def read():
         Camera.to_close = False
         if (not Camera.on):
             return
+        #if (Camera.timer.time_passed() < Camera.PERIOD):
+            #time.sleep(Camera.PERIOD - Camera.timer.time_passed())
         frame = Camera.pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
-        color_frame = frame.get_color_frame()
 
         canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
         canvas_black[20, 20] = [0, 0, 255]
         Camera.pixels_within_distance(canvas_black,depth_frame)
+
+        accel_frame = frame.first_or_default(rs.stream.accel)
+        gyro_frame = frame.first_or_default(rs.stream.gyro)
+
+        if accel_frame and gyro_frame:
+            accel_data = accel_frame.as_motion_frame().get_motion_data()
+            gyro_data = gyro_frame.as_motion_frame().get_motion_data()
+
+
+            # Gyro data (angular velocity)
+            gyro = np.array([gyro_data.x, gyro_data.z, gyro_data.y])
+            
+            # Integrate angular velocity to get angles
+            Camera.angle += gyro * Camera.timer.time_passed()
+            Camera.timer.reset()
+
+            print(f"Angle (Degrees) - Pitch: {np.degrees(Camera.angle[0]):.2f}, Roll: {np.degrees(Camera.angle[1]):.2f}, Yaw: {np.degrees(Camera.angle[2]):.2f}, DT: {Camera.timer.time_passed()}")
+
 
         #cv2.imshow('to close', canvas_black)
 
@@ -60,9 +97,7 @@ class Camera:
                     canvas[y-(Camera.SPACE_BETWEEN_RAYS):y+(Camera.SPACE_BETWEEN_RAYS), x-(Camera.SPACE_BETWEEN_RAYS):x+(Camera.SPACE_BETWEEN_RAYS)] = [0, 0, 255]
         if (close_rays > Camera.MIN_NUM_OF_CLOSE_RAYS):
             Camera.to_close = True
-            print("TO CLOSE")
         else:
-            print("GOOD")
             canvas[0:20,0:20] = [0,255,0]
 
 

@@ -83,6 +83,7 @@ pip install uvicorn
 pip install websockets
 pip install opencv-python numpy pyrealsense2
 pip install numpy 
+pip install ahrs
 
 
 #uvicorn file_to_be_ran:app_name -- reload -> runs uvicorn server
