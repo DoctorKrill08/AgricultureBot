@@ -35,6 +35,8 @@ class Camera:
     angle = [0,0,0] #pitch roll yaw
     position = [0,0,0] #ground x, ground y, height
 
+    def status():
+        return f"Camera on: {Camera.on}\n Pitch: {np.degrees(Camera.angle[0])} \n Roll: {np.degrees(Camera.angle[1])} Yaw: {np.degrees(Camera.angle[2])}"
     def yaw():
         return Camera.angle[2]
     def reset_imu():

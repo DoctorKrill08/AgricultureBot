@@ -126,10 +126,10 @@ class Robot:
             battery=12.4,
             longitude=10,
             latitude=0,
-            heading=0,
+            heading=Camera.yaw(),
             gamepad_connected=gamepad_connected(Robot.gamepad),
             arduino_connected=Arduino.connected,
-            status=Drivetrain.status(),
+            status=Drivetrain.status() + Camera.status(),
         )
         Camera.read()
         if (not Robot.on or Robot.state == RobotState.RESTING):
