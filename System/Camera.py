@@ -57,8 +57,9 @@ class Camera:
             Camera.pipe.start(cfg)
             Camera.on = True
             Camera.timer.reset()
-        except:
+        except Exception as e:
             Camera.on = False
+            print(e)
     def read():
         Camera.to_close = False
         if (not Camera.on):
