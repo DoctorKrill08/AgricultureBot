@@ -3,7 +3,6 @@ from System.subsystems import*
 from System.controller import *
 from System.timer import *
 from System.Camera import Camera
-from System.Auto import Auto,DriveForwardWithCamera
 from System.interface_map import RobotState
 from pydantic import BaseModel
 
@@ -26,6 +25,29 @@ class ClientInputDataTypes(BaseModel):
 PING_TIME = 1 #Every half a second
 UPDATE_TIME = 0.05
 
+
+class Auto():
+    timer = None
+    RUN_TIME = 10
+    def __init__(self):
+        self.timer = Timer()
+    def loop(self):
+        pass
+    def end(self):
+        Robot.set_state(RobotState.RESTING)
+class DriveForwardWithCamera(Auto):
+    def __init__(self):
+        self.timer = Timer()
+    def loop(self):
+        Robot.joy_x = 0
+        Robot.joy_y = 0.35
+        if (Camera.to_close or not Camera.on):
+            Robot.joy_x = 0
+            Robot.joy_y = 0
+        if (self.timer.time_passed() > self.RUN_TIME):
+            self.end()
+    def end(self):
+        Robot.set_state(RobotState.RESTING)
 
 
 class Robot:
@@ -112,6 +134,6 @@ class Robot:
                 Robot.joy_x = Robot.gamepad.RightJoystickX
             if (Robot.gamepad.b_was_pressed()):
                 Robot.turn_off()
-        elif (Robot.state == RobotState.RESTING):
+        elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
