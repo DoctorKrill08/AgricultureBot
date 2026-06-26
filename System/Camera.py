@@ -96,6 +96,8 @@ class Camera:
         #cv2.imshow('to close', canvas_black)
 
     def stop():
+        if (Camera.on == False):
+            return
         Camera.pipe.stop()
         Camera.on = False
     def pixels_within_distance(canvas,depth_frame):
