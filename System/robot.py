@@ -48,22 +48,26 @@ class DriveForwardWithCamera(Auto):
             self.end()
     def end(self):
         Robot.set_state(RobotState.RESTING)
-class PIDIMU(Auto):
+class ObstacleAvoidAuto(Auto):
     def __init__(self):
         self.timer = Timer()
-        Camera.reset_imu()
     def loop(self):
         Robot.joy_x = 0
-        Robot.joy_y = 0
-        kP = 0.001
-        if (Camera.on):
-            error = Camera.yaw()
-            Robot.joy_x = kP * error
+        Robot.joy_y = 0.35
+        if (not Camera.on):
+            Robot.joy_x = 0
+            Robot.joy_y = 0
+        else:
+            Robot.joy_x = Camera.turn_vector
+            Robot.joy_y = Robot.joy_y + Camera.drive_vector
+            if (Robot.joy_y < 0):
+                Robot.joy_y = 0
+            if (Robot.joy_y > 0.5):
+                Robot.joy_y = 0.5
         if (self.timer.time_passed() > self.RUN_TIME):
             self.end()
     def end(self):
         Robot.set_state(RobotState.RESTING)
-
 
 class Robot:
     on = True
@@ -100,7 +104,7 @@ class Robot:
         if (state == RobotState.GAMEPAD):
             Robot.gamepad,connected = check_gamepad(Robot.gamepad)
         if (state == RobotState.AUTONOMOUS):
-            Robot.auto = PIDIMU()
+            Robot.auto = DriveForwardWithCamera()
         Robot.state = state
     def turn_off():
         print("Turn off Robot")
