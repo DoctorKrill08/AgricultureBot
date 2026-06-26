@@ -48,6 +48,20 @@ class DriveForwardWithCamera(Auto):
             self.end()
     def end(self):
         Robot.set_state(RobotState.RESTING)
+class PIDIMU(Auto):
+    def __init__(self):
+        self.timer = Timer()
+    def loop(self):
+        Robot.joy_x = 0
+        Robot.joy_y = 0
+        kP = 0.001
+        if (Camera.on):
+            error = Camera.yaw()
+            Robot.joy_x = kP * error
+        if (self.timer.time_passed() > self.RUN_TIME):
+            self.end()
+    def end(self):
+        Robot.set_state(RobotState.RESTING)
 
 
 class Robot:

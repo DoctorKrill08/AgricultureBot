@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import sys
 from pathlib import Path
+#from ahrs.filters import Madgwick
 
 # Adds 'my_project' (the grandparent of this file) to the python path
 parent_dir = str(Path(__file__).resolve().parents[1])
@@ -32,9 +33,15 @@ class Camera:
     timer = Timer()
 
     angle = [0,0,0] #pitch roll yaw
+    position = [0,0,0] #ground x, ground y, height
 
-    
+    def yaw():
+        return Camera.angle[2]
+
     def start():
+        Camera.angle = [0,0,0] #pitch roll yaw
+        Camera.position = [0,0,0] #ground x, ground y, height
+
         try:
             Camera.pipe = rs.pipeline()
             cfg  = rs.config()
@@ -72,13 +79,16 @@ class Camera:
 
             # Gyro data (angular velocity)
             gyro = np.array([gyro_data.x, gyro_data.z, gyro_data.y])
+            accel = np.array([accel_data.x, accel_data.z, accel_data.y + 9.81])
             
             # Integrate angular velocity to get angles
             Camera.angle += gyro * Camera.timer.time_passed()
-            Camera.timer.reset()
+            #deltaAngle = Camera.angle - gyro * Camera.timer.time_passed()
+            Camera.position += (accel * (Camera.timer.time_passed() ** 2))
 
             print(f"Angle (Degrees) - Pitch: {np.degrees(Camera.angle[0]):.2f}, Roll: {np.degrees(Camera.angle[1]):.2f}, Yaw: {np.degrees(Camera.angle[2]):.2f}, DT: {Camera.timer.time_passed()}")
-
+            print(f"Position (meters?) - X: {meters_to_inches(Camera.position[0]):.2f}, Y: {meters_to_inches(Camera.position[1]):.2f}, Z: {meters_to_inches(Camera.position[2]):.2f}")
+            Camera.timer.reset()
 
         #cv2.imshow('to close', canvas_black)
 
