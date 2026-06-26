@@ -51,6 +51,7 @@ class DriveForwardWithCamera(Auto):
 class PIDIMU(Auto):
     def __init__(self):
         self.timer = Timer()
+        Camera.reset_imu()
     def loop(self):
         Robot.joy_x = 0
         Robot.joy_y = 0
