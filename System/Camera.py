@@ -16,7 +16,7 @@ def meters_to_inches(meters):
 class Camera:
     PERIOD = .1
     MIN_DISTANCE = 20 #inches
-    FPS = 30
+    FPS = 15
     distance = 0
     WIDTH = 640
     HEIGHT = 480
@@ -51,8 +51,8 @@ class Camera:
 
             cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
             cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
-            cfg.enable_stream(rs.stream.accel)
-            cfg.enable_stream(rs.stream.gyro)
+            cfg.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 250)
+            cfg.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
 
             Camera.pipe.start(cfg)
             Camera.on = True
