@@ -10,7 +10,7 @@ def meters_to_inches(meters):
 
 class Camera:
     PERIOD = .1
-    MIN_DISTANCE = 20 #inches
+    MIN_DISTANCE = 25 #inches
     FPS = 15
     distance = 0
     WIDTH = 640
@@ -50,7 +50,6 @@ class Camera:
             Camera.on = False
             print(e)
     def read():
-        Camera.to_close = False
         if (not Camera.on):
             return
         frame = Camera.pipe.wait_for_frames()
@@ -70,12 +69,11 @@ class Camera:
         Camera.on = False
     def pixels_within_distance(canvas,depth_frame):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
-        obstacle_points = []
+        obstacle_points = [] #horizontal distance (x), distance (z)
         closest = {"x" : 0, "y": 0, "z_inches": 1000} #x,y,distance
 
         size = Camera.SPACE_BETWEEN_RAYS
         color = [0, 0, 255] #Red
-        sum = 0
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
             for y in range(Camera.MIN_HEIGHT,Camera.MAX_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
                 z_depth = depth_frame.get_distance(x,y)
@@ -86,18 +84,21 @@ class Camera:
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
 
                 if distance < Camera.MIN_DISTANCE and abs(horizontal_distance) < Camera.ROBOT_WIDTH/2:
-                    obstacle_points.append({x,y})
+                    obstacle_points.append({"x" : x,"x_inches" : horizontal_distance,"z_inches" : distance})
                     if (distance < closest["z_inches"]):
                         closest = {"x" : x,"y" : y,"z_inches" : distance}
                     canvas[y-(size):y+(size), x-(size):x+(size)] = color
-                    sum += (1/(2 *(x - Camera.CENTER_X)) * (Camera.MIN_DISTANCE / distance))
+
+        #Put all the obstacle points in a line such that no x pixels repeat, filtered by distance
+        obstacle_points,sum = Camera.get_point_line(obstacle_points)
+            
+        
         
         avg = sum / len(obstacle_points)
-        kP = -50
+        kP = -25
         Camera.turn_vector = avg * kP
-        Camera.drive_vector = 0.1 *(12 - closest["z_inches"])
-        print("turn",Camera.drive_vector)
-        print("drive",Camera.turn_vector)
+        Camera.drive_vector = 0.1 *(closest["z_inches"] - 10)
+        print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
         size = 15
 
         color = [0,255,0]
@@ -107,8 +108,29 @@ class Camera:
         if (len(obstacle_points) > Camera.MIN_NUM_OF_CLOSE_RAYS):
             Camera.to_close = True
         else:
+            Camera.to_close = False
             canvas[0:20,0:20] = [0,255,0]
-
+    
+    def get_point_line(obstacle_points):
+        #Input a 3D array -> {x -> pixels, x_inches -> real world horizontal offset, z_inches, real world forward distance}
+        #Returns a filtered array with no x duplicates, filtered by distance (z). Also returns weighted (by distance) sum
+        point_line = []
+        sum = 0
+        for point in obstacle_points:
+            matches = [item for item in obstacle_points if item["x"] == point["x"]] 
+            #No matches ? -> no change
+            closest_match = point
+            if len(matches) == 1:
+                point_line.append(closest_match)
+            else:
+                for compare_point in matches:
+                    if (compare_point["z_inches"] > closest_match["z_inches"]):
+                        closest_match = compare_point
+                point_line.append(closest_match)
+            #Sum weighting determined by distance (inverse)
+            #Sum positions based on delta x pixels from center of camera
+            sum += ((Camera.CENTER_X - compare_point["x"]) / compare_point["z_inches"])
+        return point_line,sum
         
 if __name__ == "__main__":
     Camera.start()

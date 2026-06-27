@@ -104,7 +104,7 @@ class Robot:
         if (state == RobotState.GAMEPAD):
             Robot.gamepad,connected = check_gamepad(Robot.gamepad)
         if (state == RobotState.AUTONOMOUS):
-            Robot.auto = DriveForwardWithCamera()
+            Robot.auto = ObstacleAvoidAuto()
         Robot.state = state
     def turn_off():
         print("Turn off Robot")
