@@ -41,7 +41,7 @@ class DriveForwardWithCamera(Auto):
     def loop(self):
         Robot.joy_x = 0
         Robot.joy_y = 0.35
-        if (Camera.to_close or not Camera.on):
+        if (Camera.too_close or not Camera.on):
             Robot.joy_x = 0
             Robot.joy_y = 0
         if (self.timer.time_passed() > self.RUN_TIME):

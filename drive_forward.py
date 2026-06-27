@@ -11,7 +11,7 @@ if __name__ == "__main__":
     while (timer.time_passed() < RUN_TIME):
         Robot.joy_x = 0
         Robot.joy_y = 0.35
-        if (Camera.to_close):
+        if (Camera.too_close):
             Robot.joy_x = 0
             Robot.joy_y = 0
         Robot.update()
