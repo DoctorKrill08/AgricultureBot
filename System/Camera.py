@@ -93,12 +93,12 @@ class Camera:
                     if (distance < closest["z_inches"]):
                         closest = {"x" : x,"y" : y,"z_inches" : distance}
                     canvas[y-(size):y+(size), x-(size):x+(size)] = color
-                    point_sum += ((Camera.CENTER_X - obstacle_points["x"]) / obstacle_points["z_inches"])
+                    point_sum += (((Camera.CENTER_X - obstacle_points["x"]) / Camera.WIDTH) / obstacle_points["z_inches"])
                     distance_sum += distance
                     
              
         avg = point_sum / len(obstacle_points)
-        Camera.turn_vector = avg * -.1
+        Camera.turn_vector = avg * -10
         Camera.drive_vector = 0.1 *(distance_sum - Camera.MIN_DISTANCE)
         print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
         size = 15
