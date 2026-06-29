@@ -31,7 +31,7 @@ class Camera:
     ROBOT_HEIGHT = 8
     CAMERA_Y = 5
 
-    TURN_P = 10
+    TURN_P = -1
     DRIVE_P = -0.2
     
     closest_distance = 0
@@ -101,7 +101,7 @@ class Camera:
                         closest = {"x" : x,"y" : y,"z_inches" : distance,"y_inches" : verticial_distance}
                     canvas[y-(size):y+(size), x-(size):x+(size)] = color
                     if (not x == Camera.CENTER_X):
-                        point_sum += ((Camera.WIDTH/(Camera.CENTER_X - x)) / abs(horizontal_distance) / distance)
+                        point_sum += ((Camera.ROBOT_WIDTH/horizontal_distance) / distance)
                     
         if (len(obstacle_points) <= 0):
             avg = 0
