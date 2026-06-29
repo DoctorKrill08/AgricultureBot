@@ -80,6 +80,7 @@ class Camera:
     def pixels_within_distance(canvas,depth_frame):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
         obstacle_points = [] #horizontal distance (x), distance (z)
+        visible_points = []
         close_points = []
         closest = {"x" : 0, "y": 0, "z_inches": 1000} #x,y,distance
 
@@ -92,6 +93,7 @@ class Camera:
                 distance = meters_to_inches(z_depth)
                 if (distance == 0):
                     continue
+                visible_points.append("x: ",x, "y: ", y, "z_inches",z_depth)
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
                 verticial_distance = meters_to_inches(spatial_point[1])
@@ -117,8 +119,8 @@ class Camera:
             Camera.drive_vector = -1
         if (Camera.too_close):
             Camera.drive_vector = -1
-        print("closest",closest)
-        print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
+        print("visible pixels: ",len(visible_points))
+        print("too close pixels: ",len(close_points))
         size = 15
 
         color = [0,255,0]
@@ -127,7 +129,7 @@ class Camera:
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
         if (len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS):
             Camera.too_close = True
-        elif (closest["z_inches"] > Camera.MIN_DISTANCE and len(canvas) > Camera.MIN_NUM_OF_VISIBLE_POINTS):
+        elif (closest["z_inches"] > Camera.TOO_CLOSE and len(visible_points) > Camera.MIN_NUM_OF_VISIBLE_POINTS):
             Camera.too_close = False
             canvas[0:20,0:20] = [0,255,0]
         
