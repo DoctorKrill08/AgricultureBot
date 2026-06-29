@@ -130,6 +130,7 @@ class Camera:
         if ((closest["z_inches"] > Camera.TOO_CLOSE and len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS) or len(visible_points) < Camera.MIN_NUM_OF_VISIBLE_POINTS):
             Camera.too_close = True
         else:
+            Camera.too_close = False
             canvas[0:20,0:20] = [0,255,0]
         
 if __name__ == "__main__":
