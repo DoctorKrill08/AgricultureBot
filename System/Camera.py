@@ -31,7 +31,7 @@ class Camera:
     ROBOT_HEIGHT = 8
     CAMERA_Y = 5
 
-    TURN_P = -0.08
+    TURN_P = 10
     DRIVE_P = -0.2
     
     closest_distance = 0
@@ -109,8 +109,12 @@ class Camera:
             avg = point_sum / len(obstacle_points)
         Camera.turn_vector = avg * Camera.TURN_P
         Camera.drive_vector = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
-        if (closest["z_inches"] < Camera.MIN_DISTANCE and not Camera.too_close):
+        if (closest["z_inches"] < Camera.MIN_DISTANCE and Camera.too_close):
+            Camera.drive_vector = -1
+        elif (closest["z_inches"] > Camera.MIN_DISTANCE and not Camera.too_close):
             Camera.drive_vector = 0
+        if (abs(Camera.turn_vector) > 1):
+            Camera.drive_vector = -1
         print("closest",closest)
         print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
         size = 15
