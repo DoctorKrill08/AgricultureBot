@@ -93,7 +93,7 @@ class Camera:
                 distance = meters_to_inches(z_depth)
                 if (distance == 0):
                     continue
-                visible_points.append("x: ",x, "y: ", y, "z_inches",z_depth)
+                visible_points.append({"x" : x, "y " : y, "z_inches" : z_depth})
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
                 verticial_distance = meters_to_inches(spatial_point[1])
