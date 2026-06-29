@@ -33,29 +33,27 @@ export default function RobotControlPanel() {
 
   const socketRef = useRef<WebSocket | null>(null);
 
-  const [driveP, setDriveP] = useState<string>('');
+  const [driveP, setDriveP] = useState<number>(0);
 
-  const handleChangeDriveP = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      const input = String(parseFloat((event.target as HTMLInputElement).value));
-      // Regex check: Allows empty string (for backspacing) or digits only
-      setDriveP(input)
-      sendCommand(Command.CAM_DRIVE_P,input)
-    }
-  };
   const [turnP, setTurnP] = useState('0');
 
-  const handleChangeTurnP = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const inputChange = (cmd: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      const input = String(parseFloat((event.target as HTMLInputElement).value));
-      // Regex check: Allows empty string (for backspacing) or digits only
-      setTurnP(input)
-      sendCommand(Command.CAM_TURN_P,input)
+      console.log(cmd)
+      var input = parseFloat((event.target as HTMLInputElement).value);
+      if (Number.isNaN(input)){
+        return
+      }
+      var input_str = String(input)
+      if (cmd == Command.CAM_DRIVE_P){
+        setDriveP(input)
+      }
+      sendCommand(cmd,input_str)
     }
   };
 
   //Nano -> 172.17.0.1
-  //Rokoko ->10.54.132.8
+  //Rokoko ->10.54.132.8, 10.54.132.13
   useEffect(() => {
     const socket = new WebSocket("ws://172.17.0.1:8000/ws");
 
@@ -187,10 +185,11 @@ export default function RobotControlPanel() {
               <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
-              <input type = "number" className="button" defaultValue={driveP} placeholder="we" onKeyDown={handleChangeDriveP}/>
+              <input type = "number" className="button" defaultValue={driveP} placeholder="we" onKeyDown={inputChange(Command.CAM_DRIVE_P)}
+              />
                 DRIVE_P: {driveP}
-              <input type = "number" className="button" defaultValue={turnP} placeholder="turn fqe" onKeyDown={handleChangeTurnP}/>
-                TURN_P: {turnP}
+              <input type = "number" className="button" defaultValue={turnP} placeholder="we" onKeyDown={inputChange(Command.CAM_TURN_P)}
+              />                TURN_P: {turnP}
             </div>
 
             <Joystick onMove={handleJoystickUpdate}/>
