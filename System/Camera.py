@@ -23,7 +23,7 @@ class Camera:
     MAX_HEIGHT = HEIGHT - 200
     MIN_HEIGHT = 10
     SPACE_BETWEEN_RAYS = int(4)
-    MIN_NUM_OF_CLOSE_POINTS = 50
+    MIN_NUM_OF_CLOSE_POINTS = 120
     MIN_NUM_OF_VISIBLE_POINTS = 7000
     too_close = False
     pipe = None
