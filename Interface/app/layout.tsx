@@ -33,6 +33,23 @@ export default function RobotControlPanel() {
 
   const socketRef = useRef<WebSocket | null>(null);
 
+  const [driveP, setDriveP] = useState<string>('');
+
+  const handleChangeDriveP = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Regex check: Allows empty string (for backspacing) or digits only
+    setDriveP(event.target.value)
+    sendCommand(Command.CAM_DRIVE_P,event.target.value)
+  };
+
+  const [turnP, setTurnP] = useState<string>("0");
+
+  const handleChangeTurnP = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target.value
+    // Regex check: Allows empty string (for backspacing) or digits only
+    setTurnP(input)
+    sendCommand(Command.CAM_TURN_P,input)
+  };
+
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8
   useEffect(() => {
@@ -166,6 +183,10 @@ export default function RobotControlPanel() {
               <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
+              <input type = "number" className="button" value={driveP} placeholder="we" onChange={handleChangeDriveP}/>
+                DRIVE_P: {driveP}
+              <input type = "number" className="button" value={turnP} placeholder="turn fqe" onChange={handleChangeTurnP}/>
+                TURN_P: {turnP}
             </div>
 
             <Joystick onMove={handleJoystickUpdate}/>

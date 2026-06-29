@@ -7,6 +7,8 @@ class Command(Enum):
     ON = "1"
     SET_STATE = "2"
     JOYSTICK = "3"
+    CAM_DRIVE_P = "4"
+    CAM_TURN_P = "5"
 
 class RobotState(Enum):
     RESTING = "RESTING"

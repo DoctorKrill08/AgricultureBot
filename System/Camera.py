@@ -30,13 +30,16 @@ class Camera:
     ROBOT_WIDTH = 20 #inches
     ROBOT_HEIGHT = 8
     CAMERA_Y = 5
+
+    TURN_P = -0.08
+    DRIVE_P = -0.2
     
     closest_distance = 0
     turn_vector = 0
     drive_vector = 0
 
     def status():
-        return f"Camera on: {Camera.on}"
+        return f"Camera on: {Camera.on} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
     def yaw():
         return 0
     def start():
@@ -65,8 +68,10 @@ class Camera:
         canvas_black[20, 20] = [0, 0, 255]
         Camera.pixels_within_distance(canvas_black,depth_frame)
             
-
-        cv2.imshow('to close', canvas_black)
+        try:
+            cv2.imshow('to close', canvas_black)
+        finally:
+            pass
 
     def stop():
         if (Camera.on == False):
@@ -105,8 +110,8 @@ class Camera:
             avg = 0
         else:
             avg = point_sum / len(obstacle_points)
-        Camera.turn_vector = avg * -0.01
-        Camera.drive_vector = -0.1 *((Camera.TOO_CLOSE / closest["z_inches"]))
+        Camera.turn_vector = avg * Camera.TURN_P
+        Camera.drive_vector = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
         if (closest["z_inches"] < Camera.MIN_DISTANCE and not Camera.too_close):
             Camera.drive_vector = 0
         print("closest",closest)

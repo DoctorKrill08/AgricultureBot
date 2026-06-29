@@ -4,6 +4,8 @@ export const Command = Object.freeze({
   ON : "1",
   SET_STATE : "2",
   JOYSTICK : "3",
+  CAM_DRIVE_P : "4",
+  CAM_TURN_P : "5",
 
 });
 export const RobotState = Object.freeze({
