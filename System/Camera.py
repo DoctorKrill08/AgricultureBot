@@ -11,7 +11,7 @@ def meters_to_inches(meters):
 
 class Camera:
     MIN_DISTANCE = 10 #inches
-    TOO_CLOSE = 17 #inches
+    TOO_CLOSE = 14 #inches
     FORWARD_VIEW_DISTANCE = 30
     FPS = 15
     distance = 0
@@ -19,19 +19,21 @@ class Camera:
     HEIGHT = 480
     CENTER_X = int(WIDTH / 2)
     CENTER_Y = int(HEIGHT / 2)
-    WIDTH_RANGE = 300
+    WIDTH_RANGE = CENTER_X
     MAX_HEIGHT = HEIGHT - 200
-    MIN_HEIGHT = 100
+    MIN_HEIGHT = 10
     SPACE_BETWEEN_RAYS = int(2)
     MIN_NUM_OF_CLOSE_POINTS = 50
+    MIN_NUM_OF_VISIBLE_POINTS = 200
     too_close = False
     pipe = None
     on = False
     ROBOT_WIDTH = 20 #inches
     ROBOT_HEIGHT = 8
     CAMERA_Y = 5
+    GROUND_HEIGHT = 2
 
-    TURN_P = -1
+    TURN_P = -1.5
     DRIVE_P = -0.2
     
     closest_distance = 0
@@ -93,7 +95,7 @@ class Camera:
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
                 verticial_distance = meters_to_inches(spatial_point[1])
-                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and abs(verticial_distance) < Camera.ROBOT_HEIGHT - Camera.CAMERA_Y and distance < Camera.FORWARD_VIEW_DISTANCE:
+                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and verticial_distance > -(Camera.ROBOT_HEIGHT - Camera.CAMERA_Y) and (verticial_distance - Camera.CAMERA_Y) < (Camera.GROUND_HEIGHT) and distance < Camera.FORWARD_VIEW_DISTANCE:
                     obstacle_points.append({"x" : x,"x_inches" : horizontal_distance,"z_inches" : distance})
                     if (distance < Camera.TOO_CLOSE):
                         close_points.append({"x" : x,"y" : y,"z_inches": distance})
@@ -109,11 +111,11 @@ class Camera:
             avg = point_sum / len(obstacle_points)
         Camera.turn_vector = avg * Camera.TURN_P
         Camera.drive_vector = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
-        if (closest["z_inches"] < Camera.MIN_DISTANCE and Camera.too_close):
-            Camera.drive_vector = -1
-        elif (closest["z_inches"] > Camera.MIN_DISTANCE and not Camera.too_close):
-            Camera.drive_vector = 0
+        if (abs(Camera.turn_vector) < 0.05):
+            Camera.turn_vector = 0
         if (abs(Camera.turn_vector) > 1):
+            Camera.drive_vector = -1
+        if (Camera.too_close):
             Camera.drive_vector = -1
         print("closest",closest)
         print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
@@ -125,7 +127,7 @@ class Camera:
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
         if (len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS):
             Camera.too_close = True
-        elif (closest["z_inches"] > Camera.MIN_DISTANCE):
+        elif (closest["z_inches"] > Camera.MIN_DISTANCE and len(canvas) > Camera.MIN_NUM_OF_VISIBLE_POINTS):
             Camera.too_close = False
             canvas[0:20,0:20] = [0,255,0]
         

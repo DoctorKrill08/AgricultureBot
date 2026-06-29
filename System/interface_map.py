@@ -9,6 +9,7 @@ class Command(Enum):
     JOYSTICK = "3"
     CAM_DRIVE_P = "4"
     CAM_TURN_P = "5"
+    AUTO_TIME = "6"
 
 class RobotState(Enum):
     RESTING = "RESTING"

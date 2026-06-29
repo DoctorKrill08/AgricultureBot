@@ -35,7 +35,8 @@ export default function RobotControlPanel() {
 
   const [driveP, setDriveP] = useState<number>(0);
 
-  const [turnP, setTurnP] = useState('0');
+  const [turnP, setTurnP] = useState<number>(0);
+  const [autoTime, setAutoTime] = useState<number>(0);
 
   const inputChange = (cmd: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -47,6 +48,10 @@ export default function RobotControlPanel() {
       var input_str = String(input)
       if (cmd == Command.CAM_DRIVE_P){
         setDriveP(input)
+      }else if(cmd == Command.CAM_TURN_P){
+        setTurnP(input)
+      }else if (cmd == Command.AUTO_TIME){
+        setAutoTime(input)
       }
       sendCommand(cmd,input_str)
     }
@@ -55,7 +60,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13
   useEffect(() => {
-    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
+    const socket = new WebSocket("ws://10.42.0.122:8000/ws");
 
     socketRef.current = socket;
 
@@ -185,11 +190,13 @@ export default function RobotControlPanel() {
               <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
-              <input type = "number" className="button" defaultValue={driveP} placeholder="we" onKeyDown={inputChange(Command.CAM_DRIVE_P)}
+              <input type = "number" className="button" defaultValue={driveP} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}
               />
                 DRIVE_P: {driveP}
-              <input type = "number" className="button" defaultValue={turnP} placeholder="we" onKeyDown={inputChange(Command.CAM_TURN_P)}
+              <input type = "number" className="button" defaultValue={turnP} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}
               />                TURN_P: {turnP}
+              <input type = "number" className="button" defaultValue={autoTime} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
+              />                AUTO_TIME: {autoTime}
             </div>
 
             <Joystick onMove={handleJoystickUpdate}/>

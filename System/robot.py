@@ -124,6 +124,8 @@ class Robot:
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
         Camera.start()
+    def status():
+        return f"Auto Time: {Robot.auto.RUN_TIME}"
     def update():
         Robot.telemetry = TelemetryDataTypes(
             mode=Robot.state.value,
@@ -133,7 +135,7 @@ class Robot:
             heading=Camera.yaw(),
             gamepad_connected=gamepad_connected(Robot.gamepad),
             arduino_connected=Arduino.connected,
-            status=Drivetrain.status() + Camera.status(),
+            status= Robot.status() + Drivetrain.status() + Camera.status(),
         )
         Camera.read()
         if (not Robot.on or Robot.state == RobotState.RESTING):

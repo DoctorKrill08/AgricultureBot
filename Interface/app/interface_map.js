@@ -6,6 +6,7 @@ export const Command = Object.freeze({
   JOYSTICK : "3",
   CAM_DRIVE_P : "4",
   CAM_TURN_P : "5",
+  AUTO_TIME : "6",
 
 });
 export const RobotState = Object.freeze({
