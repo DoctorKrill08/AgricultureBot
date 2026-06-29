@@ -68,10 +68,7 @@ class Camera:
         canvas_black[20, 20] = [0, 0, 255]
         Camera.pixels_within_distance(canvas_black,depth_frame)
             
-        try:
-            cv2.imshow('to close', canvas_black)
-        finally:
-            pass
+        #cv2.imshow('to close', canvas_black)
 
     def stop():
         if (Camera.on == False):
