@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import sys
 from pathlib import Path
+import math
 
 
 def meters_to_inches(meters):
@@ -18,14 +19,16 @@ class Camera:
     CENTER_X = int(WIDTH / 2)
     CENTER_Y = int(HEIGHT / 2)
     WIDTH_RANGE = 300
-    MAX_HEIGHT = HEIGHT - 100
+    MAX_HEIGHT = HEIGHT - 200
     MIN_HEIGHT = 100
-    SPACE_BETWEEN_RAYS = int(5)
+    SPACE_BETWEEN_RAYS = int(2)
     MIN_NUM_OF_CLOSE_POINTS = 50
     too_close = False
     pipe = None
     on = False
     ROBOT_WIDTH = 20 #inches
+    ROBOT_HEIGHT = 8
+    CAMERA_Y = 5
     
     closest_distance = 0
     turn_vector = 0
@@ -60,7 +63,7 @@ class Camera:
         Camera.pixels_within_distance(canvas_black,depth_frame)
             
 
-        #cv2.imshow('to close', canvas_black)
+        cv2.imshow('to close', canvas_black)
 
     def stop():
         if (Camera.on == False):
@@ -76,7 +79,6 @@ class Camera:
         size = Camera.SPACE_BETWEEN_RAYS
         color = [0, 0, 255] #Red
         point_sum = 0
-        distance_sum = 0
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
             for y in range(Camera.MIN_HEIGHT,Camera.MAX_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
                 z_depth = depth_frame.get_distance(x,y)
@@ -85,21 +87,23 @@ class Camera:
                     continue
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
-
-                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2:
+                verticial_distance = meters_to_inches(spatial_point[1])
+                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and abs(verticial_distance) < Camera.ROBOT_HEIGHT - Camera.CAMERA_Y:
                     obstacle_points.append({"x" : x,"x_inches" : horizontal_distance,"z_inches" : distance})
                     if (distance < Camera.TOO_CLOSE):
                         close_points.append({"x" : x,"y" : y,"z_inches": distance})
                     if (distance < closest["z_inches"]):
-                        closest = {"x" : x,"y" : y,"z_inches" : distance}
+                        closest = {"x" : x,"y" : y,"z_inches" : distance,"y_inches" : verticial_distance}
                     canvas[y-(size):y+(size), x-(size):x+(size)] = color
-                    point_sum += (((Camera.CENTER_X - obstacle_points["x"]) / Camera.WIDTH) / obstacle_points["z_inches"])
-                    distance_sum += distance
+                    point_sum += (((Camera.CENTER_X - x) / Camera.WIDTH) / horizontal_distance)
                     
              
         avg = point_sum / len(obstacle_points)
         Camera.turn_vector = avg * -10
-        Camera.drive_vector = 0.1 *(distance_sum - Camera.MIN_DISTANCE)
+        Camera.drive_vector = -0.3 *((Camera.TOO_CLOSE / closest["z_inches"]))
+        if (closest["z_inches"] < Camera.MIN_DISTANCE and not Camera.too_close):
+            Camera.drive_vector = 0
+        print("closest",closest)
         print("drive: ",Camera.drive_vector,"turn: ",Camera.turn_vector)
         size = 15
 
@@ -107,9 +111,9 @@ class Camera:
         x = closest["x"]
         y = closest["y"]
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
-        if (close_points < Camera.MIN_NUM_OF_CLOSE_POINTS):
+        if (len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS):
             Camera.too_close = True
-        else:
+        elif (closest["z_inches"] > Camera.MIN_DISTANCE):
             Camera.too_close = False
             canvas[0:20,0:20] = [0,255,0]
         
