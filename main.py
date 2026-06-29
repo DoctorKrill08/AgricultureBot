@@ -36,9 +36,9 @@ async def command_task(websocket: WebSocket):
         if data[COMMAND] == Command.SET_STATE.value:
             Robot.set_state(RobotState(data[VALUES]))
         elif data[COMMAND] == Command.CAM_TURN_P.value:
-            Camera.TURN_P = data[VALUES]
+            Camera.TURN_P = float(data[VALUES])
         elif data[COMMAND] == Command.CAM_DRIVE_P.value:
-            Camera.DRIVE_P = data[VALUES]
+            Camera.DRIVE_P = float(data[VALUES])
         elif data[COMMAND] == Command.OFF.value:
             Robot.turn_off()
         elif data[COMMAND] == Command.ON.value:
