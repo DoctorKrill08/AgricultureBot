@@ -12,6 +12,7 @@ def meters_to_inches(meters):
 class Camera:
     MIN_DISTANCE = 10 #inches
     TOO_CLOSE = 17 #inches
+    FORWARD_VIEW_DISTANCE = 30
     FPS = 15
     distance = 0
     WIDTH = 640
@@ -36,6 +37,8 @@ class Camera:
 
     def status():
         return f"Camera on: {Camera.on}"
+    def yaw():
+        return 0
     def start():
         Camera.angle = [0,0,0] #pitch roll yaw
         Camera.position = [0,0,0] #ground x, ground y, height
@@ -88,19 +91,22 @@ class Camera:
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
                 verticial_distance = meters_to_inches(spatial_point[1])
-                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and abs(verticial_distance) < Camera.ROBOT_HEIGHT - Camera.CAMERA_Y:
+                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and abs(verticial_distance) < Camera.ROBOT_HEIGHT - Camera.CAMERA_Y and distance < Camera.FORWARD_VIEW_DISTANCE:
                     obstacle_points.append({"x" : x,"x_inches" : horizontal_distance,"z_inches" : distance})
                     if (distance < Camera.TOO_CLOSE):
                         close_points.append({"x" : x,"y" : y,"z_inches": distance})
                     if (distance < closest["z_inches"]):
                         closest = {"x" : x,"y" : y,"z_inches" : distance,"y_inches" : verticial_distance}
                     canvas[y-(size):y+(size), x-(size):x+(size)] = color
-                    point_sum += (((Camera.CENTER_X - x) / Camera.WIDTH) / horizontal_distance)
+                    if (not x == Camera.CENTER_X):
+                        point_sum += ((Camera.WIDTH/(Camera.CENTER_X - x)) / abs(horizontal_distance) / distance)
                     
-             
-        avg = point_sum / len(obstacle_points)
-        Camera.turn_vector = avg * -10
-        Camera.drive_vector = -0.3 *((Camera.TOO_CLOSE / closest["z_inches"]))
+        if (len(obstacle_points) <= 0):
+            avg = 0
+        else:
+            avg = point_sum / len(obstacle_points)
+        Camera.turn_vector = avg * -0.01
+        Camera.drive_vector = -0.1 *((Camera.TOO_CLOSE / closest["z_inches"]))
         if (closest["z_inches"] < Camera.MIN_DISTANCE and not Camera.too_close):
             Camera.drive_vector = 0
         print("closest",closest)
