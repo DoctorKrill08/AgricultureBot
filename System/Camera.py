@@ -11,7 +11,7 @@ def meters_to_inches(meters):
 
 class Camera:
     MIN_DISTANCE = 10 #inches
-    TOO_CLOSE = 14 #inches
+    TOO_CLOSE = 12 #inches
     FORWARD_VIEW_DISTANCE = 30
     FPS = 15
     distance = 0
@@ -22,9 +22,9 @@ class Camera:
     WIDTH_RANGE = CENTER_X
     MAX_HEIGHT = HEIGHT - 200
     MIN_HEIGHT = 10
-    SPACE_BETWEEN_RAYS = int(2)
+    SPACE_BETWEEN_RAYS = int(4)
     MIN_NUM_OF_CLOSE_POINTS = 50
-    MIN_NUM_OF_VISIBLE_POINTS = 200
+    MIN_NUM_OF_VISIBLE_POINTS = 7000
     too_close = False
     pipe = None
     on = False
@@ -127,10 +127,9 @@ class Camera:
         x = closest["x"]
         y = closest["y"]
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
-        if (len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS):
+        if ((closest["z_inches"] > Camera.TOO_CLOSE and len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS) or len(visible_points) < Camera.MIN_NUM_OF_VISIBLE_POINTS):
             Camera.too_close = True
-        elif (closest["z_inches"] > Camera.TOO_CLOSE and len(visible_points) > Camera.MIN_NUM_OF_VISIBLE_POINTS):
-            Camera.too_close = False
+        else:
             canvas[0:20,0:20] = [0,255,0]
         
 if __name__ == "__main__":
