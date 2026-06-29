@@ -35,19 +35,23 @@ export default function RobotControlPanel() {
 
   const [driveP, setDriveP] = useState<string>('');
 
-  const handleChangeDriveP = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Regex check: Allows empty string (for backspacing) or digits only
-    setDriveP(event.target.value)
-    sendCommand(Command.CAM_DRIVE_P,event.target.value)
+  const handleChangeDriveP = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      const input = String(parseFloat((event.target as HTMLInputElement).value));
+      // Regex check: Allows empty string (for backspacing) or digits only
+      setDriveP(input)
+      sendCommand(Command.CAM_DRIVE_P,input)
+    }
   };
+  const [turnP, setTurnP] = useState('0');
 
-  const [turnP, setTurnP] = useState<string>("0");
-
-  const handleChangeTurnP = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value
-    // Regex check: Allows empty string (for backspacing) or digits only
-    setTurnP(input)
-    sendCommand(Command.CAM_TURN_P,input)
+  const handleChangeTurnP = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      const input = String(parseFloat((event.target as HTMLInputElement).value));
+      // Regex check: Allows empty string (for backspacing) or digits only
+      setTurnP(input)
+      sendCommand(Command.CAM_TURN_P,input)
+    }
   };
 
   //Nano -> 172.17.0.1
@@ -183,9 +187,9 @@ export default function RobotControlPanel() {
               <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
-              <input type = "number" className="button" value={driveP} placeholder="we" onChange={handleChangeDriveP}/>
+              <input type = "number" className="button" defaultValue={driveP} placeholder="we" onKeyDown={handleChangeDriveP}/>
                 DRIVE_P: {driveP}
-              <input type = "number" className="button" value={turnP} placeholder="turn fqe" onChange={handleChangeTurnP}/>
+              <input type = "number" className="button" defaultValue={turnP} placeholder="turn fqe" onKeyDown={handleChangeTurnP}/>
                 TURN_P: {turnP}
             </div>
 
