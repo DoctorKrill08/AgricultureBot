@@ -59,7 +59,7 @@ class ObstacleAvoidAuto(Auto):
             Robot.joy_y = 0
         else:
             Robot.joy_x = Camera.turn_vector
-            Robot.joy_y = Robot.joy_y + Camera.drive_resistance
+            Robot.joy_y = Robot.joy_y + Camera.drive_vector
             if (Robot.joy_y < 0):
                 Robot.joy_y = 0
             if (Robot.joy_y > 0.5):
