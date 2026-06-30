@@ -18,13 +18,16 @@ class Arduino:
     serial = None
     connected = False
     def connect_arduino():
+        Arduino.connected = False
         for key,value in Arduino.SERIAL_PORTS.items():
+            if (Arduino.connected):
+                return
             try:
                 Arduino.serial = serial.Serial(value, BAUD_RATE, timeout=1)
                 print(f"Connected to Arduino via {key}: {value}")
                 Arduino.connected = True
-            except:
-                Arduino.connected = False
+            finally:
+                pass
         print(f"Arduino connected: {Arduino.connected}")
         time.sleep(2)
         if (Arduino.connected):
