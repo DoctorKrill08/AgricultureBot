@@ -1,5 +1,6 @@
 # generate_js_enums.py
 from enum import Enum
+from pydantic import BaseModel
 
 class Command(Enum):
     OFF = "-1"
@@ -16,10 +17,41 @@ class RobotState(Enum):
     GAMEPAD = "GAMEPAD"
     AUTONOMOUS = "AUTONOMOUS"
 
+class Telemetry(BaseModel):
+    mode: str
+    battery: float
+    longitude: float
+    latitude: float
+    heading: float
+    arduino_connected: bool
+    gps_connected: bool
+    status: str
+
+class ClientInputs(BaseModel):
+    command: str
+    joy_x: float
+    joy_y: float
+
+
 COMMAND = '0'
 VALUES = '1'
 
 
+def python_type_to_typescript(type:str):
+    print(type)
+    if (type == 'str'):
+        return 'string'
+    if (type == 'float' or type == 'int'):
+        return 'number'
+    if (type == 'bool'):
+        return "boolean"
+    if (type == 'None' or type == None):
+        return "Null"
+    return "Null"
+def clean_annotations(annotation:str):
+    annotation = annotation.removeprefix("<class '")
+    annotation = annotation.removesuffix("'>")
+    return annotation
 
 #JavaScript Enum generator below
 if __name__ == "__main__":
@@ -35,10 +67,19 @@ if __name__ == "__main__":
         output += f'  {member.name} : "{member.value}",\n'
     output += "\n});\n"
 
+    output += f"export type {Telemetry.__name__} ="
+    output += "{\n"
+    for name,data_type in Telemetry.model_fields.items():
+        data_type.annotation = str(data_type.annotation)
+        data_type.annotation = clean_annotations(data_type.annotation)
+        data_type.annotation = python_type_to_typescript(data_type.annotation)
+        output += f'  {name} : {data_type.annotation};\n'
+    output += "\n};\n"
+
     output += f'export const COMMAND = "{COMMAND}";\n'
     output += f'export const VALUES = "{VALUES}";\n'
 
     print("MADE JS FILE")
     
-    with open("Interface/app/interface_map.js", "w") as file:
+    with open("../Interface/app/interface_map.ts", "w") as file:
         file.write(output)

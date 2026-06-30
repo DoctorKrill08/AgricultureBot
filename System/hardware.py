@@ -5,24 +5,24 @@ from System.hardware_map import *
 
 from enum import Enum
 
-PORT = "COM5"
-JETSON_PORT = '/dev/ttyACM0'
-TIMEOUT = 0.1
+
 
 
 class Arduino:
+    NANO = "NANO"
+    WINDOWS = "WINDOWS"
+    SERIAL_PORTS = {
+        NANO: '/dev/ttyACM0',
+        WINDOWS : 'COM5'
+    }
     serial = None
     connected = False
     def connect_arduino():
-        try:
-            Arduino.serial = serial.Serial(port=PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
-            Arduino.connected = True
-            print(PORT)
-        except:
+        for key,value in Arduino.SERIAL_PORTS.items():
             try:
-                Arduino.serial = serial.Serial(port=JETSON_PORT, baudrate=BAUD_RATE, timeout=TIMEOUT)
+                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout=1)
+                print(f"Connected to Arduino via {key}: {value}")
                 Arduino.connected = True
-                print(JETSON_PORT)
             except:
                 Arduino.connected = False
         print(f"Arduino connected: {Arduino.connected}")

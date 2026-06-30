@@ -1,26 +1,11 @@
 from enum import Enum
 from System.subsystems import*
-from System.controller import *
-from System.timer import *
+from System.GPS import *
+from timer import *
 from System.Camera import Camera
-from System.interface_map import RobotState
-from pydantic import BaseModel
+from System.interface_map import *
 
 
-class TelemetryDataTypes(BaseModel):
-    mode: str
-    battery: float
-    longitude: float
-    latitude: float
-    heading: float
-    arduino_connected: bool
-    gamepad_connected: bool
-    status: str
-
-class ClientInputDataTypes(BaseModel):
-    command: str
-    joy_x: float
-    joy_y: float
 
 PING_TIME = 1 #Every half a second
 UPDATE_TIME = 0.05
@@ -81,14 +66,14 @@ class Robot:
 
     auto = Auto()
 
-    telemetry = TelemetryDataTypes(
+    telemetry = Telemetry(
         mode=state.value,
         battery=12.4,
         longitude=10,
         latitude=0,
         heading=0,
         arduino_connected=False,
-        gamepad_connected=False,
+        gps_connected=False,
         status="",
     )
     
@@ -101,8 +86,6 @@ class Robot:
     def set_state(state):
         if (Robot.state == state):
             return
-        if (state == RobotState.GAMEPAD):
-            Robot.gamepad,connected = check_gamepad(Robot.gamepad)
         if (state == RobotState.AUTONOMOUS):
             Robot.auto = ObstacleAvoidAuto()
         Robot.state = state
@@ -113,10 +96,6 @@ class Robot:
         stop_arduino()
         close_arduino()
         Camera.stop()
-    def turn_on():
-        print("Turn on Robot")
-        Robot.initiate()
-        Robot.on = True
     def initiate():
         print("initiate")
         Robot.state = RobotState.RESTING
@@ -124,16 +103,18 @@ class Robot:
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
         Camera.start()
+        #GPS.connect_gps()
+        Robot.on = True
     def status():
         return f"Auto Time: {Robot.auto.RUN_TIME}"
     def update():
-        Robot.telemetry = TelemetryDataTypes(
+        Robot.telemetry = Telemetry(
             mode=Robot.state.value,
             battery=12.4,
-            longitude=10,
-            latitude=0,
+            longitude=GPS.longitude,
+            latitude=GPS.latitude,
             heading=Camera.yaw(),
-            gamepad_connected=gamepad_connected(Robot.gamepad),
+            gps_connected=GPS.connected,
             arduino_connected=Arduino.connected,
             status= Robot.status() + Drivetrain.status() + Camera.status(),
         )
@@ -149,12 +130,6 @@ class Robot:
         if (Robot.ping_stopwatch.time_passed() > PING_TIME):
             ping()
             Robot.ping_stopwatch.go()
-        if (Robot.state == RobotState.GAMEPAD):
-            if (Robot.gamepad.is_connected()):
-                Robot.joy_y = Robot.gamepad.LeftJoystickY
-                Robot.joy_x = Robot.gamepad.RightJoystickX
-            if (Robot.gamepad.b_was_pressed()):
-                Robot.turn_off()
         elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)

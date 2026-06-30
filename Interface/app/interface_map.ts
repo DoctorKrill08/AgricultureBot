@@ -15,5 +15,16 @@ export const RobotState = Object.freeze({
   AUTONOMOUS : "AUTONOMOUS",
 
 });
+export type Telemetry ={
+  mode : string;
+  battery : number;
+  longitude : number;
+  latitude : number;
+  heading : number;
+  arduino_connected : boolean;
+  gps_connected : boolean;
+  status : string;
+
+};
 export const COMMAND = "0";
 export const VALUES = "1";

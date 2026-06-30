@@ -3,29 +3,19 @@ import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
 import './interface_map'
-import { COMMAND, Command, RobotState, VALUES } from "./interface_map";
+import { COMMAND, Command, RobotState, VALUES ,Telemetry} from "./interface_map";
 
 
-type TelemetryData = {
-  mode: string;
-  battery: number;
-  longitude: number;
-  latitude: number;
-  heading: number;
-  arduino_connected: boolean;
-  gamepad_connected: boolean;
-  status: string;
-};
 
 export default function RobotControlPanel() {
-  const [telemetry, setTelemetry] = useState<TelemetryData>({
+  const [telemetry, setTelemetry] = useState<Telemetry>({
     mode: "RESTING",
     battery: 0,
     longitude: 0,
     latitude: 0,
     heading: 0,
     arduino_connected: false,
-    gamepad_connected: false,
+    gps_connected: false,
     status: "Disconnected",
   });
 
@@ -88,7 +78,7 @@ export default function RobotControlPanel() {
           latitude: data.latitude,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
-          gamepad_connected: data.gamepad_connected,
+          gps_connected: data.gps_connected,
           status: data.status,
         });
       }
@@ -139,8 +129,8 @@ export default function RobotControlPanel() {
             </div>
 
              <div>
-              <strong>Gamepad Connected:</strong> {" "}
-              {telemetry.gamepad_connected ? "True" : "False"}
+              <strong>GPS Connected:</strong> {" "}
+              {telemetry.gps_connected ? "True" : "False"}
             </div>
 
             <div>

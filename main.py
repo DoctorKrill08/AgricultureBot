@@ -44,7 +44,7 @@ async def command_task(websocket: WebSocket):
         elif data[COMMAND] == Command.OFF.value:
             Robot.turn_off()
         elif data[COMMAND] == Command.ON.value:
-            Robot.turn_on()
+            Robot.initiate()
         elif data[COMMAND] == Command.JOYSTICK.value:
             Robot.set_joystick(data[VALUES])
         

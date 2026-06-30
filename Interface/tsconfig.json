@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/interface_map.js"  ],
+, "app/interface_map.ts"  ],
   "exclude": ["node_modules"]
 }

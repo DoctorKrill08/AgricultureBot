@@ -1,7 +1,7 @@
 import math
 import time
 import pygame
-from System.timer import Timer
+from timer import Timer
 
 class Pose:
     x = 0
