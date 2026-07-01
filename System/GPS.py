@@ -101,7 +101,7 @@ class GPSReceiver():
     }
     BASE_PORTS = {
             NANO: '/dev/ttyACM2',
-            WINDOWS : 'COM10',
+            WINDOWS : 'COM11',
     }
 
     def __init__(self,type):
@@ -136,6 +136,8 @@ class GPSReceiver():
                 pass
 
     def read(self):
+        if (self.type == self.BASE):
+            return
         if (not  self.connected):
             print(f"{self.type} NOT CONNECTED")
             return
@@ -149,11 +151,14 @@ class GPSReceiver():
                     return
                 lat = CoordinateSystem.DDM_TO_DD(lat,CoordinateSystem.LATITUDE)
                 lon = CoordinateSystem.DDM_TO_DD(lon,CoordinateSystem.LONGITUDE)
+                if (lat == self.latitude):
+                    return
+                if (lon == self.longitude):
+                    return
                 self.start_position_found = True
                 self.latitude = lat
                 self.longitude = lon
                 self.quality = quality
-                print(self.status())
     
     def close(self):
         if (self.connected):
@@ -161,7 +166,9 @@ class GPSReceiver():
         self.connected = False
 
     def status(self):
-        return f"{self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.quality}-{GPSReceiver.int_to_quality(self.quality)}"
+        if (self.type == self.BASE):
+            return f"\n {self.type},connected:{self.connected}"
+        return f"\n {self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.quality}-{GPSReceiver.int_to_quality(self.quality)}"
 
     @staticmethod
     def int_to_quality(quality):
@@ -214,6 +221,8 @@ class GPS:
 
     local_grid = [0,0]
 
+    start_coordinates = [0,0]
+
     def global_to_local():
         return
     def local_to_global():
@@ -222,28 +231,48 @@ class GPS:
     def start():
         GPS.rover.start()
         GPS.base.start()
+        GPS.calculate_start_pos()
     def close():
         GPS.rover.close()
         GPS.base.close()
     def status():
-        GPS.rover.status()
-        GPS.base.status()
+        return GPS.rover.status() + \
+        GPS.base.status() + f" \n \
+        Local Grid: x: {GPS.local_grid[0]}, y: {GPS.local_grid[1]}  \n \
+        Start Coords: lat: {GPS.start_coordinates[0]}, lon: {GPS.start_coordinates[1]}"
+
     def signal_base_to_rover():
         waiting = GPS.base.serial.in_waiting
         if waiting:
             data = GPS.base.serial.read(waiting)
-
-            print(f"Forwarding {len(data)} bytes")
-
+            #print("base wrote to rover")
             GPS.rover.serial.write(data)
             GPS.rover.serial.flush()
-            print(f"Wrote {len(data)} bytes to rover")
-    def update():
-        GPS.rover.read()
-       # GPS.base.read()
+    
+    def calculate_start_pos():
+        MIN_SAMPLES = 30
+        i = 0
+        prev_lat = GPS.start_coordinates[0]
+        while i < MIN_SAMPLES:
+            GPS.update()
+            GPS.start_coordinates[0] = CoordinateSystem.recursive_average(GPS.start_coordinates[0],GPS.rover.latitude,i)
+            GPS.start_coordinates[1] = CoordinateSystem.recursive_average(GPS.start_coordinates[1],GPS.rover.longitude,i)
 
+            if (prev_lat == GPS.start_coordinates[0]):
+                continue
+            i += 1
+            prev_lat = GPS.start_coordinates[0]
+            print("Loading i: ", i)
+
+
+    def update():
+        print(GPS.status())
         if (GPS.rover.connected and GPS.base.connected):
             GPS.signal_base_to_rover()
+        if (GPS.rover.connected):
+            GPS.rover.read()
+        d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates) 
+        GPS.local_grid = [d_lat,d_lon]
         if (GPS.timer.time_passed() < GPS.PERIOD):
             time.sleep(GPS.PERIOD - GPS.timer.time_passed())
         GPS.timer.reset()
