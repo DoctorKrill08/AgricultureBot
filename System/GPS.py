@@ -96,11 +96,11 @@ class GPSReceiver():
     RTK_STREAM = ''
 
     ROVER_PORTS = {
-            NANO: '/dev/ttyACM2',
+            NANO: '/dev/ttyACM1',
             WINDOWS : 'COM8',
     }
     BASE_PORTS = {
-            NANO: '/dev/ttyACM3',
+            NANO: '/dev/ttyACM2',
             WINDOWS : 'COM11',
     }
 
