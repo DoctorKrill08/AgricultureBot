@@ -23,13 +23,13 @@ class Arduino:
             if (Arduino.connected):
                 return
             try:
-                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout=1)
+                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout= 0.1)
                 print(f"Connected to Arduino via {key}: {value}")
                 Arduino.connected = True
             finally:
                 pass
         print(f"Arduino connected: {Arduino.connected}")
-        time.sleep(2)
+        time.sleep(1.5)
         if (Arduino.connected):
             send_command(f"{Device.Start.value},0,0")
 
