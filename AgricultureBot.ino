@@ -130,7 +130,7 @@ const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 1500;
 bool stopped = false;
 
 void loop() {
-  unsigned long elapsedTime = millis() - startTime; 
+  long elapsedTime = millis() - startTime; 
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
     turnOff();
   }
@@ -148,7 +148,7 @@ void loop() {
 
     if (cmd.id == Start){
       connected = true;
-      startTime = millis();
+      startTime = millis() + 2000;
       ledStayOn();
       return;
     }

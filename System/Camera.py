@@ -117,8 +117,10 @@ class Camera:
             Camera.turn_vector = 0
         if (abs(Camera.turn_vector) > 1):
             Camera.drive_vector = -1
+            Camera.turn_vector = (Camera.turn_vector / abs(Camera.turn_vector)) * 0.3
         if (Camera.too_close):
             Camera.drive_vector = -1
+            Camera.turn_vector = 0
         print("visible pixels: ",len(visible_points))
         print("too close pixels: ",len(close_points))
         size = 15

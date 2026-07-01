@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket
-from System.robot import Robot, RobotState,Camera
+from System.robot import Robot, RobotState,Camera,Auto
 from System.interface_map import *
 import asyncio
 
@@ -40,7 +40,8 @@ async def command_task(websocket: WebSocket):
         elif data[COMMAND] == Command.CAM_DRIVE_P.value:
             Camera.DRIVE_P = float(data[VALUES])
         elif data[COMMAND] == Command.AUTO_TIME.value:
-            Robot.auto.RUN_TIME = float(data[VALUES])
+            Auto.RUN_TIME = float(data[VALUES])
+            Robot.auto.RUN_TIME = Auto.RUN_TIME
         elif data[COMMAND] == Command.OFF.value:
             Robot.turn_off()
         elif data[COMMAND] == Command.ON.value:
