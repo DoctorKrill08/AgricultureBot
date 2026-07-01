@@ -1,4 +1,5 @@
 from System.hardware import*
+from timer import Timer
 import math
 
 
@@ -10,9 +11,20 @@ class Drivetrain:
     MAX_POWER = 0.75
     TURN_SENSITIVITY = 0.5
     MIN_TURN = 0.1
+
+    FORWARD_SPEED = 0.1 #TBD
+    TURN_SPEED = 0.1
+
+    x = 0
+    y = 0
+    yaw = 0
+
+    timer = Timer()
+
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
+        Drivetrain.timer.reset()
     def status():
         telemetry = "--- DRIVETRAIN ---\n"
         telemetry += Drivetrain.left_motor.status()
@@ -37,3 +49,11 @@ class Drivetrain:
         drive,turn = Drivetrain.to_scale(drive,turn)
         Drivetrain.left_motor.set((drive + turn))
         Drivetrain.right_motor.set((drive - turn))
+
+        Drivetrain.state_estimate(drive,turn,Drivetrain.timer.time_passed())
+        Drivetrain.timer.reset()
+    def state_estimate(drive,turn,deltaT):
+        Drivetrain.yaw += (turn * deltaT) * Drivetrain.TURN_SPEED
+        Drivetrain.x += ((drive * deltaT) * Drivetrain.TURN_SPEED) * math.cos(Drivetrain.yaw)
+        Drivetrain.y += ((drive * deltaT) * Drivetrain.TURN_SPEED) * math.sin(Drivetrain.yaw)
+

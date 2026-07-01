@@ -12,9 +12,10 @@ class Arduino:
     NANO = "NANO"
     WINDOWS = "WINDOWS"
     SERIAL_PORTS = {
-        NANO: '/dev/ttyACM0',
+        NANO: '/dev/ttyACM1',
         WINDOWS : 'COM5'
     }
+    TIMEOUT = 0.1
     serial = None
     connected = False
     def connect_arduino():
@@ -23,13 +24,13 @@ class Arduino:
             if (Arduino.connected):
                 return
             try:
-                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout= 0.1)
+                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout= Arduino.TIMEOUT)
                 print(f"Connected to Arduino via {key}: {value}")
                 Arduino.connected = True
             finally:
                 pass
         print(f"Arduino connected: {Arduino.connected}")
-        time.sleep(1.5)
+        time.sleep(2)
         if (Arduino.connected):
             send_command(f"{Device.Start.value},0,0")
 
