@@ -111,8 +111,8 @@ class Robot:
         Robot.telemetry = Telemetry(
             mode=Robot.state.value,
             battery=12.4,
-            longitude=GPS.longitude,
-            latitude=GPS.latitude,
+            longitude=GPS.local_grid[0],
+            latitude=GPS.local_grid[1],
             heading=Camera.yaw(),
             gps_connected=GPS.connected,
             arduino_connected=Arduino.connected,
