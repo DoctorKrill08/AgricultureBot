@@ -114,7 +114,7 @@ class Robot:
             longitude=GPS.local_grid[0],
             latitude=GPS.local_grid[1],
             heading=Camera.yaw(),
-            gps_connected=GPS.connected,
+            gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
             status= Robot.status() + Drivetrain.status() + Camera.status(),
         )

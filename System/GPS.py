@@ -227,7 +227,6 @@ class GPS:
         return
     def local_to_global():
         return
-
     def start():
         GPS.rover.start()
         GPS.base.start()
