@@ -30,6 +30,7 @@ export default function RobotControlPanel() {
 
   const inputChange = (cmd: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
+      event.preventDefault(); 
       console.log(cmd)
       var input = parseFloat((event.target as HTMLInputElement).value);
       if (Number.isNaN(input)){

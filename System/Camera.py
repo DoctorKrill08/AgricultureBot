@@ -41,7 +41,7 @@ class Camera:
     drive_vector = 0
 
     def status():
-        return f"Camera on: {Camera.on} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
+        return f"Camera on: {Camera.on} TOO CLOSE: {Camera.too_close} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
     def yaw():
         return 0
     def start():
