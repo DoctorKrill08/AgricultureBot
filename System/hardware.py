@@ -12,7 +12,7 @@ class Arduino:
     NANO = "NANO"
     WINDOWS = "WINDOWS"
     SERIAL_PORTS = {
-        NANO: '/dev/ttyACM1',
+        NANO: '/dev/ttyACM0',
         WINDOWS : 'COM5'
     }
     TIMEOUT = 0.1
