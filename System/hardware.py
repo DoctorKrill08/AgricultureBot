@@ -12,7 +12,7 @@ class Arduino:
     NANO = "NANO"
     WINDOWS = "WINDOWS"
     SERIAL_PORTS = {
-        NANO: '/dev/ttyACM0',
+        NANO: '/dev/ttyACM1',
         WINDOWS : 'COM5'
     }
     serial = None
