@@ -3,11 +3,10 @@ import numpy as np
 import cv2
 import sys
 from pathlib import Path
+import time
 import math
+from System.Localizer import IMU, meters_to_inches
 
-
-def meters_to_inches(meters):
-    return meters * 39.3701
 
 class Camera:
     MIN_DISTANCE = 10 #inches
@@ -40,6 +39,11 @@ class Camera:
     turn_vector = 0
     drive_vector = 0
 
+    IMU_enabled = False
+
+    raw_accel_reading = np.array([0,0,0])
+    raw_gyro_reading = np.array([0,0,0])
+
     def status():
         return f"Camera on: {Camera.on} TOO CLOSE: {Camera.too_close} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
     def yaw():
@@ -55,11 +59,26 @@ class Camera:
             cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
             cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
 
-            Camera.pipe.start(cfg)
-            Camera.on = True
+            try:
+                cfg2 = cfg
+                cfg2.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 200)
+                cfg2.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
+                Camera.pipe.start(cfg2)
+                Camera.IMU_enabled = True
+                Camera.on = True
+            except Exception as error:
+                print("IMU ERROR: ", error)
+                try:
+                    Camera.pipe.start(cfg)
+                    Camera.IMU_enabled = False
+                    IMU.start()
+                    Camera.on = True
+                except Exception as e:
+                    Camera.on = False
+                    print("CAMERA NOT CONNECTED", e)
         except Exception as e:
             Camera.on = False
-            print(e)
+            print("CAMERA NOT CONNECTED", e)
     def read():
         if (not Camera.on):
             return
@@ -69,6 +88,24 @@ class Camera:
         canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
         canvas_black[20, 20] = [0, 0, 255]
         Camera.pixels_within_distance(canvas_black,depth_frame)
+        
+        if (Camera.IMU_enabled):
+            Camera.raw_accel_reading = None
+            Camera.raw_gyro_reading = None
+            accel_frame = frame.first_or_default(rs.stream.accel)
+            if accel_frame:
+                accel_data = accel_frame.as_motion_frame().get_motion_data()
+                Camera.raw_accel_reading = np.array([accel_data.x,accel_data.z,accel_data.y])
+                #print(f"Accel: x={accel_data.x:.3f}, y={accel_data.y:.3f}, z={accel_data.z:.3f}")
+                
+            # Get Gyroscope data
+            gyro_frame = frame.first_or_default(rs.stream.gyro)
+            if gyro_frame:
+                gyro_data = gyro_frame.as_motion_frame().get_motion_data()
+                Camera.raw_gyro_reading = np.array([gyro_data.z,gyro_data.x,gyro_data.y])
+                #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")
+            
+        IMU.read(Camera.raw_accel_reading,Camera.raw_gyro_reading)
             
         #cv2.imshow('to close', canvas_black)
 
@@ -121,8 +158,8 @@ class Camera:
         if (Camera.too_close):
             Camera.drive_vector = -1
             Camera.turn_vector = 0
-        print("visible pixels: ",len(visible_points))
-        print("too close pixels: ",len(close_points))
+        #print("visible pixels: ",len(visible_points))
+       # print("too close pixels: ",len(close_points))
         size = 15
 
         color = [0,255,0]
@@ -139,6 +176,7 @@ if __name__ == "__main__":
     Camera.start()
     while True:
         Camera.read()
+        time.sleep(0.05)
         if cv2.waitKey(1) == ord('q'):
             break
     Camera.stop()
