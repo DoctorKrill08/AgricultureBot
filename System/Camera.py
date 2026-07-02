@@ -8,6 +8,7 @@ import math
 from System.Localizer import IMU, meters_to_inches
 
 
+
 class Camera:
     MIN_DISTANCE = 10 #inches
     TOO_CLOSE = 12 #inches
@@ -25,7 +26,8 @@ class Camera:
     MIN_NUM_OF_CLOSE_POINTS = 120
     MIN_NUM_OF_VISIBLE_POINTS = 7000
     too_close = False
-    pipe = None
+    vision_pipe = None
+    imu_pipe = None
     on = False
     ROBOT_WIDTH = 20 #inches
     ROBOT_HEIGHT = 8
@@ -44,45 +46,70 @@ class Camera:
     raw_accel_reading = np.array([0,0,0])
     raw_gyro_reading = np.array([0,0,0])
 
+    def exception():
+        ctx = rs.context()
+        devices = ctx.query_devices()
+
+        if not devices:
+            print("CRITICAL: No RealSense devices detected at all. Check your USB cable/port connection.")
+        else:
+            dev = devices[0]
+            print(f"Device found: {dev.get_info(rs.camera_info.name)}")
+            print(f"Serial Number: {dev.get_info(rs.camera_info.serial_number)}")
+            
+            # Check sensors directly
+            for sensor in dev.query_sensors():
+                sensor_name = sensor.get_info(rs.camera_info.name)
+                # We only care about the Motion Module (IMU)
+                if "Motion" in sensor_name:
+                    print(f"\nFound Sensor: {sensor_name}")
+                    for profile in sensor.get_stream_profiles():
+                        print(f"  Stream: {profile.stream_name()} | FPS: {profile.fps()} | Format: {profile.format()}")
+
+
     def status():
         return f"Camera on: {Camera.on} TOO CLOSE: {Camera.too_close} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
     def yaw():
         return 0
     def start():
+        
+        ctx = rs.context()
+        dev = ctx.query_devices()[0]
+        serial = dev.get_info(rs.camera_info.serial_number)
+
         Camera.angle = [0,0,0] #pitch roll yaw
         Camera.position = [0,0,0] #ground x, ground y, height
+        Camera.vision_pipe = rs.pipeline()
+        Camera.imu_pipe = rs.pipeline()
+        imu_cfg = rs.config()
+        vision_cfg = rs.config()
 
         try:
-            Camera.pipe = rs.pipeline()
-            cfg  = rs.config()
+            imu_cfg.enable_device(serial)
+            imu_cfg.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 250)
+            imu_cfg.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 400)
+            Camera.imu_pipe.start(imu_cfg)
+            Camera.IMU_enabled = True
+        except Exception as e:
+            Camera.IMU_enabled = False
+            Camera.exception()
+            print("IMU NOT CONNECTED", e)
 
-            cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
-            cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
-
-            try:
-                cfg2 = cfg
-                cfg2.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 200)
-                cfg2.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
-                Camera.pipe.start(cfg2)
-                Camera.IMU_enabled = True
-                Camera.on = True
-            except Exception as error:
-                print("IMU ERROR: ", error)
-                try:
-                    Camera.pipe.start(cfg)
-                    Camera.IMU_enabled = False
-                    IMU.start()
-                    Camera.on = True
-                except Exception as e:
-                    Camera.on = False
-                    print("CAMERA NOT CONNECTED", e)
+        try:
+            vision_cfg.enable_device(serial)
+            vision_cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
+            vision_cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
+            Camera.vision_pipe.start(vision_cfg)
+            Camera.on = True
         except Exception as e:
             Camera.on = False
+            Camera.exception()
             print("CAMERA NOT CONNECTED", e)
+        
     def read():
         if (not Camera.on):
             return
-        frame = Camera.pipe.wait_for_frames()
+        frame = Camera.vision_pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
 
         canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
@@ -92,14 +119,15 @@ class Camera:
         if (Camera.IMU_enabled):
             Camera.raw_accel_reading = None
             Camera.raw_gyro_reading = None
-            accel_frame = frame.first_or_default(rs.stream.accel)
+            imu_frame = Camera.imu_pipe.wait_for_frames()
+            accel_frame = imu_frame.first_or_default(rs.stream.accel)
             if accel_frame:
                 accel_data = accel_frame.as_motion_frame().get_motion_data()
                 Camera.raw_accel_reading = np.array([accel_data.x,accel_data.z,accel_data.y])
                 #print(f"Accel: x={accel_data.x:.3f}, y={accel_data.y:.3f}, z={accel_data.z:.3f}")
                 
             # Get Gyroscope data
-            gyro_frame = frame.first_or_default(rs.stream.gyro)
+            gyro_frame = imu_frame.first_or_default(rs.stream.gyro)
             if gyro_frame:
                 gyro_data = gyro_frame.as_motion_frame().get_motion_data()
                 Camera.raw_gyro_reading = np.array([gyro_data.z,gyro_data.x,gyro_data.y])
@@ -112,7 +140,7 @@ class Camera:
     def stop():
         if (Camera.on == False):
             return
-        Camera.pipe.stop()
+        Camera.vision_pipe.stop()
         Camera.on = False
     def pixels_within_distance(canvas,depth_frame):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
@@ -158,8 +186,8 @@ class Camera:
         if (Camera.too_close):
             Camera.drive_vector = -1
             Camera.turn_vector = 0
-        #print("visible pixels: ",len(visible_points))
-       # print("too close pixels: ",len(close_points))
+        print("visible pixels: ",len(visible_points))
+        print("too close pixels: ",len(close_points))
         size = 15
 
         color = [0,255,0]
@@ -174,6 +202,7 @@ class Camera:
         
 if __name__ == "__main__":
     Camera.start()
+    time.sleep(1)
     while True:
         Camera.read()
         time.sleep(0.05)
