@@ -90,6 +90,7 @@ class Camera:
             imu_cfg.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 400)
             Camera.imu_pipe.start(imu_cfg)
             Camera.IMU_enabled = True
+            IMU.start()
         except Exception as e:
             Camera.IMU_enabled = False
             Camera.exception()
@@ -123,17 +124,25 @@ class Camera:
             accel_frame = imu_frame.first_or_default(rs.stream.accel)
             if accel_frame:
                 accel_data = accel_frame.as_motion_frame().get_motion_data()
-                Camera.raw_accel_reading = np.array([accel_data.x,accel_data.z,accel_data.y])
+                array =  np.array([0,0,0], dtype=np.float32)
+                array[IMU.LEFT] = accel_data.x
+                array[IMU.DOWN] = accel_data.y
+                array[IMU.FORWARD] = accel_data.z
+                Camera.raw_accel_reading = array
                 #print(f"Accel: x={accel_data.x:.3f}, y={accel_data.y:.3f}, z={accel_data.z:.3f}")
                 
             # Get Gyroscope data
             gyro_frame = imu_frame.first_or_default(rs.stream.gyro)
             if gyro_frame:
                 gyro_data = gyro_frame.as_motion_frame().get_motion_data()
-                Camera.raw_gyro_reading = np.array([gyro_data.z,gyro_data.x,gyro_data.y])
+                array =  np.array([0,0,0], dtype=np.float32)
+                array[IMU.ROLL] = gyro_data.z
+                array[IMU.PITCH] = -gyro_data.x
+                array[IMU.YAW] = gyro_data.y
+                Camera.raw_gyro_reading = array
                 #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")
             
-        IMU.read(Camera.raw_accel_reading,Camera.raw_gyro_reading)
+        IMU.run(Camera.raw_accel_reading,Camera.raw_gyro_reading)
             
         #cv2.imshow('to close', canvas_black)
 
@@ -186,8 +195,8 @@ class Camera:
         if (Camera.too_close):
             Camera.drive_vector = -1
             Camera.turn_vector = 0
-        print("visible pixels: ",len(visible_points))
-        print("too close pixels: ",len(close_points))
+        #print("visible pixels: ",len(visible_points))
+        #print("too close pixels: ",len(close_points))
         size = 15
 
         color = [0,255,0]
@@ -200,12 +209,16 @@ class Camera:
             Camera.too_close = False
             canvas[0:20,0:20] = [0,255,0]
         
+
+
 if __name__ == "__main__":
+    test_time = 20 #seconds
     Camera.start()
-    time.sleep(1)
-    while True:
+    start_time = time.perf_counter()
+    time.sleep(0.5)
+    while time.perf_counter() - start_time < test_time:
         Camera.read()
-        time.sleep(0.05)
         if cv2.waitKey(1) == ord('q'):
             break
     Camera.stop()
+    IMU.show()

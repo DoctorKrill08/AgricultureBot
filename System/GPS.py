@@ -4,10 +4,18 @@ from timer import Timer
 from enum import Enum
 import math
 import re
+import matplotlib.pyplot as plt
+
+def recursive_average(prev,current,quantity):
+        if (quantity <= 0):
+            return current
+        return prev + (current - prev)/quantity
 
 
 def miles_to_inches(miles):
     return miles * 63360
+def kilometers_per_hour_to_inches_per_second(kilometers):
+    return kilometers * 10.936132983377
 
 class Direction(Enum):
     NORTH = "N"
@@ -53,7 +61,7 @@ class CoordinateSystem(Enum):
         lat = coordinates1[0]
         lon = coordinates1[1]
 
-        avg_lat = CoordinateSystem.average_coordinates(lat,start_lat)
+        avg_lat = math.radians(CoordinateSystem.average_coordinates(lat,start_lat))
 
         delta_lat = (lat - start_lat) * 69.1
         delta_lon = (lon - start_lon) * 69.1 * math.cos(avg_lat)
@@ -75,15 +83,15 @@ class CoordinateSystem(Enum):
             avg += coordinate
         avg /= len(coordinates)
         return avg
-    def recursive_average(prev_coordinate,coordinate,num_of_coords):
-        if (num_of_coords <= 0):
-            return coordinate
-        return prev_coordinate + (coordinate - prev_coordinate)/num_of_coords
+
 
 
 
 
 class GPSReceiver():
+    POSITION_STREAM = '$GNGGA'
+    VELOCITY_STREAM = '$GNVTG'
+
     ROVER = "ROVER"
     BASE = "BASE"
 
@@ -92,7 +100,6 @@ class GPSReceiver():
 
     BAUD_RATE = 115200
 
-    POSITION_STREAM = '$GNGGA'
     RTK_STREAM = ''
 
     ROVER_PORTS = {
@@ -108,7 +115,6 @@ class GPSReceiver():
         self.serial_ports = GPSReceiver.ROVER_PORTS
         if (type == GPSReceiver.BASE):
             self.serial_ports = GPSReceiver.BASE_PORTS
-            #TBA add RTK stream logic
         self.type = type
         self.connected = False
         
@@ -116,14 +122,18 @@ class GPSReceiver():
 
         self.longitude = 0
         self.latitude = 0
-        self.quality = 0
+        self.fix_quality = 0
 
-        self.yaw = 0
+        self.cogd = 0
+        self.sogk = 0
 
-        self.target_stream = GPSReceiver.POSITION_STREAM
+        self.velocity = 0
+
+        self.vel_quality = 'N'
+
+        self.target_stream =self.POSITION_STREAM + self.VELOCITY_STREAM
 
     def start(self):
-        print(self.serial_ports)
         self.connected = False
         for key,value in self.serial_ports.items():
             if (self.connected):
@@ -145,7 +155,7 @@ class GPSReceiver():
         lines = re.split(r'(\n)',lines)
         print("--------")
         for line in (lines):
-            if line.startswith(self.target_stream):
+            if line.startswith(self.POSITION_STREAM):
                 lat,lon,quality = GPSReceiver.parse_gps(line)
                 if (lat == None or lon == None or lat == "" or lon == ""):
                     return
@@ -158,7 +168,41 @@ class GPSReceiver():
                 self.start_position_found = True
                 self.latitude = lat
                 self.longitude = lon
-                self.quality = quality
+                self.fix_quality = quality
+            if line.startswith(self.VELOCITY_STREAM):
+                cogd,sogk,quality = GPSReceiver.parse_gps(line)
+                if (cogd == None or cogd == ""):
+                    cogd = 0.0
+                else:
+                    cogd = float(cogd)
+                self.cogd = cogd
+                self.sogk = float(sogk)
+                self.sogk = kilometers_per_hour_to_inches_per_second(self.sogk)
+                self.velocity = [self.sogk * math.cos(math.radians(self.cogd)),self.sogk * math.sin(math.radians(self.cogd))]
+                self.vel_quality = quality
+
+                for i in range(len(GPS.prev_angles)):
+                    if (i == len(GPS.prev_angles) - 1):
+                        GPS.prev_angles[i] = self.cogd
+                    else:
+                        GPS.prev_angles[i] = GPS.prev_angles[i + 1]
+                GPS.moving = False
+                for angle in GPS.prev_angles:
+                    if (not angle == 0):
+                        GPS.moving = True
+                        pass
+                for i in range(len(GPS.prev_speeds)):
+                    if (i == len(GPS.prev_speeds) - 1):
+                        GPS.prev_speeds[i] = self.sogk
+                    else:
+                        GPS.prev_speeds[i] = GPS.prev_speeds[i + 1]
+                i = 0
+                for speed in GPS.prev_speeds:
+                    if (speed > GPS.speed_threshold):
+                        i += 1
+                if i >= 3:
+                    GPS.moving = True
+
     
     def close(self):
         if (self.connected):
@@ -168,7 +212,8 @@ class GPSReceiver():
     def status(self):
         if (self.type == self.BASE):
             return f"\n {self.type},connected:{self.connected}"
-        return f"\n {self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.quality}-{GPSReceiver.int_to_quality(self.quality)}"
+        return f"\n {self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.fix_quality}-{GPSReceiver.int_to_quality(self.fix_quality)} \n \
+            SPEED: {self.sogk} ANGLE: {self.cogd} VEL_QUALITY: {self.vel_quality}"
 
     @staticmethod
     def int_to_quality(quality):
@@ -210,18 +255,47 @@ class GPSReceiver():
             """
 
             return latitude,longitude,fix_quality
+        if (type == GPSReceiver.VELOCITY_STREAM):
+            #print(line)
+            course_over_ground_degrees,_,line = line.partition(",")
+            _,_,line = line.partition(",")
+            magnetic_heading_degrees,_,line = line.partition(",")
+            _,_,line = line.partition(",")
+            speed_knots,_,line = line.partition(",")
+            _,_,line = line.partition(",")
+            speed_km,_,line = line.partition(",")
+            _,_,line = line.partition(",")
+            fix_quality,_,line = line.partition("*")
+            """
+            print("course_over_ground_degrees: ",course_over_ground_degrees)
+            print("magnetic_heading_degrees: ",magnetic_heading_degrees)
+            print("speed_km: ",speed_km)
+            print("fix_quality: ",fix_quality)
+            """
+            return course_over_ground_degrees,speed_km,fix_quality
 class GPS:
+    moving = False
 
     rover = GPSReceiver(GPSReceiver.ROVER)
     base = GPSReceiver(GPSReceiver.BASE)
 
 
-    PERIOD = 0.2 #Time inbetween readings
+    PERIOD = 0.1 #Time inbetween readings
     timer = Timer()
+
+
+    start_time = time.perf_counter()
 
     local_grid = [0,0]
 
     start_coordinates = [0,0]
+
+    started = False
+
+    prev_angles = [0,0,0]
+    prev_speeds = [0,0,0,0,0,0,0,0]
+
+    speed_threshold = 4
 
     def global_to_local():
         return
@@ -244,24 +318,17 @@ class GPS:
         waiting = GPS.base.serial.in_waiting
         if waiting:
             data = GPS.base.serial.read(waiting)
-            #print("base wrote to rover")
+            print("base wrote to rover")
             GPS.rover.serial.write(data)
             GPS.rover.serial.flush()
     
     def calculate_start_pos():
-        MIN_SAMPLES = 30
-        i = 0
-        prev_lat = GPS.start_coordinates[0]
-        while i < MIN_SAMPLES:
+        GPS.started = False
+        while GPS.rover.latitude == 0:
             GPS.update()
-            GPS.start_coordinates[0] = CoordinateSystem.recursive_average(GPS.start_coordinates[0],GPS.rover.latitude,i)
-            GPS.start_coordinates[1] = CoordinateSystem.recursive_average(GPS.start_coordinates[1],GPS.rover.longitude,i)
-
-            if (prev_lat == GPS.start_coordinates[0]):
-                continue
-            i += 1
-            prev_lat = GPS.start_coordinates[0]
-            print("Loading i: ", i)
+            GPS.start_coordinates[0] = GPS.rover.latitude
+            GPS.start_coordinates[1] = GPS.rover.longitude
+        GPS.started = True
 
 
     def update():
@@ -270,11 +337,20 @@ class GPS:
             GPS.signal_base_to_rover()
         if (GPS.rover.connected):
             GPS.rover.read()
-        d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates) 
-        GPS.local_grid = [d_lat,d_lon]
+        if (GPS.started):
+            d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates) 
+            GPS.local_grid = [d_lat,d_lon]
+
+            if (not GPS.moving):
+                plt.scatter(time.perf_counter() - GPS.start_time,0,color = "red")
+            else:
+                print("MOVING!")
+                plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
         if (GPS.timer.time_passed() < GPS.PERIOD):
             time.sleep(GPS.PERIOD - GPS.timer.time_passed())
         GPS.timer.reset()
+        
+
         
 
 
@@ -283,5 +359,6 @@ class GPS:
 #Linux: python3 -m System.GPS (I think)
 if __name__ == "__main__":
     GPS.start()
-    while True:
+    while time.perf_counter() - GPS.start_time < 20:
         GPS.update()
+    plt.show()
