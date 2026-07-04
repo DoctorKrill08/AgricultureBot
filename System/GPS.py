@@ -332,7 +332,7 @@ class GPS:
 
 
     def update():
-        print(GPS.status())
+       # print(GPS.status())
         if (GPS.rover.connected and GPS.base.connected):
             GPS.signal_base_to_rover()
         if (GPS.rover.connected):
@@ -342,10 +342,11 @@ class GPS:
             GPS.local_grid = [d_lat,d_lon]
 
             if (not GPS.moving):
-                plt.scatter(time.perf_counter() - GPS.start_time,0,color = "red")
+               # plt.scatter(time.perf_counter() - GPS.start_time,0,color = "red")
+               pass
             else:
                 print("MOVING!")
-                plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
+               # plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
         if (GPS.timer.time_passed() < GPS.PERIOD):
             time.sleep(GPS.PERIOD - GPS.timer.time_passed())
         GPS.timer.reset()
