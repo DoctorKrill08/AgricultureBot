@@ -339,9 +339,9 @@ class IMU():
         CalibrateIMUKalman.update(raw_accel)
 
         raw_accel -= IMU.gravity_vector
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "blue")
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "red")
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "blue")
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "red")
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
 
         
         raw_accel -= IMU.accel_error
@@ -372,19 +372,6 @@ class IMU():
         #plt.scatter(time.perf_counter() - IMU.start_time,jerk[0],color = "red")
 
         #plt.scatter(time.perf_counter() - IMU.start_time,raw_gyro[IMU.YAW],color = "red")
-
-        if (not MovementKalman.isMoving()):
-            IMU.accel *= 0
-            IMU.velocity *= 0
-        
-        for i in range(len(IMU.accel)):
-            if (abs(IMU.accel[i]) < IMU.ACCEL_THRESHOLD[i]):
-                IMU.accel[i] = 0
-
-        for i in range(len(IMU.delta_accel)):
-            if (abs(IMU.delta_accel[i]) < IMU.ACCEL_THRESHOLD[i] * 2):
-                IMU.accel[i] = 0
-
         for i in range(len(IMU.accel)):
             accel = IMU.accel[i]
             velocity = accel * delta_time
@@ -398,17 +385,17 @@ class IMU():
             IMU.velocity = np.array([0.0,0.0,0.0])
             IMU.predicted_accel = np.array([0.0,0.0,0.0])
 
-       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.FORWARD],color = "red")
-       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.DOWN],color = "blue")
-       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.LEFT],color = "green")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.FORWARD],color = "red")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.DOWN],color = "blue")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.LEFT],color = "green")
 
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.FORWARD],color = "red")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.DOWN],color = "blue")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.LEFT],color = "green")
+     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.FORWARD],color = "red")
+     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.DOWN],color = "blue")
+     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.LEFT],color = "green")
 
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.FORWARD],color = "red")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.DOWN],color = "blue")
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.LEFT],color = "green")
+     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.FORWARD],color = "red")
+     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.DOWN],color = "blue")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.LEFT],color = "green")
 
         #print(IMU.status())
         
@@ -464,16 +451,16 @@ class IMU():
                 return "Z"
 
 class CalibrateIMUKalman():
-    state_variance = 1000
-    accel_variance = 10
-    gyro_variance = 0.02
+    state_variance = 10000
+    accel_variance = 4
+    gyro_variance = 4
 
-    Q = 0
-    DRIFT_FACTOR = 30
+    Q = 1000
+    DRIFT_FACTOR = 3000
     timer = Timer()
 
     def predict():
-        CalibrateIMUKalman.state_variance += (CalibrateIMUKalman.DRIFT_FACTOR * CalibrateIMUKalman.timer.time_passed() * MovementKalman.moving + CalibrateIMUKalman.Q)
+        CalibrateIMUKalman.state_variance += (CalibrateIMUKalman.Q)
         CalibrateIMUKalman.timer.reset()
     def update(accel):
         angle = np.array([0,0,0],dtype=np.float32)
@@ -485,16 +472,19 @@ class CalibrateIMUKalman():
         print("CONFIGURING")
         angle[IMU.PITCH] = math.atan2(accel[IMU.FORWARD],accel[IMU.DOWN])
         angle[IMU.ROLL] = math.asin(max(min(accel[IMU.LEFT],-1),1) / IMU.gravity)
-        angle[IMU.YAW] = 0.0
+        angle[IMU.YAW] = IMU.rotate_position[IMU.YAW]
+
+        sensor_variance = CalibrateIMUKalman.gyro_variance
+
+        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + sensor_variance)
+        IMU.rotate_position += K * (angle - IMU.rotate_position)
+        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
 
         error = accel - IMU.calculate_gravity_vector()
+        sensor_variance = CalibrateIMUKalman.accel_variance
 
         K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + CalibrateIMUKalman.accel_variance)
         IMU.accel_error += K * (error - IMU.accel_error)
-        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
-
-        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + CalibrateIMUKalman.gyro_variance)
-        IMU.rotate_position += K * (angle - IMU.rotate_position)
         CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
 
 
@@ -546,10 +536,12 @@ class MovementKalman():
 
 class Localizer():
     moving = False
+    timer = Timer()
     def start():
         Camera.start()
         GPS.start()
         time.sleep(0.5)
+        Localizer.timer.reset()
         plt.xlabel('Delta Time')
         plt.ylabel('eee')
         plt.title('Plot')
@@ -565,6 +557,6 @@ class Localizer():
 if __name__ == "__main__":
     #GPS.start()
     Localizer.start()
-    while time.perf_counter() - GPS.start_time < 15:
+    while Localizer.timer.time_passed() < 15:
         Localizer.run()
     Localizer.show()

@@ -324,10 +324,9 @@ class GPS:
     
     def calculate_start_pos():
         GPS.started = False
-        while GPS.rover.latitude == 0:
-            GPS.update()
-            GPS.start_coordinates[0] = GPS.rover.latitude
-            GPS.start_coordinates[1] = GPS.rover.longitude
+        GPS.update()
+        GPS.start_coordinates[0] = GPS.rover.latitude
+        GPS.start_coordinates[1] = GPS.rover.longitude
         GPS.started = True
 
 
