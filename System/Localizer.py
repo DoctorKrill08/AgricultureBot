@@ -260,6 +260,7 @@ class IMU():
     p = np.array([0.0,0.0,0.0]) #Proportional
     e = np.array([0.0,0.0,0.0]) #Exponential 
     
+    ACCEL_THRESHOLD = np.array([2,2,2],dtype=np.float32)
     JERK_THRESHOLD = np.array([50,50,50])
 
     MOVE_VEL_THRESHOLD = np.array([2,2,2])
@@ -284,7 +285,7 @@ class IMU():
 
     current_config_sample = 0
     CONFIG_SAMPLES = 5
-
+    
 
     LEFT = 0 #X
     DOWN = 1 #Y
@@ -298,31 +299,11 @@ class IMU():
     ROTATING_KALMAN_THRESHOLD = 0.05
 
     jerk = False
-
-    def config_angle(accel):
-        IMU.accel = recursive_average(IMU.accel,accel,IMU.current_config_sample)
-        IMU.current_config_sample += 1
-
-        IMU.rotate_position[IMU.PITCH] = math.atan2(IMU.accel[IMU.FORWARD],IMU.accel[IMU.DOWN])
-        IMU.rotate_position[IMU.ROLL] = math.asin(max(min(IMU.accel[IMU.LEFT],-1),1) / IMU.gravity)
-        IMU.rotate_position[IMU.YAW] = 0.0
-        print("CONFIGING_ANGLE: ",IMU.rotate_position)
-        if (IMU.current_config_sample > IMU.CONFIG_SAMPLES):
-            IMU.current_config_sample = 0
-            IMU.state = IMUState.ACTIVE
-    def config_error(accel):
-        IMU.accel_error = recursive_average(IMU.accel_error,accel,IMU.current_config_sample)
-        IMU.current_config_sample += 1
-        print("CONFIGING_ERROR: ",IMU.rotate_position)
-        if (IMU.current_config_sample > IMU.CONFIG_SAMPLES):
-            IMU.current_config_sample = 0
-            IMU.state = IMUState.ACTIVE
     def calculate_gravity_vector():
         IMU.gravity_vector[IMU.FORWARD] = IMU.gravity * math.sin(IMU.rotate_position[IMU.PITCH])
         IMU.gravity_vector[IMU.LEFT] = (IMU.gravity * math.cos(IMU.rotate_position[IMU.PITCH]) * math.sin(IMU.rotate_position[IMU.ROLL]))
         IMU.gravity_vector[IMU.DOWN] = IMU.gravity * math.cos(IMU.rotate_position[IMU.PITCH]) * math.cos(IMU.rotate_position[IMU.ROLL])
         return IMU.gravity_vector
-
     def start():
         IMU.start_time = time.perf_counter()
         IMU.timer.reset()
@@ -332,15 +313,13 @@ class IMU():
         IMU.state_variance += (IMU.Q * delta_time)
     def update(measured_accel,raw_gyro,delta_time):
         IMU.prev_accel = IMU.accel
-
+        IMU.accel = measured_accel
         if (MovementKalman.moving > IMU.ROTATING_KALMAN_THRESHOLD or IMU.rotating):
             IMU.rotate_position += raw_gyro * delta_time
 
-        IMU.prev_accel = measured_accel
-
-        K = IMU.state_variance / (IMU.state_variance + IMU.ACCEL_VARIANCE)
+        """ K = IMU.state_variance / (IMU.state_variance + IMU.ACCEL_VARIANCE)
         IMU.accel += K * (measured_accel - IMU.accel)
-        IMU.state_variance = (np.array([1,1,1]) - K) * (IMU.state_variance)
+        IMU.state_variance = (np.array([1,1,1]) - K) * (IMU.state_variance)"""
 
         #IMU.ACCEL_VARIANCE += IMU.ACCEL_VARIANCE * delta_time * 0.01
     def run(raw_accel, raw_gyro):
@@ -356,13 +335,11 @@ class IMU():
         if (IMU.state == IMUState.DISABLED):
             return
     
-        if (IMU.state == IMUState.CONFIG_ANGLE):
-            IMU.config_angle(raw_accel)
-            raw_accel -= IMU.calculate_gravity_vector()
-            IMU.config_error(raw_accel)
-            return
-        raw_accel -= IMU.calculate_gravity_vector()
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "blue")
+        CalibrateIMUKalman.predict()
+        CalibrateIMUKalman.update(raw_accel)
+
+        raw_accel -= IMU.gravity_vector
+        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "blue")
         #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "red")
         #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
 
@@ -396,8 +373,23 @@ class IMU():
 
         #plt.scatter(time.perf_counter() - IMU.start_time,raw_gyro[IMU.YAW],color = "red")
 
-        IMU.translational_acceleration = False
-        IMU.rotational_acceleration = False
+        if (not MovementKalman.isMoving()):
+            IMU.accel *= 0
+            IMU.velocity *= 0
+        
+        for i in range(len(IMU.accel)):
+            if (abs(IMU.accel[i]) < IMU.ACCEL_THRESHOLD[i]):
+                IMU.accel[i] = 0
+
+        for i in range(len(IMU.delta_accel)):
+            if (abs(IMU.delta_accel[i]) < IMU.ACCEL_THRESHOLD[i] * 2):
+                IMU.accel[i] = 0
+
+        for i in range(len(IMU.accel)):
+            accel = IMU.accel[i]
+            velocity = accel * delta_time
+            IMU.velocity[i] += velocity
+            IMU.position[i] += (IMU.velocity[i] * delta_time) + ((1/2) * (accel) * (delta_time ** 2))
 
 
         if (IMU.first_reading):
@@ -406,9 +398,17 @@ class IMU():
             IMU.velocity = np.array([0.0,0.0,0.0])
             IMU.predicted_accel = np.array([0.0,0.0,0.0])
 
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.FORWARD],color = "red")
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.DOWN],color = "blue")
+       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.FORWARD],color = "red")
+       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.DOWN],color = "blue")
        # plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.LEFT],color = "green")
+
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.FORWARD],color = "red")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.DOWN],color = "blue")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.LEFT],color = "green")
+
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.FORWARD],color = "red")
+      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.DOWN],color = "blue")
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.LEFT],color = "green")
 
         #print(IMU.status())
         
@@ -463,12 +463,50 @@ class IMU():
             if (i == IMU.FORWARD):
                 return "Z"
 
+class CalibrateIMUKalman():
+    state_variance = 1000
+    accel_variance = 10
+    gyro_variance = 0.02
+
+    Q = 0
+    DRIFT_FACTOR = 30
+    timer = Timer()
+
+    def predict():
+        CalibrateIMUKalman.state_variance += (CalibrateIMUKalman.DRIFT_FACTOR * CalibrateIMUKalman.timer.time_passed() * MovementKalman.moving + CalibrateIMUKalman.Q)
+        CalibrateIMUKalman.timer.reset()
+    def update(accel):
+        angle = np.array([0,0,0],dtype=np.float32)
+        error = np.array([0,0,0],dtype=np.float32)
+
+        if (MovementKalman.isMoving()):
+            IMU.calculate_gravity_vector()
+            return
+        print("CONFIGURING")
+        angle[IMU.PITCH] = math.atan2(accel[IMU.FORWARD],accel[IMU.DOWN])
+        angle[IMU.ROLL] = math.asin(max(min(accel[IMU.LEFT],-1),1) / IMU.gravity)
+        angle[IMU.YAW] = 0.0
+
+        error = accel - IMU.calculate_gravity_vector()
+
+        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + CalibrateIMUKalman.accel_variance)
+        IMU.accel_error += K * (error - IMU.accel_error)
+        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
+
+        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + CalibrateIMUKalman.gyro_variance)
+        IMU.rotate_position += K * (angle - IMU.rotate_position)
+        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
+
+
+        
+
+
 
 class MovementKalman():
     #0 = not moving, #1 = moving
     moving = 0
     state_variance = 0
-    Q = 0.05
+    Q = 10
 
     IMU_VARIANCE = 0
     GPS_VARIANCE = 0.1
@@ -500,15 +538,11 @@ class MovementKalman():
             MovementKalman.moving = 0
         MovementKalman.state_variance = (1 - K) * MovementKalman.state_variance
         
-
-        print("JERK: ",IMU.jerk)
-        print("ROTATING ",IMU.rotating)
-        print("K: ",K)
-        print("STATE VARIANCE: ",IMU.state_variance)
+        print("MOVEMENT: ",MovementKalman.moving)
 
         #plt.scatter(time.perf_counter() - IMU.start_time,MovementKalman.moving,color = "red")
     def isMoving():
-        return MovementKalman.moving > MovementKalman.MOVING_THRESHOLD and not IMU.rotating
+        return MovementKalman.moving > MovementKalman.MOVING_THRESHOLD
 
 class Localizer():
     moving = False
@@ -531,6 +565,6 @@ class Localizer():
 if __name__ == "__main__":
     #GPS.start()
     Localizer.start()
-    while time.perf_counter() - GPS.start_time < 30:
+    while time.perf_counter() - GPS.start_time < 15:
         Localizer.run()
     Localizer.show()
