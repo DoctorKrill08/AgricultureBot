@@ -483,7 +483,7 @@ class CompassKalman():
     yaw_variance = 1000
     gps_variance = 0.5
 
-    Q = 1
+    Q = 0.1
     def predict():
         print(CoordinateSystem.degrees_to_direction(math.degrees(IMU.rotate_position[IMU.YAW])))
         CompassKalman.yaw_variance += CompassKalman.Q
