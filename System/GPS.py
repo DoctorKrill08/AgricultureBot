@@ -84,6 +84,42 @@ class CoordinateSystem(Enum):
         avg /= len(coordinates)
         return avg
 
+    def degrees_to_direction(angle):
+        if angle < 0:
+            angle += 360
+        if angle > 360:
+            angle -= 360
+        #North is 0/360
+        #West is 270
+        #East is 90
+        #South is 180
+        increment = 30
+
+        W = 270
+        E = 90
+        S = 180
+
+        if (angle == 0.0):
+            return "N/A"
+        
+
+        if (angle > 360 - increment or angle < 0 + increment):
+            return "NORTH"
+        if (angle > W - increment and angle < W + increment):
+            return "WEST"
+        if (angle > E - increment and angle < E + increment):
+            return "EAST"
+        if (angle > S - increment and angle < S + increment):
+            return "SOUTH"
+        if (angle < 360 - increment and angle > W - increment):
+            return "NORTHWEST"
+        if (angle < W + increment and angle > S - increment):
+            return "SOUTHWEST"
+        if (angle < S + increment and angle > E - increment):
+            return "SOUTHEAST"
+        if (angle < E - increment and angle > 0 + increment):
+            return "NORTHEAST"
+
 
 
 
@@ -176,8 +212,11 @@ class GPSReceiver():
                 else:
                     cogd = float(cogd)
                 self.cogd = cogd
-                self.sogk = float(sogk)
-                self.sogk = kilometers_per_hour_to_inches_per_second(self.sogk)
+                try:
+                    self.sogk = float(sogk)
+                    self.sogk = kilometers_per_hour_to_inches_per_second(self.sogk)
+                except:
+                    self.sogk = 0
                 self.velocity = [self.sogk * math.cos(math.radians(self.cogd)),self.sogk * math.sin(math.radians(self.cogd))]
                 self.vel_quality = quality
 
@@ -213,7 +252,8 @@ class GPSReceiver():
         if (self.type == self.BASE):
             return f"\n {self.type},connected:{self.connected}"
         return f"\n {self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.fix_quality}-{GPSReceiver.int_to_quality(self.fix_quality)} \n \
-            SPEED: {self.sogk} ANGLE: {self.cogd} VEL_QUALITY: {self.vel_quality}"
+            SPEED: {self.sogk} ANGLE: {self.cogd} VEL_QUALITY: {self.vel_quality} \n \
+                DIRECTION: {CoordinateSystem.degrees_to_direction(self.cogd)}"
 
     @staticmethod
     def int_to_quality(quality):

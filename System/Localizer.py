@@ -12,7 +12,32 @@ import sys
 from pathlib import Path
 import time
 
-
+def add_angle(a1,a2):
+    if (a1 > math.pi):
+        a1 -= 2 * math.pi
+    if (a2 > math.pi):
+        a2 -= 2 * math.pi
+    if (a1 < -math.pi):
+        a1 += 2 * math.pi
+    if (a2 < -math.pi):
+        a2 += 2 * math.pi
+    sum = 0
+    if (a1 / a2) < 0:
+        pos = a1
+        neg = a2
+        if (a1 < 0):
+            pos = a2
+            neg = a1
+        
+        neg += (2 * math.pi)
+        sum = pos + neg
+    else:
+        sum = a1 + a2
+    if (sum > 2 * math.pi):
+        sum -= 2 * math.pi
+    if (sum < -2 * math.pi):
+        sum += 2 * math.pi
+    return sum
 
 class Camera:
     MIN_DISTANCE = 10 #inches
@@ -82,8 +107,11 @@ class Camera:
     def start():
         
         ctx = rs.context()
-        dev = ctx.query_devices()[0]
-        serial = dev.get_info(rs.camera_info.serial_number)
+        try:
+            dev = ctx.query_devices()[0]
+            serial = dev.get_info(rs.camera_info.serial_number)
+        except:
+            return
 
         Camera.angle = [0,0,0] #pitch roll yaw
         Camera.position = [0,0,0] #ground x, ground y, height
@@ -264,7 +292,7 @@ class IMU():
     JERK_THRESHOLD = np.array([50,50,50])
 
     MOVE_VEL_THRESHOLD = np.array([2,2,2])
-    ROTATE_VEL_THRESHOLD = np.array([0.01,0.01,0.01])
+    ROTATE_VEL_THRESHOLD = np.array([0.01,0.01,0.04])
 
     timer = Timer()
 
@@ -312,6 +340,7 @@ class IMU():
         #IMU.position += IMU.velocity * delta_time
         IMU.state_variance += (IMU.Q * delta_time)
     def update(measured_accel,raw_gyro,delta_time):
+        raw_gyro[IMU.YAW] *= -1
         IMU.prev_accel = IMU.accel
         IMU.accel = measured_accel
         if (MovementKalman.moving > IMU.ROTATING_KALMAN_THRESHOLD or IMU.rotating):
@@ -339,9 +368,9 @@ class IMU():
         CalibrateIMUKalman.update(raw_accel)
 
         raw_accel -= IMU.gravity_vector
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "blue")
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "red")
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
+        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "red")
+        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "blue")
+        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
 
         
         raw_accel -= IMU.accel_error
@@ -450,6 +479,26 @@ class IMU():
             if (i == IMU.FORWARD):
                 return "Z"
 
+class CompassKalman():
+    yaw_variance = 1000
+    gps_variance = 0.5
+
+    Q = 1
+    def predict():
+        print(CoordinateSystem.degrees_to_direction(math.degrees(IMU.rotate_position[IMU.YAW])))
+        CompassKalman.yaw_variance += CompassKalman.Q
+    def update():
+        if (GPS.rover.cogd == None or GPS.rover.cogd == 0 or abs(IMU.gyro[IMU.YAW]) > (IMU.ROTATE_VEL_THRESHOLD[IMU.YAW])):
+            return
+        measure = math.radians(GPS.rover.cogd)
+        if (measure > math.pi):
+            measure -= 2 * math.pi
+        plt.scatter(time.perf_counter() - IMU.start_time,measure,color = "green")
+        K = CompassKalman.yaw_variance / (CompassKalman.yaw_variance + CompassKalman.gps_variance)
+        IMU.rotate_position[IMU.YAW] =   add_angle(IMU.rotate_position[IMU.YAW] * (1 - K), measure * (K))
+        CompassKalman.yaw_variance = (1 - K) * CompassKalman.yaw_variance
+        
+
 class CalibrateIMUKalman():
     state_variance = 10000
     accel_variance = 4
@@ -550,6 +599,8 @@ class Localizer():
         GPS.update()
         MovementKalman.predict()
         MovementKalman.update()
+        CompassKalman.predict()
+        CompassKalman.update()
     def show():
         plt.show()
 
@@ -557,6 +608,6 @@ class Localizer():
 if __name__ == "__main__":
     #GPS.start()
     Localizer.start()
-    while Localizer.timer.time_passed() < 15:
+    while Localizer.timer.time_passed() < 20:
         Localizer.run()
     Localizer.show()
