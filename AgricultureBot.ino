@@ -69,6 +69,12 @@ const int DriveLeftMotorPWMPort = 4;
 const int DriveRightMotorDriverPort = 10;
 const int DriveRightMotorPWMPort = 2;
 
+const int DriveRightEncoderPinA = 18; // Channel A (Interrupt pin)
+const int DriveRightEncoderPinB = 19; // Channel B (Direction pin)
+
+volatile long DriveRightEncoderPos = 0; 
+volatile long lastEncoded = 0; 
+
 bool connected = false;
 
 Servo clawServo;
@@ -107,6 +113,16 @@ void turnOff(){
   stop();
 }
 
+void doEncoder() {
+  Serial.print(DriveRightEncoderPinA);
+  Serial.print(DriveRightEncoderPinB);
+    DriveRightEncoderPos++;
+  } else {
+    DriveRightEncoderPos--;
+  }
+}
+
+
 
 //IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
 unsigned long startTime; // Stores the starting time
@@ -119,6 +135,12 @@ void setup() {
 
   pinMode(DriveRightMotorDriverPort, OUTPUT);
   pinMode(DriveRightMotorPWMPort, OUTPUT);
+
+  pinMode(DriveRightEncoderPinA, INPUT_PULLUP);
+  pinMode(DriveRightEncoderPinB, INPUT_PULLUP);
+  
+  // digitalPinToInterrupt automatically handles the Mega's pin mapping
+  attachInterrupt(digitalPinToInterrupt(DriveRightEncoderPinA), doEncoder, CHANGE);
 
   pinMode(LED_PORT,OUTPUT);
   startTime = millis(); 
@@ -145,10 +167,11 @@ void loop() {
       strConnected = "CONNECTED";
     }
     Serial.println(message + strConnected);
+    Serial.print(DriveRightEncoderPos);
 
     if (cmd.id == Start){
       connected = true;
-      startTime = millis() + 2000;
+      startTime = millis() + 3000;
       ledStayOn();
       return;
     }

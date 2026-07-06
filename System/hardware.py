@@ -30,8 +30,6 @@ class Arduino:
                 print(f"Arduino connected: {Arduino.connected}")
             except:
                 Arduino.connected = False
-            finally:
-                pass
         time.sleep(2)
         if (Arduino.connected):
             send_command(f"{Device.Start.value},0,0")
@@ -39,7 +37,7 @@ def send_command(command):
     if (not Arduino.connected):
         print("Arduino not connected")
         return
-    print("Command: ",command)
+    #print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
 
     Arduino.serial.write(encoded_command)

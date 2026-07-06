@@ -336,7 +336,9 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
     
     def calculate_start_pos():
         GPS.started = False
-        while GPS.start_coordinates[0] == 0:
+        if not GPS.rover.connected:
+            return
+        while GPS.start_coordinates[0] == 0 and GPS.rover.connected:
             GPS.update()
             GPS.start_coordinates[0] = GPS.rover.latitude
             GPS.start_coordinates[1] = GPS.rover.longitude

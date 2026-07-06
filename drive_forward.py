@@ -1,19 +1,14 @@
 from System.robot import *
-from System.Camera import Camera
+from System.Localizer import Camera
 if __name__ == "__main__":
-    Robot.turn_on()
+    Robot.initiate()
     RUN_TIME = 10
     timer = Timer()
-    Robot.set_state(RobotState.AUTONOMOUS)
+    #Robot.set_state(RobotState.AUTONOMOUS)
+    Robot.set_state(RobotState.GAMEPAD)
     time.sleep(.1)
-    Camera.start()
     time.sleep(1)
     while (timer.time_passed() < RUN_TIME):
-        Robot.joy_x = 0
         Robot.joy_y = 0.35
-        if (Camera.too_close):
-            Robot.joy_x = 0
-            Robot.joy_y = 0
         Robot.update()
-        Camera.read()
     Robot.turn_off()
