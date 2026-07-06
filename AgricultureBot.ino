@@ -116,6 +116,7 @@ void turnOff(){
 void doEncoder() {
   Serial.print(DriveRightEncoderPinA);
   Serial.print(DriveRightEncoderPinB);
+  if (digitalRead(DriveRightEncoderPinA) == digitalRead(DriveRightEncoderPinB)) {
     DriveRightEncoderPos++;
   } else {
     DriveRightEncoderPos--;
