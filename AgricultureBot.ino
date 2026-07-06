@@ -114,8 +114,6 @@ void turnOff(){
 }
 
 void doEncoder() {
-  Serial.print(DriveRightEncoderPinA);
-  Serial.print(DriveRightEncoderPinB);
   if (digitalRead(DriveRightEncoderPinA) == digitalRead(DriveRightEncoderPinB)) {
     DriveRightEncoderPos++;
   } else {
@@ -167,8 +165,7 @@ void loop() {
     if (connected){
       strConnected = "CONNECTED";
     }
-    Serial.println(message + strConnected);
-    Serial.print(DriveRightEncoderPos);
+    Serial.println(DriveRightEncoderPos);
 
     if (cmd.id == Start){
       connected = true;
