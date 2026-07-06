@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import './globals.css'
 
 type JoystickProps = {
   onMove: (x: number, y: number) => void;
@@ -100,9 +101,18 @@ export default function Joystick({ onMove }: JoystickProps) {
       onTouchEnd={handleTouchEnd}
       style={{
         width: '100vw',
-        height: '100vh',
+        height: '90vh',
       }}
     >
+      <h1 className='big-text'>
+        JOYSTICK
+      </h1>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
       <div
         ref={joystickRef}
         onMouseDown={handleMouseDown}

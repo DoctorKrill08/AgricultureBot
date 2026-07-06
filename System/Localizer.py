@@ -101,9 +101,7 @@ class Camera:
 
 
     def status():
-        return f"Camera on: {Camera.on} TOO CLOSE: {Camera.too_close} DriveP: {Camera.DRIVE_P}, TurnP: {Camera.TURN_P}"
-    def yaw():
-        return 0
+        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\n"
     def start():
         
         ctx = rs.context()
@@ -368,7 +366,7 @@ class IMU():
         CalibrateIMUKalman.update(raw_accel)
 
         raw_accel -= IMU.gravity_vector
-        plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "red")
+       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "red")
         #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "blue")
         #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
 
@@ -383,7 +381,6 @@ class IMU():
         IMU.gyro = raw_gyro
         IMU.delta_gyro = IMU.gyro - IMU.prev_gyro
         IMU.prev_gyro = IMU.gyro
-        print(IMU.delta_gyro)
         IMU.rotating = False
         for i in range(len(IMU.ROTATE_VEL_THRESHOLD)):
             if (abs(IMU.delta_gyro[i]) > IMU.ROTATE_VEL_THRESHOLD[i]):
@@ -485,7 +482,6 @@ class CompassKalman():
 
     Q = 0.1
     def predict():
-        print(CoordinateSystem.degrees_to_direction(math.degrees(IMU.rotate_position[IMU.YAW])))
         CompassKalman.yaw_variance += CompassKalman.Q
     def update():
         if (GPS.rover.cogd == None or GPS.rover.cogd == 0 or abs(IMU.gyro[IMU.YAW]) > (IMU.ROTATE_VEL_THRESHOLD[IMU.YAW])):
@@ -493,7 +489,7 @@ class CompassKalman():
         measure = math.radians(GPS.rover.cogd)
         if (measure > math.pi):
             measure -= 2 * math.pi
-        plt.scatter(time.perf_counter() - IMU.start_time,measure,color = "green")
+        #plt.scatter(time.perf_counter() - IMU.start_time,measure,color = "green")
         K = CompassKalman.yaw_variance / (CompassKalman.yaw_variance + CompassKalman.gps_variance)
         IMU.rotate_position[IMU.YAW] =   add_angle(IMU.rotate_position[IMU.YAW] * (1 - K), measure * (K))
         CompassKalman.yaw_variance = (1 - K) * CompassKalman.yaw_variance
@@ -518,7 +514,6 @@ class CalibrateIMUKalman():
         if (MovementKalman.isMoving()):
             IMU.calculate_gravity_vector()
             return
-        print("CONFIGURING")
         angle[IMU.PITCH] = math.atan2(accel[IMU.FORWARD],accel[IMU.DOWN])
         angle[IMU.ROLL] = math.asin(max(min(accel[IMU.LEFT],-1),1) / IMU.gravity)
         angle[IMU.YAW] = IMU.rotate_position[IMU.YAW]
@@ -577,8 +572,6 @@ class MovementKalman():
             MovementKalman.moving = 0
         MovementKalman.state_variance = (1 - K) * MovementKalman.state_variance
         
-        print("MOVEMENT: ",MovementKalman.moving)
-
         #plt.scatter(time.perf_counter() - IMU.start_time,MovementKalman.moving,color = "red")
     def isMoving():
         return MovementKalman.moving > MovementKalman.MOVING_THRESHOLD
@@ -586,6 +579,8 @@ class MovementKalman():
 class Localizer():
     moving = False
     timer = Timer()
+    def yaw():
+        return IMU.rotate_position[IMU.YAW]
     def start():
         Camera.start()
         GPS.start()
@@ -601,6 +596,8 @@ class Localizer():
         MovementKalman.update()
         CompassKalman.predict()
         CompassKalman.update()
+    def status():
+        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw()}"
     def show():
         plt.show()
 

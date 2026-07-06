@@ -17,21 +17,6 @@ def miles_to_inches(miles):
 def kilometers_per_hour_to_inches_per_second(kilometers):
     return kilometers * 10.936132983377
 
-class Direction(Enum):
-    NORTH = "N"
-    SOUTH = "S"
-    EAST = "E"
-    WEST = "W"
-    def get_direction(char: str):
-        if (char == Direction.NORTH):
-            return Direction.NORTH
-        if (char == Direction.EAST):
-            return Direction.EAST
-        if (char == Direction.SOUTH):
-            return Direction.SOUTH
-        if (char == Direction.WEST):
-            return Direction.WEST
-
 class CoordinateSystem(Enum):
     DECIMAL_DEGREES_MINUTES = "DDMM.MMMMM" #What gps read
     DECIMAL_DEGREES = "DD" #Google maps
@@ -189,7 +174,6 @@ class GPSReceiver():
             return
         lines = self.serial.read_all().decode('utf-8', errors='ignore').strip()
         lines = re.split(r'(\n)',lines)
-        print("--------")
         for line in (lines):
             if line.startswith(self.POSITION_STREAM):
                 lat,lon,quality = GPSReceiver.parse_gps(line)
@@ -229,18 +213,6 @@ class GPSReceiver():
                 for angle in GPS.prev_angles:
                     if (not angle == 0):
                         GPS.moving = True
-                        pass
-                for i in range(len(GPS.prev_speeds)):
-                    if (i == len(GPS.prev_speeds) - 1):
-                        GPS.prev_speeds[i] = self.sogk
-                    else:
-                        GPS.prev_speeds[i] = GPS.prev_speeds[i + 1]
-                i = 0
-                for speed in GPS.prev_speeds:
-                    if (speed > GPS.speed_threshold):
-                        i += 1
-                if i >= 3:
-                    GPS.moving = True
 
     
     def close(self):
@@ -250,10 +222,10 @@ class GPSReceiver():
 
     def status(self):
         if (self.type == self.BASE):
-            return f"\n {self.type},connected:{self.connected}"
-        return f"\n {self.type},connected:{self.connected},latitude:{self.latitude},longitude:{self.longitude},quality:{self.fix_quality}-{GPSReceiver.int_to_quality(self.fix_quality)} \n \
-            SPEED: {self.sogk} ANGLE: {self.cogd} VEL_QUALITY: {self.vel_quality} \n \
-                DIRECTION: {CoordinateSystem.degrees_to_direction(self.cogd)}"
+            return f"\n{self.type} connected:{self.connected} \n"
+        return f"\n{self.type} connected:{self.connected}\nlatitude:{self.latitude}\nlongitude:{self.longitude}\nquality:{self.fix_quality}-{GPSReceiver.int_to_quality(self.fix_quality)}\n\
+SPEED: {self.sogk}\nANGLE: {self.cogd}\nVEL_QUALITY: {self.vel_quality}\n\
+DIRECTION: {CoordinateSystem.degrees_to_direction(self.cogd)}"
 
     @staticmethod
     def int_to_quality(quality):
@@ -349,10 +321,10 @@ class GPS:
         GPS.rover.close()
         GPS.base.close()
     def status():
-        return GPS.rover.status() + \
-        GPS.base.status() + f" \n \
-        Local Grid: x: {GPS.local_grid[0]}, y: {GPS.local_grid[1]}  \n \
-        Start Coords: lat: {GPS.start_coordinates[0]}, lon: {GPS.start_coordinates[1]}"
+        return "\n---GPS---\n"+ GPS.rover.status()+\
+        GPS.base.status() + f"\n\
+Local Grid: x: {GPS.local_grid[0]} y: {GPS.local_grid[1]}\n\
+Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
 
     def signal_base_to_rover():
         waiting = GPS.base.serial.in_waiting
@@ -364,9 +336,10 @@ class GPS:
     
     def calculate_start_pos():
         GPS.started = False
-        GPS.update()
-        GPS.start_coordinates[0] = GPS.rover.latitude
-        GPS.start_coordinates[1] = GPS.rover.longitude
+        while GPS.start_coordinates[0] == 0:
+            GPS.update()
+            GPS.start_coordinates[0] = GPS.rover.latitude
+            GPS.start_coordinates[1] = GPS.rover.longitude
         GPS.started = True
 
 

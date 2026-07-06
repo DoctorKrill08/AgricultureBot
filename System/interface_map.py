@@ -11,27 +11,8 @@ class Command(Enum):
 
     CAM_DRIVE_P = "4"
     CAM_TURN_P = "5"
-    CAM_MIN_VISIBLE_PIXELS = "6"
-    CAM_TOO_CLOSE = "7"
-    CAM_MIN_HORIZONTAL = "8"
 
     AUTO_TIME = "9"
-
-    IMU_TRANS_ACCEL_THRESH_X = "10"
-    IMU_TRANS_ACCEL_THRESH_Y = "11"
-    IMU_TRANS_ACCEL_THRESH_Z = "12"
-
-    IMU_ROT_ACCEL_THRESH_X = "13"
-    IMU_ROT_ACCEL_THRESH_Y = "14"
-    IMU_ROT_ACCEL_THRESH_Z = "15"
-
-    IMU_ROT_MOVE_THRESH_X = "16"
-    IMU_ROT_MOVE_THRESH_Y = "17"
-    IMU_ROT_MOVE_THRESH_Z = "18"
-
-    IMU_TRANS_MOVE_THRESH_X = "19"
-    IMU_TRANS_MOVE_THRESH_Y = "20"
-    IMU_TRANS_MOVE_THRESH_Z = "21"
         
 
 class RobotState(Enum):
@@ -42,8 +23,8 @@ class RobotState(Enum):
 class Telemetry(BaseModel):
     mode: str
     battery: float
-    longitude: float
-    latitude: float
+    d_longitude: float
+    d_latitude: float
     heading: float
     arduino_connected: bool
     gps_connected: bool
@@ -103,5 +84,5 @@ if __name__ == "__main__":
 
     print("MADE JS FILE")
     
-    with open("../Interface/app/interface_map.ts", "w") as file:
+    with open("Interface/app/interface_map.ts", "w") as file:
         file.write(output)

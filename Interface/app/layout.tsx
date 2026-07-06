@@ -2,8 +2,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
+import Compass from './Compass'
+import Map from './Map'
 import './interface_map'
-import { COMMAND, Command, RobotState, VALUES ,Telemetry} from "./interface_map";
+import { COMMAND,VALUES, Command, RobotState ,Telemetry} from "./interface_map";
 
 
 
@@ -11,8 +13,8 @@ export default function RobotControlPanel() {
   const [telemetry, setTelemetry] = useState<Telemetry>({
     mode: "RESTING",
     battery: 0,
-    longitude: 0,
-    latitude: 0,
+    d_longitude: 0,
+    d_latitude: 0,
     heading: 0,
     arduino_connected: false,
     gps_connected: false,
@@ -23,11 +25,6 @@ export default function RobotControlPanel() {
 
   const socketRef = useRef<WebSocket | null>(null);
 
-  const [driveP, setDriveP] = useState<number>(0);
-
-  const [turnP, setTurnP] = useState<number>(0);
-  const [autoTime, setAutoTime] = useState<number>(0);
-
   const inputChange = (cmd: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault(); 
@@ -37,13 +34,6 @@ export default function RobotControlPanel() {
         return
       }
       var input_str = String(input)
-      if (cmd == Command.CAM_DRIVE_P){
-        setDriveP(input)
-      }else if(cmd == Command.CAM_TURN_P){
-        setTurnP(input)
-      }else if (cmd == Command.AUTO_TIME){
-        setAutoTime(input)
-      }
       sendCommand(cmd,input_str)
     }
   };
@@ -75,8 +65,8 @@ export default function RobotControlPanel() {
         setTelemetry({
           mode: data.mode,
           battery: data.battery,
-          longitude: data.longitude,
-          latitude: data.latitude,
+          d_longitude: data.d_longitude,
+          d_latitude: data.d_latitude,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
           gps_connected: data.gps_connected,
@@ -98,8 +88,8 @@ export default function RobotControlPanel() {
 
     socketRef.current.send(
       JSON.stringify({
-        "0": command,
-        "1": values,
+        [COMMAND] : command,
+        [VALUES] : values,
       })
     );
   };
@@ -114,7 +104,53 @@ export default function RobotControlPanel() {
     <html>
       <body className="background">
         <div>
+          {/* Command Section */}
+          <div>
+            <h2>Command</h2>
 
+            <div>
+              <button className="off-button" onClick={() => sendCommand(Command.OFF,"")}>
+                Off
+              </button>
+              <button className="on-button" onClick={() => sendCommand(Command.ON,"")}>
+                On
+              </button>
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.RESTING)}>
+                Resting
+              </button>
+
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.GAMEPAD)}>
+                Gamepad
+              </button>
+
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
+                Autonomous
+              </button>
+              <br/> 
+              ------ROBOT-------
+              <br/> 
+              AUTO_TIME:           
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
+              />      
+              <br/>
+              -----CAMERA------
+              <br/>
+              DRIVE_P:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}/>
+              <br/>
+              --------------
+              <br/>
+              TURN_P:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}/>  
+              <br/>
+                       
+            </div>
+
+            <Joystick onMove={handleJoystickUpdate}/>
+            <Compass  yaw= {telemetry.heading}/>
+            <Map x = {telemetry.d_longitude} y = {telemetry.d_latitude}/>
+
+          </div>
           {/* Telemetry Section */}
           <div>
             <h2>Telemetry</h2>
@@ -143,11 +179,11 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>Longitude:</strong> {telemetry.longitude}
+              <strong>D_Longitude:</strong> {telemetry.d_longitude}
             </div>
 
             <div>
-              <strong>Latitude:</strong> {telemetry.latitude}
+              <strong>D_Latitude:</strong> {telemetry.d_longitude}
             </div>
 
             <div>
@@ -155,43 +191,8 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>Status:</strong> {telemetry.status}
+              <strong>Status: </strong> {telemetry.status}
             </div>
-          </div>
-
-          {/* Command Section */}
-          <div>
-            <h2>Command</h2>
-
-            <div>
-              <button className="off-button" onClick={() => sendCommand(Command.OFF,"")}>
-                Off
-              </button>
-              <button className="on-button" onClick={() => sendCommand(Command.ON,"")}>
-                On
-              </button>
-              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.RESTING)}>
-                Resting
-              </button>
-
-              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.GAMEPAD)}>
-                Gamepad
-              </button>
-
-              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
-                Autonomous
-              </button>
-              <input type = "number" className="button" defaultValue={driveP} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}
-              />
-                DRIVE_P: {driveP}
-              <input type = "number" className="button" defaultValue={turnP} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}
-              />                TURN_P: {turnP}
-              <input type = "number" className="button" defaultValue={autoTime} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
-              />                AUTO_TIME: {autoTime}
-            </div>
-
-            <Joystick onMove={handleJoystickUpdate}/>
-
           </div>
         </div>
       </body>

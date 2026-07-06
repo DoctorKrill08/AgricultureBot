@@ -2,7 +2,7 @@ from enum import Enum
 from System.subsystems import*
 from System.GPS import *
 from timer import *
-from System.Camera import Camera
+from System.Localizer import Localizer,Camera
 from System.interface_map import *
 
 
@@ -69,8 +69,8 @@ class Robot:
     telemetry = Telemetry(
         mode=state.value,
         battery=12.4,
-        longitude=10,
-        latitude=0,
+        d_longitude=10,
+        d_latitude=0,
         heading=0,
         arduino_connected=False,
         gps_connected=False,
@@ -102,23 +102,23 @@ class Robot:
         Arduino.connect_arduino()
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
-        Camera.start()
+        Localizer.start()
         #GPS.connect_gps()
         Robot.on = True
     def status():
-        return f"Auto Time: {Robot.auto.RUN_TIME}"
+        return f"Auto Time: {Robot.auto.RUN_TIME} \n"
     def update():
         Robot.telemetry = Telemetry(
             mode=Robot.state.value,
             battery=12.4,
-            longitude=GPS.local_grid[0],
-            latitude=GPS.local_grid[1],
-            heading=Camera.yaw(),
+            d_longitude=GPS.local_grid[0],
+            d_latitude=GPS.local_grid[1],
+            heading=Localizer.yaw(),
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            status= Robot.status() + Drivetrain.status() + Camera.status(),
+            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Camera.status() + GPS.status() + Localizer.status(),
         )
-        Camera.read()
+        Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):
             Robot.joy_x = 0
             Robot.joy_y = 0

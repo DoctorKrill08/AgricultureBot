@@ -13,6 +13,7 @@ body {
   width: 100%;
   height: 100%;
   color: white;
+  white-space: pre-wrap;
   font-family: "Courier New"
 }
 
@@ -46,4 +47,54 @@ body {
   color: rgb(0, 255, 0);
   border-color: rgb(0, 255, 0);
   background-color: black;
+}
+
+.big-text{
+  position: relative;
+  font-size: 40px;
+  font-weight: bold;
+  -webkit-text-stroke: 2px black; /* Thickness and color of the outline */
+}
+
+.compass-outer{
+    position: relative;
+    border-color: rgb(255, 255, 255);;
+    border: silver,5px solid;
+    border-radius: 50%;
+    background-color: rgb(46, 46, 46);
+    margin-left: 30px;
+}
+.compass-inner{
+  position: absolute;
+  border-radius: 50%;
+  background-color: silver;
+}
+.compass-text{
+  z-index: 20;
+  position: absolute;
+  font-size: 40px;
+  font-weight: bold;
+  text-align: center;
+  -webkit-text-stroke: 2px black; /* Thickness and color of the outline */
+}
+.compass-pointer{
+    position: absolute;
+    z-index: 10;
+    background-color: rgb(255, 0, 0);
+    /* start from top left and goes counter clock wise, down left */
+    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+    transform-origin: top left;
+}
+
+.map-box{
+  position: relative;
+  margin-left: 50px;
+  z-index: 10;
+  background-color: black;
+  border: white,5px solid;
+}
+.map-point{
+  z-index: 1;
+  border-radius: 50%;
+  border: white,2px solid;
 }
