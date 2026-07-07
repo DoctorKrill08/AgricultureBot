@@ -13,8 +13,10 @@ export default function RobotControlPanel() {
   const [telemetry, setTelemetry] = useState<Telemetry>({
     mode: "RESTING",
     battery: 0,
-    d_longitude: 0,
-    d_latitude: 0,
+    x: 0,
+    y: 0,
+    tx: 0,
+    ty: 0,
     heading: 0,
     arduino_connected: false,
     gps_connected: false,
@@ -39,9 +41,9 @@ export default function RobotControlPanel() {
   };
 
   //Nano -> 172.17.0.1
-  //Rokoko ->10.54.132.8, 10.54.132.13
+  //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.53:8000/ws");
 
     socketRef.current = socket;
 
@@ -65,8 +67,10 @@ export default function RobotControlPanel() {
         setTelemetry({
           mode: data.mode,
           battery: data.battery,
-          d_longitude: data.d_longitude,
-          d_latitude: data.d_latitude,
+          x: data.x,
+          y: data.y,
+          tx: data.tx,
+          ty: data.ty,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
           gps_connected: data.gps_connected,
@@ -97,6 +101,11 @@ export default function RobotControlPanel() {
    const handleJoystickUpdate = (x: number, y: number) => {
     console.log("Joystick:", x, y);
     sendCommand(Command.JOYSTICK,`${x},${y}`)
+  };
+
+  const handleMapCommand = (x: number, y: number) => {
+    console.log("MAP:", x, y);
+    sendCommand(Command.SET_TARGET_POSE,`${x},${y}`)
   };
 
 
@@ -148,7 +157,7 @@ export default function RobotControlPanel() {
 
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
-            <Map x = {telemetry.d_longitude} y = {telemetry.d_latitude}/>
+            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty} onMove = {handleMapCommand}/>
 
           </div>
           {/* Telemetry Section */}
@@ -179,15 +188,23 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>D_Longitude:</strong> {telemetry.d_longitude}
+              <strong>X:</strong> {telemetry.x}
             </div>
 
             <div>
-              <strong>D_Latitude:</strong> {telemetry.d_longitude}
+              <strong>Y:</strong> {telemetry.y}
             </div>
 
             <div>
               <strong>Heading:</strong> {telemetry.heading}
+            </div>
+
+            <div>
+              <strong>TX:</strong> {telemetry.tx}
+            </div>
+
+            <div>
+              <strong>TY:</strong> {telemetry.ty}
             </div>
 
             <div>

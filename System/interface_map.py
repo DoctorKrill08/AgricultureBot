@@ -13,18 +13,23 @@ class Command(Enum):
     CAM_TURN_P = "5"
 
     AUTO_TIME = "9"
+
+    SET_TARGET_POSE = "10"
         
 
 class RobotState(Enum):
     RESTING = "RESTING"
     GAMEPAD = "GAMEPAD"
     AUTONOMOUS = "AUTONOMOUS"
+    MAP_CONTROL = "MAP_CONTROL"
 
 class Telemetry(BaseModel):
     mode: str
     battery: float
-    d_longitude: float
-    d_latitude: float
+    x: float
+    y: float
+    tx: float
+    ty: float
     heading: float
     arduino_connected: bool
     gps_connected: bool

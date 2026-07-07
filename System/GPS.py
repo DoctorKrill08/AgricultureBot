@@ -17,6 +17,14 @@ def miles_to_inches(miles):
 def kilometers_per_hour_to_inches_per_second(kilometers):
     return kilometers * 10.936132983377
 
+
+FIX_RTK_FIXED = 4
+FIX_RTK_FLOAT = 5
+FIX_STANDARD_GPS = 1
+FIX_DIFFERENTIAL_GPS = 2
+
+COG_DIFFERENTIAL_GPS = 'D'
+
 class CoordinateSystem(Enum):
     DECIMAL_DEGREES_MINUTES = "DDMM.MMMMM" #What gps read
     DECIMAL_DEGREES = "DD" #Google maps

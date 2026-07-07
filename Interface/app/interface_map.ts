@@ -7,19 +7,23 @@ export const Command = Object.freeze({
   CAM_DRIVE_P : "4",
   CAM_TURN_P : "5",
   AUTO_TIME : "9",
+  SET_TARGET_POSE : "10",
 
 });
 export const RobotState = Object.freeze({
   RESTING : "RESTING",
   GAMEPAD : "GAMEPAD",
   AUTONOMOUS : "AUTONOMOUS",
+  MAP_CONTROL : "MAP_CONTROL",
 
 });
 export type Telemetry ={
   mode : string;
   battery : number;
-  d_longitude : number;
-  d_latitude : number;
+  x : number;
+  y : number;
+  tx : number;
+  ty : number;
   heading : number;
   arduino_connected : boolean;
   gps_connected : boolean;

@@ -69,8 +69,10 @@ class Robot:
     telemetry = Telemetry(
         mode=state.value,
         battery=12.4,
-        d_longitude=10,
-        d_latitude=0,
+        x=10,
+        y=0,
+        tx = 0,
+        ty = 0,
         heading=0,
         arduino_connected=False,
         gps_connected=False,
@@ -83,6 +85,12 @@ class Robot:
         x,y = values.split(",")
         Robot.joy_x = float(x)
         Robot.joy_y = float(y)
+    def set_position(values : str):
+        if (not Robot.state == RobotState.GAMEPAD):
+            return
+        x,y = values.split(",")
+        Localizer.tx = float(x)
+        Robot.ty = float(y)
     def set_state(state):
         if (Robot.state == state):
             return
@@ -111,9 +119,11 @@ class Robot:
         Robot.telemetry = Telemetry(
             mode=Robot.state.value,
             battery=12.4,
-            d_longitude=GPS.local_grid[0],
-            d_latitude=GPS.local_grid[1],
-            heading=Localizer.yaw(),
+            x=Localizer.x,
+            y=Localizer.y,
+            heading=Localizer.yaw,
+            tx=Localizer.target_x,
+            ty = Localizer.target_y,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Camera.status() + GPS.status() + Localizer.status(),

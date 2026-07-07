@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import sys
 from pathlib import Path
+from System.hardware import *
 import time
 
 import os
@@ -587,15 +588,55 @@ class MovementKalman():
     def isMoving():
         return MovementKalman.moving > MovementKalman.MOVING_THRESHOLD
 
+class LocalizationKalman():
+    GPS_POSE_NOISE = {}
+    GPS_POSE_NOISE[FIX_STANDARD_GPS] = 200
+    GPS_POSE_NOISE[FIX_DIFFERENTIAL_GPS] = 79
+    GPS_POSE_NOISE[FIX_RTK_FLOAT] = 39
+    GPS_POSE_NOISE[FIX_RTK_FIXED] = 15
+
+    GPS_COG_NOISE = 0.1
+    RTK_GPS_COG_NOISE = 0.05
+
+    IMU_NOISE = 0.0001
+
+    position_estimate_noise = 100
+    yaw_esimate_noise = 100
+
+    def predict():
+        pass
+    def update():
+        pass
+
 class Localizer():
+    def get_raw_odo():
+        results = send_command(f'{Device.Odometry.value},{Request.GET.value},{"0"}',read=True)
+        if (results == None):
+            return
+        Label,_,results = results.partition(",")
+        if (not Label == "ODOMETRY"):
+            return
+        x,_,results = results.partition(",")
+        y,_,results = results.partition(",")
+        yaw,_,results = results.partition(",")
+        print(x,y,yaw)
+        Localizer.x = x
+        Localizer.y = y
+        Localizer.yaw = yaw
+    def set_odo(x=None,y=None,yaw = 0):
+        value = f"x:{x},y:{y},yaw:{yaw}"
+        send_command(f'{Device.Odometry.value},{Request.SET.value},{value}')
     moving = False
     timer = Timer()
 
     x = 0
     y = 0
+    yaw = 0
 
-    def yaw():
-        return IMU.rotate_position[IMU.YAW]
+    target_x = 0
+    target_y = 0
+    target_yaw = 0
+
     def start():
         Camera.start()
         GPS.start()
@@ -611,8 +652,9 @@ class Localizer():
         MovementKalman.update()
         CompassKalman.predict()
         CompassKalman.update()
+        Localizer.get_raw_odo()
     def status():
-        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw()}"
+        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}"
     def show():
         plt.show()
 

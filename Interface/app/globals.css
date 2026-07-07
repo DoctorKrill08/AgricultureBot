@@ -94,6 +94,7 @@ body {
   border: white,5px solid;
 }
 .map-point{
+  position: absolute;
   z-index: 1;
   border-radius: 50%;
   border: white,2px solid;
