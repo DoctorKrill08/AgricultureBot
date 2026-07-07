@@ -43,6 +43,8 @@ pip3 install fastapi
 pip3 install uvicorn
 pip3 install websockets
 pip3 install opencv-python numpy pyrealsense2
+pip3 install matplotlib
+
 
 
 
@@ -83,7 +85,7 @@ pip install uvicorn
 pip install websockets
 pip install opencv-python pyrealsense2
 pip install numpy 
-pip install pyubx2
+pip install matplotlib
 
 
 #uvicorn file_to_be_ran:app_name -- reload -> runs uvicorn server
