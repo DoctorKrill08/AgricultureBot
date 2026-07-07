@@ -55,7 +55,8 @@ class Drivetrain:
         Drivetrain.left_motor.set((drive + turn))
         Drivetrain.right_motor.set((drive - turn))
 
-        Drivetrain.state_estimate(drive,turn,Drivetrain.timer.time_passed())
+        Drivetrain.get_raw_odo()
+
         Drivetrain.timer.reset()
 
         
