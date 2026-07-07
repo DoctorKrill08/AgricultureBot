@@ -9,60 +9,57 @@ int leftPos = 0;
 int prevRight = 0;
 int prevLeft = 0;
 
-int deltaRight = 0;
-int deltaLeft = 0;
+double deltaRight = 0;
+double deltaLeft = 0;
 
-float rightVelocity = 0; //Inches per second
-float leftVelocity = 0;
+double rightInches = 0;
+double leftInches = 0;
+double wheelDifference = 0; //used for displacement
+double averageDisplacement = 0;
+double deltaYaw = 0;
 
-float averageVelocity = 0; //used for displacement
+double  yaw = 0;
+double x = 0;
+double  y = 0;
 
-float deltaVelocity = 0; //Used for angle change
+const double TICKS_PER_ROTATION = 35391;
+const double WHEEL_DIAMETER = 7.5;
+const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI;
+const double DISTANCE_BETWEEN_WHEELS = 13.00;
 
-float averageDisplacement = 0;
-float deltaYaw = 0;
-
-float yaw = 0;
-float x = 0;
-float y = 0;
-
-const int TICKS_PER_ROTATION = 38638;
-const float WHEEL_RADIUS = 3.625;
-const double WHEEL_CIRCUMFERENCE = (WHEEL_RADIUS * 2) * PI;
-const float DISTANCE_BETWEEN_WHEELS = 10;
-const double ROBOT_CIRCUMFERENCE = DISTANCE_BETWEEN_WHEELS * PI;
-
-float ticksToInches(float ticks){
+double ticksToInches(int ticks){
     return ((ticks / TICKS_PER_ROTATION) * WHEEL_CIRCUMFERENCE);
 }
 
-void calculateOdometry(int right, int left, int deltaTime){
+void calculateOdometry(int right, int left){
     prevRight = rightPos;
     prevLeft = leftPos;
 
     rightPos = right;
     leftPos = left;
 
-    deltaLeft = leftPos - prevLeft;
-    deltaRight = rightPos - prevRight;
+    deltaLeft = (double)(-(leftPos - prevLeft));
+    deltaRight = (double)(-(rightPos - prevRight));
 
-    rightVelocity = deltaRight / deltaTime;
-    leftVelocity = deltaLeft / deltaTime;
+    leftInches = ticksToInches(deltaLeft);
+    rightInches = ticksToInches(deltaRight);
 
-    rightVelocity = ticksToInches(rightVelocity);
-    leftVelocity = ticksToInches(leftVelocity);
+    wheelDifference = (double)(rightInches - leftInches); 
 
-    averageVelocity = (rightVelocity + leftVelocity) / 2;
-
-    deltaVelocity = rightVelocity - leftVelocity;
-
-    averageDisplacement = (averageVelocity * deltaTime);
+    averageDisplacement = (rightInches + leftInches) / 2.000;
     
     x += averageDisplacement * sin(yaw); //East West
     y += averageDisplacement * cos(yaw); //North South
 
-    deltaYaw = (deltaVelocity * deltaTime) / ROBOT_CIRCUMFERENCE;
+    deltaYaw = (double)(wheelDifference / DISTANCE_BETWEEN_WHEELS);
 
-    yaw += (deltaVelocity / ROBOT_CIRCUMFERENCE);
+    yaw += deltaYaw;
+
+    if (yaw > PI){
+        yaw -= 2 * PI;
+    }
+    if (yaw < -PI){
+        yaw += 2 * PI;
+    }
 }
 #endif

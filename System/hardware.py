@@ -24,7 +24,7 @@ class Arduino:
             if (Arduino.connected):
                 return
             try:
-                Arduino.serial = serial.Serial(value, BAUD_RATE, timeout= Arduino.TIMEOUT)
+                Arduino.serial = serial.Serial(value, 115200, timeout= Arduino.TIMEOUT)
                 print(f"Connected to Arduino via {key}: {value}")
                 Arduino.connected = True
                 print(f"Arduino connected: {Arduino.connected}")
@@ -37,7 +37,7 @@ def send_command(command,read = False):
     if (not Arduino.connected):
         print("Arduino not connected")
         return
-    #print("Command: ",command)
+    print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
 
     Arduino.serial.write(encoded_command)

@@ -30,13 +30,13 @@ class Drivetrain:
         telemetry += "\n"
         return telemetry
     def get_raw_odo():
-        results = send_command(f'{Device.Odometry},{Request.GET.value},{"0"}',read=True)
+        results = send_command(f'{Device.Odometry.value},{Request.GET.value},{"0"}',read=True)
         Drivetrain.res = results
         if (Drivetrain.res == None):
             Drivetrain.res = "RES is NONE"
     def set_odo(x=None,y=None,yaw = 0):
         value = f"x:{x},y:{y},yaw:{yaw}"
-        send_command(f'{Device.Odometry},{Request.SET.value},{value}')
+        send_command(f'{Device.Odometry.value},{Request.SET.value},{value}')
     def to_scale(drive,turn):
         if (abs(turn) < Drivetrain.MIN_TURN):
             turn = 0
@@ -58,6 +58,7 @@ class Drivetrain:
         Drivetrain.right_motor.set((drive - turn))
 
         Drivetrain.get_raw_odo()
+        print("RES: ",Drivetrain.res)
 
         Drivetrain.timer.reset()
 

@@ -31,7 +31,7 @@ class Request(Enum):
     SET = "1"
     GET = "2"
 
-BAUD_RATE = 9600
+BAUD_RATE = 115200
 
 hardware_type_map = {}
 hardware_type_map[Device.DriveLeft.value] = HardwareType.MOTOR.value

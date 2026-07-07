@@ -47,7 +47,7 @@ char getType(int key){
 static const char SERVO_VALUE = 'S';
 static const char MOTOR_VALUE = 'M';
 static const char BATTERY_VALUE = 'B';
-static const int BAUD_RATE = 9600;
+static const int BAUD_RATE = 115200;
 enum Request {
     OFF = 0,
     SET = 1,

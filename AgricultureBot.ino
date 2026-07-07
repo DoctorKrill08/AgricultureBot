@@ -127,9 +127,9 @@ void doRightEncoder() {
 
 void doLeftEncoder(){
   if (digitalRead(DriveLeftEncoderPinA) == digitalRead(DriveLeftEncoderPinB)) {
-    DriveRightEncoderPos++;
+    DriveLeftEncoderPos++;
   } else {
-    DriveRightEncoderPos--;
+    DriveLeftEncoderPos--;
   }
 }
 
@@ -139,7 +139,7 @@ void doLeftEncoder(){
 unsigned long startTime; // Stores the starting time
 
 void setup() {
-  Serial.begin(BAUD_RATE); 
+  Serial.begin(115200); 
   clawServo.attach(clawPort); 
   pinMode(DriveLeftMotorDriverPort, OUTPUT);
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
@@ -168,6 +168,7 @@ void loop() {
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
     turnOff();
   }
+  calculateOdometry(DriveRightEncoderPos,DriveLeftEncoderPos);
   ledUpdate();
   if (Serial.available() > 0) {
     // Read the incoming byte
@@ -214,13 +215,14 @@ void loop() {
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
     }else if (cmd.id == Odometry){
       //TODO add set odometry instead of purely reading
-      String output = "x:";
+      String output = "ODOMETRY,";
       output += String(x);
-      output += ",y:";
+      output += ",";
       output += String(y);
-      output += ",yaw:";
+      output += ",";
       output += String(yaw);
       Serial.println(output);
+      
     }
   }
 }
