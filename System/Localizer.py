@@ -134,6 +134,7 @@ class Camera:
             Camera.imu_pipe.start(imu_cfg)
             Camera.IMU_enabled = True
             IMU.start()
+            print("IMU CONNECTED")
         except Exception as e:
             Camera.IMU_enabled = False
             Camera.exception()
@@ -145,6 +146,7 @@ class Camera:
             vision_cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
             Camera.vision_pipe.start(vision_cfg)
             Camera.on = True
+            print("CAMERA CONNECTED")
         except Exception as e:
             Camera.on = False
             Camera.exception()
