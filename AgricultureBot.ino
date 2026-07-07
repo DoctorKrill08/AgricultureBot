@@ -3,6 +3,7 @@
 
 #include <translate.h>
 #include <led.h>
+#include <odometry.h>
 
 struct Motor{
   int driverPort;
@@ -72,8 +73,11 @@ const int DriveRightMotorPWMPort = 2;
 const int DriveRightEncoderPinA = 18; // Channel A (Interrupt pin)
 const int DriveRightEncoderPinB = 19; // Channel B (Direction pin)
 
+const int DriveLeftEncoderPinA = 20;
+const int DriveLeftEncoderPinB = 21;
+
 volatile long DriveRightEncoderPos = 0; 
-volatile long lastEncoded = 0; 
+volatile long DriveLeftEncoderPos = 0; 
 
 bool connected = false;
 
@@ -113,8 +117,16 @@ void turnOff(){
   stop();
 }
 
-void doEncoder() {
+void doRightEncoder() {
   if (digitalRead(DriveRightEncoderPinA) == digitalRead(DriveRightEncoderPinB)) {
+    DriveRightEncoderPos--;
+  } else {
+    DriveRightEncoderPos++;
+  }
+}
+
+void doLeftEncoder(){
+  if (digitalRead(DriveLeftEncoderPinA) == digitalRead(DriveLeftEncoderPinB)) {
     DriveRightEncoderPos++;
   } else {
     DriveRightEncoderPos--;
@@ -137,9 +149,10 @@ void setup() {
 
   pinMode(DriveRightEncoderPinA, INPUT_PULLUP);
   pinMode(DriveRightEncoderPinB, INPUT_PULLUP);
-  
-  // digitalPinToInterrupt automatically handles the Mega's pin mapping
-  attachInterrupt(digitalPinToInterrupt(DriveRightEncoderPinA), doEncoder, CHANGE);
+  pinMode(DriveLeftEncoderPinA, INPUT_PULLUP);
+  pinMode(DriveLeftEncoderPinB, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(DriveRightEncoderPinA), doRightEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(DriveLeftEncoderPinA), doLeftEncoder, CHANGE);
 
   pinMode(LED_PORT,OUTPUT);
   startTime = millis(); 
@@ -165,12 +178,12 @@ void loop() {
     if (connected){
       strConnected = "CONNECTED";
     }
-    Serial.println(DriveRightEncoderPos);
 
     if (cmd.id == Start){
       connected = true;
       startTime = millis() + 3000;
       ledStayOn();
+      Serial.println("ARDUINO RECIEVED START");
       return;
     }
 
@@ -179,6 +192,7 @@ void loop() {
     }
     
     if (cmd.id == Ping){
+      Serial.println(strConnected + " ARDUINO PING");
       return;
     }
     if (cmd.id == Stop){
@@ -198,6 +212,15 @@ void loop() {
     }else if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
+    }else if (cmd.id == Odometry){
+      //TODO add set odometry instead of purely reading
+      String output = "x:";
+      output += String(x);
+      output += ",y:";
+      output += String(y);
+      output += ",yaw:";
+      output += String(yaw);
+      Serial.println(output);
     }
   }
 }

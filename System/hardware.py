@@ -33,7 +33,7 @@ class Arduino:
         time.sleep(2)
         if (Arduino.connected):
             send_command(f"{Device.Start.value},0,0")
-def send_command(command):
+def send_command(command,read = False):
     if (not Arduino.connected):
         print("Arduino not connected")
         return
@@ -42,8 +42,9 @@ def send_command(command):
 
     Arduino.serial.write(encoded_command)
 
-    raw_data = Arduino.serial.readline()
-    print(raw_data.decode('utf-8').strip())
+    if read:
+        raw_data = Arduino.serial.readline()
+        print(raw_data.decode('utf-8').strip())
 
 def close_arduino():
     if (Arduino.connected == False):
@@ -51,9 +52,9 @@ def close_arduino():
     Arduino.serial.close()
     Arduino.connected = False
 def stop_arduino():
-    send_command(f"{Device.Stop.value},0,0")
+    send_command(f"{Device.Stop.value},0,0",read=True)
 def ping():
-    send_command(f"{Device.Ping.value},0,0")
+    send_command(f"{Device.Ping.value},0,0",read=True)
 class Servo:
     TYPE = HardwareType.SERVO
     id = None

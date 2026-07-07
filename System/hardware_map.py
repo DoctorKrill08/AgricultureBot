@@ -21,6 +21,7 @@ class Device(Enum):
     ClawRot = '9'
     Claw = '10'
     Blade = '11'
+    Odometry = '12'
 class HardwareType(Enum):
     SERVO = 'S'
     MOTOR = 'M'

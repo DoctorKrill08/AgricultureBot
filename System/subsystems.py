@@ -13,9 +13,6 @@ class Drivetrain:
     MAX_POWER = 0.75
     TURN_SENSITIVITY = 0.5
     MIN_TURN = 0.1
-    FORWARD_SPEED = 0.1 #TBD
-    TURN_SPEED = 0.1
-
     
     x = 0
     y = 0
@@ -33,6 +30,11 @@ class Drivetrain:
         telemetry += Drivetrain.right_motor.status()
         telemetry += "\n"
         return telemetry
+    def get_raw_odo():
+        send_command(f'{Device.Odometry},{Request.GET.value},{"0"}',read=True)
+    def set_odo(x=None,y=None,yaw = 0):
+        value = f"x:{x},y:{y},yaw:{yaw}"
+        send_command(f'{Device.Odometry},{Request.SET.value},{value}')
     def to_scale(drive,turn):
         if (abs(turn) < Drivetrain.MIN_TURN):
             turn = 0
@@ -55,7 +57,6 @@ class Drivetrain:
 
         Drivetrain.state_estimate(drive,turn,Drivetrain.timer.time_passed())
         Drivetrain.timer.reset()
-    def state_estimate(drive,turn,deltaT):
-        Drivetrain.yaw += (turn * deltaT) * Drivetrain.TURN_SPEED
-        Drivetrain.x += ((drive * deltaT) * Drivetrain.TURN_SPEED) * math.cos(Drivetrain.yaw)
-        Drivetrain.y += ((drive * deltaT) * Drivetrain.TURN_SPEED) * math.sin(Drivetrain.yaw)
+
+        
+

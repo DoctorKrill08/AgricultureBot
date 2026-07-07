@@ -68,4 +68,5 @@ enum Device {
     ClawRot = 9,
     Claw = 10,
     Blade = 11,
+    Odometry = 12,
 };
