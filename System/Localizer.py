@@ -5,12 +5,21 @@ import math
 import matplotlib.pyplot as plt
 from enum import Enum
 from System.GPS import *
-import pyrealsense2 as rs
 import numpy as np
 import cv2
 import sys
 from pathlib import Path
 import time
+
+import os
+import sys
+
+# Inject your local Release folder to the top of the search path
+sys.path.insert(0, os.path.expanduser('~/librealsense/build/Release/'))
+os.environ["LD_LIBRARY_PATH"] = os.path.expanduser('~/librealsense/build/Release/') + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+
+import pyrealsense2 as rs
+
 
 def add_angle(a1,a2):
     if (a1 > math.pi):
