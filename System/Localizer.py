@@ -579,6 +579,10 @@ class MovementKalman():
 class Localizer():
     moving = False
     timer = Timer()
+
+    x = 0
+    y = 0
+
     def yaw():
         return IMU.rotate_position[IMU.YAW]
     def start():

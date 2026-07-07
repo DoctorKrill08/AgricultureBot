@@ -14,9 +14,7 @@ class Drivetrain:
     TURN_SENSITIVITY = 0.5
     MIN_TURN = 0.1
     
-    x = 0
-    y = 0
-    yaw = 0
+    res = ""
 
     timer = Timer()
 
@@ -28,10 +26,12 @@ class Drivetrain:
         telemetry = "\n--- DRIVETRAIN ---\n"
         telemetry += Drivetrain.left_motor.status()
         telemetry += Drivetrain.right_motor.status()
+        telemetry += Drivetrain.res
         telemetry += "\n"
         return telemetry
     def get_raw_odo():
-        send_command(f'{Device.Odometry},{Request.GET.value},{"0"}',read=True)
+        results = send_command(f'{Device.Odometry},{Request.GET.value},{"0"}',read=True)
+        Drivetrain.res = results
     def set_odo(x=None,y=None,yaw = 0):
         value = f"x:{x},y:{y},yaw:{yaw}"
         send_command(f'{Device.Odometry},{Request.SET.value},{value}')

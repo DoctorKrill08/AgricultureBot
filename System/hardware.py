@@ -44,7 +44,9 @@ def send_command(command,read = False):
 
     if read:
         raw_data = Arduino.serial.readline()
-        print(raw_data.decode('utf-8').strip())
+        decoded = raw_data.decode('utf-8').strip()
+        print(decoded)
+        return decoded
 
 def close_arduino():
     if (Arduino.connected == False):
