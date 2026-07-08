@@ -189,7 +189,7 @@ void loop() {
     if (cmd.id == Start){
       odometryClear();
       connected = true;
-      startTime = millis() + 3000;
+      startTime = millis() + 5000;
       ledStayOn();
       Serial.println("ARDUINO RECIEVED START");
       return;

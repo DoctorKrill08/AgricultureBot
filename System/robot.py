@@ -109,11 +109,11 @@ class Robot:
     def initiate():
         print("initiate")
         Robot.state = RobotState.RESTING
-        Arduino.connect_arduino()
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
         Localizer.start()
         #GPS.connect_gps()
+        Arduino.connect_arduino()
         Robot.on = True
     def status():
         return f"Auto Time: {Robot.auto.RUN_TIME} \n"
