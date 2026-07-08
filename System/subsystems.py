@@ -44,9 +44,15 @@ class Drivetrain:
     TURN_SENSITIVITY = 0.5
     MIN_TURN = 0.1
 
-    MIN_DISTANCE = 1
+    TURN_P = 0.001
+    DRIVE_P = 0.001
+
+    MIN_DISTANCE = 2
 
     timer = Timer()
+
+    target_drive = 0
+    target_turn = 0
 
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
@@ -56,7 +62,7 @@ class Drivetrain:
         telemetry = "\n--- DRIVETRAIN ---\n"
         telemetry += Drivetrain.left_motor.status()
         telemetry += Drivetrain.right_motor.status()
-        telemetry += "\n"
+        telemetry += f'\nDRIVE_P: {Drivetrain.DRIVE_P}\nTURN_P: {Drivetrain.TURN_P}\nMIN_DISTANCE: {Drivetrain.MIN_DISTANCE}'
         return telemetry
     def to_scale(drive,turn):
         if (abs(turn) < Drivetrain.MIN_TURN):
@@ -80,8 +86,22 @@ class Drivetrain:
 
         Drivetrain.timer.reset()
     
-    def get_drive_vectors(target_x,target_y,target_yaw):
-        pass
-
+    def calculate_drive_vectors(x,y,yaw,target_x,target_y,target_yaw):
+        deltaX = target_x - x
+        deltaY = target_y - y
+        distance = math.sqrt(deltaX ** 2 + deltaY ** 2)
+        
+        if (distance > Drivetrain.MIN_DISTANCE):
+            target_yaw = math.atan2(deltaY,deltaX)
+            yaw_error = sub_angle(yaw,target_yaw)
+            Drivetrain.target_turn = Drivetrain.TURN_P * yaw_error
+            Drivetrain.target_drive = Drivetrain.DRIVE_P * math.cos(yaw_error)
+            if (abs(Drivetrain.target_turn) > 1):
+                Drivetrain.target_turn = (Drivetrain.target_turn / abs(Drivetrain.target_turn))
+                Drivetrain.target_drive = 0
+        else:
+            yaw_error = sub_angle(yaw,target_yaw)
+            Drivetrain.target_turn = Drivetrain.TURN_P * yaw_error
+            Drivetrain.target_drive = 0
         
 

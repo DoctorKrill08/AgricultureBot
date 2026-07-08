@@ -96,6 +96,8 @@ body {
 .map-point{
   position: absolute;
   z-index: 1;
-  border-radius: 50%;
-  border: white,2px solid;
+  border-radius: 25%;
+  border: white,1px solid;
+  border-right-color: purple;
+  border-right-width: 4px;
 }

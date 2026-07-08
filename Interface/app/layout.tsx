@@ -17,6 +17,7 @@ export default function RobotControlPanel() {
     y: 0,
     tx: 0,
     ty: 0,
+    target_yaw: 0,
     heading: 0,
     arduino_connected: false,
     gps_connected: false,
@@ -43,7 +44,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.54.132.53:8000/ws");
+    const socket = new WebSocket("ws://172.17.0.1:8000/ws");
 
     socketRef.current = socket;
 
@@ -71,6 +72,7 @@ export default function RobotControlPanel() {
           y: data.y,
           tx: data.tx,
           ty: data.ty,
+          target_yaw: data.target_yaw,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
           gps_connected: data.gps_connected,
@@ -135,29 +137,53 @@ export default function RobotControlPanel() {
               <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.AUTONOMOUS)}>
                 Autonomous
               </button>
+              <button className="button" onClick={() => sendCommand(Command.SET_STATE,RobotState.MAP_CONTROL)}>
+                Map Control
+              </button>
               <br/> 
               ------ROBOT-------
+              <br/>
+              TARGET_YAW:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TARGET_YAW)}/>  
+              <br/>
+               --------------
+              <br/>
+              TURN_P:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TURN_P)}/>  
+              <br/>
+               --------------
+              <br/>
+              DIVE_P:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_DRIVE_P)}/>  
+              <br/>
+               --------------
+              <br/>
+              MIN_DISTANCE:
+              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MIN_DISTANCE)}/>  
               <br/> 
+              --------------
+              <br/>
               AUTO_TIME:           
               <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
               />      
               <br/>
               -----CAMERA------
               <br/>
-              DRIVE_P:
+              CAMERA DRIVE P:
               <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}/>
               <br/>
               --------------
               <br/>
-              TURN_P:
+              CAMERA TURN P:
               <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}/>  
               <br/>
+              
                        
             </div>
 
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
-            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty} onMove = {handleMapCommand}/>
+            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} onMove = {handleMapCommand}/>
 
           </div>
           {/* Telemetry Section */}
@@ -205,6 +231,9 @@ export default function RobotControlPanel() {
 
             <div>
               <strong>TY:</strong> {telemetry.ty}
+            </div>
+            <div>
+              <strong>Target Yaw:</strong> {telemetry.target_yaw}
             </div>
 
             <div>

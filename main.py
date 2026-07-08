@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket
-from System.robot import Robot, RobotState,Camera,Auto
+from System.robot import Robot, RobotState,Localizer,Camera,Auto,Drivetrain
 from System.interface_map import *
 import asyncio
 
@@ -50,6 +50,14 @@ async def command_task(websocket: WebSocket):
             Robot.set_joystick(data[VALUES])
         elif data[COMMAND] == Command.SET_TARGET_POSE.value:
             Robot.set_position(data[VALUES])
+        elif data[COMMAND] == Command.SET_DRIVE_P.value:
+            Drivetrain.DRIVE_P = data[VALUES]
+        elif data[COMMAND] == Command.SET_TURN_P.value:
+            Drivetrain.TURN_P = data[VALUES]
+        elif data[COMMAND] == Command.SET_MIN_DISTANCE.value:
+            Drivetrain.MIN_DISTANCE = data[VALUES]
+        elif data[COMMAND] == Command.SET_TARGET_YAW.value:
+            Localizer.target_yaw = data[VALUES]
         
 
 @app.websocket("/ws")

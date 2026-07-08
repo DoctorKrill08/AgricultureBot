@@ -654,7 +654,7 @@ class Localizer():
         CompassKalman.update()
         Localizer.get_raw_odo()
     def status():
-        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}"
+        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw}"
     def show():
         plt.show()
 

@@ -73,6 +73,7 @@ class Robot:
         y=0,
         tx = 0,
         ty = 0,
+        target_yaw=0,
         heading=0,
         arduino_connected=False,
         gps_connected=False,
@@ -86,11 +87,12 @@ class Robot:
         Robot.joy_x = float(x)
         Robot.joy_y = float(y)
     def set_position(values : str):
-        if (not Robot.state == RobotState.GAMEPAD):
+        if (not Robot.state == RobotState.MAP_CONTROL):
             return
         x,y = values.split(",")
-        Localizer.tx = float(x)
-        Robot.ty = float(y)
+        Localizer.target_x = float(x)
+        Localizer.target_y= float(y)
+        print(x,y)
     def set_state(state):
         if (Robot.state == state):
             return
@@ -124,6 +126,7 @@ class Robot:
             heading=Localizer.yaw,
             tx=Localizer.target_x,
             ty = Localizer.target_y,
+            target_yaw=Localizer.target_yaw,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Camera.status() + GPS.status() + Localizer.status(),
@@ -142,4 +145,8 @@ class Robot:
             Robot.ping_stopwatch.go()
         elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
+        elif (Robot.state == RobotState.MAP_CONTROL):
+            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Localizer.target_yaw)
+            Robot.joy_y = Drivetrain.target_drive
+            Robot.joy_x = Drivetrain.target_turn
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)

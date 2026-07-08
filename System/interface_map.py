@@ -15,6 +15,11 @@ class Command(Enum):
     AUTO_TIME = "9"
 
     SET_TARGET_POSE = "10"
+
+    SET_TARGET_YAW = "11"
+    SET_DRIVE_P = "12"
+    SET_TURN_P = "13"
+    SET_MIN_DISTANCE = "14"
         
 
 class RobotState(Enum):
@@ -31,6 +36,7 @@ class Telemetry(BaseModel):
     tx: float
     ty: float
     heading: float
+    target_yaw: float
     arduino_connected: bool
     gps_connected: bool
     status: str

@@ -4,21 +4,20 @@ import './globals.css'
 import React, { useRef, useState } from 'react';
 
 
-type MapProps = {
-  onMove: (x: number, y: number) => void;
-};
 
-export default function Compass({bx=0,by=0,tx=0,ty=0, onMove}: any) { 
-  
-  const PIXELS_PER_INCH = 2
+export default function Compass({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, onMove}: any) { 
+  bYaw -= Math.PI / 2
+  tYaw -= Math.PI / 2
+
+  const PIXELS_PER_INCH = 3
 
   bx *= PIXELS_PER_INCH
   by *= PIXELS_PER_INCH
   tx *= PIXELS_PER_INCH
   ty *= PIXELS_PER_INCH
   
-  const WIDTH = 600
-  const HEIGHT = 600
+  const WIDTH = 300
+  const HEIGHT = 300
 
   const POINT_RADIUS = 10
 
@@ -28,29 +27,37 @@ export default function Compass({bx=0,by=0,tx=0,ty=0, onMove}: any) {
   var tarX = (WIDTH / 2) - (POINT_RADIUS / 2) + tx
   var tarY = (HEIGHT / 2) + (POINT_RADIUS /2 ) - ty
 
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  //const [position, setPosition] = useState({ x: 0, y: 0 });
   const handleMouseDown = (event: React.MouseEvent) => {
-    var x = event.clientX
-    var y = event.clientY
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    var x = event.clientX - rect.left
+    var y = event.clientY - rect.top
     console.log("x: ", x, " y: ",y)
     x -= (WIDTH / 2)
     y -= (HEIGHT / 2)
 
+    x -= POINT_RADIUS / 2
+    y -= POINT_RADIUS * 1.5
+
     x /= PIXELS_PER_INCH
-    y /= PIXELS_PER_INCH
+    y /= -PIXELS_PER_INCH
     console.log("translated x: ", x, " translated y: ",y)
 
     onMove(x, y);
   };
 
   return (
+    
     <div>
       <h1 className='big-text' style={{
         marginTop: 100
       }}>
         MAP
       </h1>
-      <div className='map-box' style={{
+      <div className='map-box'
+      onMouseDown={handleMouseDown}
+      style={{
         width : String(WIDTH) + 'px',
         height: String(HEIGHT) + 'px'
       }}>
@@ -59,7 +66,8 @@ export default function Compass({bx=0,by=0,tx=0,ty=0, onMove}: any) {
             height : String(POINT_RADIUS) + 'px',
             left : String(botX) + 'px',
             top: String(botY) + 'px',
-            backgroundColor: 'red'
+            backgroundColor: 'red',
+            rotate: String(bYaw) + 'rad'
         }}/>
 
         <div className='map-point' style={{
@@ -67,7 +75,8 @@ export default function Compass({bx=0,by=0,tx=0,ty=0, onMove}: any) {
             height : String(POINT_RADIUS) + 'px',
             left : String(tarX) + 'px',
             top: String(tarY) + 'px',
-            backgroundColor: 'green'
+            backgroundColor: 'green',
+            rotate: String(tYaw) + 'rad'
         }}/>
 
       </div>
