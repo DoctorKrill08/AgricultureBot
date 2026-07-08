@@ -149,4 +149,4 @@ class Robot:
             Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Localizer.target_yaw)
             Robot.joy_y = Drivetrain.target_drive
             Robot.joy_x = Drivetrain.target_turn
-        Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x)
+        Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

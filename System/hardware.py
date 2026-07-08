@@ -31,10 +31,9 @@ class Arduino:
             except:
                 Arduino.connected = False
         time.sleep(2)
-        if (Arduino.connected):
-            send_command(f"{Device.Start.value},0,0")
-def send_command(command,read = False):
-    if (not Arduino.connected):
+        send_command(f"{Device.Start.value},0,0",override=True)
+def send_command(command,read = False,override = False):
+    if (not Arduino.connected and not override):
         print("Arduino not connected")
         return
     print("Command: ",command)
@@ -75,8 +74,8 @@ class Servo:
 class Motor:
     TYPE = HardwareType.MOTOR
     target = 0
-    MINIMUM_DIFFERENCE = 0.05
-    MINIMUM_POWER = 0.1
+    MINIMUM_DIFFERENCE = 0.02
+    MINIMUM_POWER = 0.05
     id = None
     initiated = False
     def __init__(self,id):

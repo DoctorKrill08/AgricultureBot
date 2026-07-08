@@ -620,9 +620,9 @@ class Localizer():
         y,_,results = results.partition(",")
         yaw,_,results = results.partition(",")
         print(x,y,yaw)
-        Localizer.x = x
-        Localizer.y = y
-        Localizer.yaw = yaw
+        Localizer.y = float(x)
+        Localizer.x = -float(y)
+        Localizer.yaw = float(yaw)
     def set_odo(x=None,y=None,yaw = 0):
         value = f"x:{x},y:{y},yaw:{yaw}"
         send_command(f'{Device.Odometry.value},{Request.SET.value},{value}')
@@ -645,6 +645,12 @@ class Localizer():
         plt.xlabel('Delta Time')
         plt.ylabel('eee')
         plt.title('Plot')
+        Localizer.x = 0
+        Localizer.y = 0
+        Localizer.yaw = 0
+        Localizer.target_x = 0
+        Localizer.target_y = 0
+        Localizer.target_yaw = 0
     def run():
         Camera.read()
         GPS.update()

@@ -133,7 +133,13 @@ void doLeftEncoder(){
   }
 }
 
-
+void odometryClear(){
+    yaw = 0;
+    x = 0;
+    y = 0;
+    DriveLeftEncoderPos = 0;
+    DriveRightEncoderPos = 0;
+}
 
 //IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
 unsigned long startTime; // Stores the starting time
@@ -181,6 +187,7 @@ void loop() {
     }
 
     if (cmd.id == Start){
+      odometryClear();
       connected = true;
       startTime = millis() + 3000;
       ledStayOn();
@@ -204,6 +211,17 @@ void loop() {
       stop();
       return;
     }
+    if (cmd.id == Odometry){
+      //TODO add set odometry instead of purely reading
+      String output = "ODOMETRY,";
+      output += String(x);
+      output += ",";
+      output += String(y);
+      output += ",";
+      output += String(yaw);
+      Serial.println(output);
+      return;
+    }
 
 
     char type = getType(cmd.id);
@@ -213,16 +231,6 @@ void loop() {
     }else if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
       int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
-    }else if (cmd.id == Odometry){
-      //TODO add set odometry instead of purely reading
-      String output = "ODOMETRY,";
-      output += String(x);
-      output += ",";
-      output += String(y);
-      output += ",";
-      output += String(yaw);
-      Serial.println(output);
-      
     }
   }
 }

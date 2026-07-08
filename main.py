@@ -51,13 +51,13 @@ async def command_task(websocket: WebSocket):
         elif data[COMMAND] == Command.SET_TARGET_POSE.value:
             Robot.set_position(data[VALUES])
         elif data[COMMAND] == Command.SET_DRIVE_P.value:
-            Drivetrain.DRIVE_P = data[VALUES]
+            Drivetrain.DRIVE_P = float(data[VALUES])
         elif data[COMMAND] == Command.SET_TURN_P.value:
-            Drivetrain.TURN_P = data[VALUES]
+            Drivetrain.TURN_P = float(data[VALUES])
         elif data[COMMAND] == Command.SET_MIN_DISTANCE.value:
-            Drivetrain.MIN_DISTANCE = data[VALUES]
+            Drivetrain.MIN_DISTANCE = float(data[VALUES])
         elif data[COMMAND] == Command.SET_TARGET_YAW.value:
-            Localizer.target_yaw = data[VALUES]
+            Localizer.target_yaw = float(data[VALUES])
         
 
 @app.websocket("/ws")
