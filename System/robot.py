@@ -10,7 +10,9 @@ from System.interface_map import *
 PING_TIME = 1 #Every half a second
 UPDATE_TIME = 0.05
 
-
+class AutoState(Enum):
+    CRUISE = "CRUISE"
+    AIM = "AIM"
 class Auto():
     timer = None
     RUN_TIME = 10
@@ -64,6 +66,7 @@ class Robot:
     joy_x = 0
     joy_y = 0
 
+    auto_state = AutoState.AIM
     auto = Auto()
 
     telemetry = Telemetry(
@@ -148,5 +151,10 @@ class Robot:
         elif (Robot.state == RobotState.MAP_CONTROL):
             Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Localizer.target_yaw)
             Robot.joy_y = Drivetrain.target_drive
-            Robot.joy_x = Drivetrain.target_turn
+            if (Camera.cruisng == False):
+                Robot.joy_x = Drivetrain.target_turn
+            else:
+                Robot.joy_x = Camera.turn_vector
+                Robot.joy_y += Camera.drive_vector
+
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

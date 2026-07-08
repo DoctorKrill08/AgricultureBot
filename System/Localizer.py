@@ -86,6 +86,12 @@ class Camera:
     raw_accel_reading = np.array([0,0,0])
     raw_gyro_reading = np.array([0,0,0])
 
+    cruisng = False
+    CRUISE_THRESHOLD = 0.2
+
+    CRUISE_TIME = 2
+    cruise_timer = Timer()
+
     def exception():
         ctx = rs.context()
         devices = ctx.query_devices()
@@ -127,7 +133,7 @@ class Camera:
         Camera.imu_pipe = rs.pipeline()
         imu_cfg = rs.config()
         vision_cfg = rs.config()
-
+        Camera.cruise_timer.reset()
         try:
             imu_cfg.enable_device(serial)
             imu_cfg.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 250)
@@ -152,7 +158,6 @@ class Camera:
             Camera.on = False
             Camera.exception()
             print("CAMERA NOT CONNECTED", e)
-        
     def read():
         if (not Camera.on):
             return
@@ -233,6 +238,13 @@ class Camera:
             avg = point_sum / len(obstacle_points)
         Camera.turn_vector = avg * Camera.TURN_P
         Camera.drive_vector = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
+
+        if (abs(Camera.drive_vector) > Camera.CRUISE_THRESHOLD):
+            Camera.cruisng = True
+            Camera.cruise_timer.reset()
+        elif (Camera.cruise_timer.time_passed() > Camera.CRUISE_TIME):
+            Camera.cruisng = False
+
         if (abs(Camera.turn_vector) < 0.05):
             Camera.turn_vector = 0
         if (abs(Camera.turn_vector) > 1):
