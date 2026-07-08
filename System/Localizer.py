@@ -74,8 +74,8 @@ class Camera:
     CAMERA_Y = 5
     GROUND_HEIGHT = 2
 
-    TURN_P = -1.5
-    DRIVE_P = -0.2
+    TURN_P = 1.5
+    DRIVE_P = -0.1
     
     closest_distance = 0
     turn_vector = 0
@@ -87,9 +87,9 @@ class Camera:
     raw_gyro_reading = np.array([0,0,0])
 
     cruisng = False
-    CRUISE_THRESHOLD = 0.2
+    CRUISE_THRESHOLD = 0.13
 
-    CRUISE_TIME = 2
+    CRUISE_TIME = 4
     cruise_timer = Timer()
 
     def exception():
@@ -117,7 +117,7 @@ class Camera:
 
 
     def status():
-        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\n"
+        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\nCRUISING: {Camera.cruisng}\nTURN_VECTOR: {Camera.turn_vector}\nDRIVE_VECTOR: {Camera.drive_vector}"
     def start():
         
         ctx = rs.context()
@@ -261,7 +261,7 @@ class Camera:
         x = closest["x"]
         y = closest["y"]
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
-        if ((closest["z_inches"] > Camera.TOO_CLOSE and len(close_points) > Camera.MIN_NUM_OF_CLOSE_POINTS) or len(visible_points) < Camera.MIN_NUM_OF_VISIBLE_POINTS):
+        if (len(visible_points) < Camera.MIN_NUM_OF_VISIBLE_POINTS):
             Camera.too_close = True
         else:
             Camera.too_close = False

@@ -156,5 +156,6 @@ class Robot:
             else:
                 Robot.joy_x = Camera.turn_vector
                 Robot.joy_y += Camera.drive_vector
-
+            if (Robot.joy_y < 0):
+                Robot.joy_y = 0
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

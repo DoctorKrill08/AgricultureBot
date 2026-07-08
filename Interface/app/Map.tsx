@@ -16,8 +16,8 @@ export default function Compass({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, onMove}: any
   tx *= PIXELS_PER_INCH
   ty *= -PIXELS_PER_INCH
   
-  const WIDTH = 300
-  const HEIGHT = 300
+  const WIDTH = 800
+  const HEIGHT = 800
 
   const POINT_RADIUS = 10
 
