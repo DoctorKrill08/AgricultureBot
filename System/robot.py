@@ -148,10 +148,12 @@ class Robot:
         elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
         elif (Robot.state == RobotState.MAP_CONTROL):
-            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.target_x,Localizer.target_y,)
-            Camera.calculate_vectors(Localizer.yaw)
-            Drivetrain.drive_vector += Camera.drive_vector
+            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.target_x,Localizer.target_y)
+            Camera.calculate_vectors(Drivetrain.angle,Drivetrain.MULT)
+            Drivetrain.drive_vector = Camera.drive_vector
             Drivetrain.vector_to_drive(Localizer.x,Localizer.y,Localizer.yaw)
             Robot.joy_y = Drivetrain.target_drive
             Robot.joy_x = Drivetrain.target_turn
+            if (Camera.too_close):
+                Robot.joy_y = 0
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

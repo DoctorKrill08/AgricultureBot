@@ -64,7 +64,7 @@ class Camera:
     MIN_HEIGHT = 10
     SPACE_BETWEEN_RAYS = int(4)
     MIN_NUM_OF_CLOSE_POINTS = 120
-    MIN_NUM_OF_VISIBLE_POINTS = 7000
+    MIN_NUM_OF_VISIBLE_POINTS = 6000
     too_close = False
     vision_pipe = None
     imu_pipe = None
@@ -85,8 +85,8 @@ class Camera:
     drive_vector = np.array([0,0])
     DRIVE_VECTOR_MULTIPLIER = 1
 
-    WEIGHT_GAIN = 0.5
-    WEIGHT_LOSS = 0.05
+    WEIGHT_GAIN = 0.2
+    WEIGHT_LOSS = 0.2
 
     IMU_enabled = False
 
@@ -118,7 +118,7 @@ class Camera:
 
 
     def status():
-        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\nCRUISING: {Camera.cruisng}\nTURN_VECTOR: {Camera.turn}\nDRIVE_VECTOR: {Camera.drive}"
+        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\nTURN: {Camera.turn}\nDRIVE: {Camera.drive}\nVECTOR[0]: {Camera.drive_vector[0]}\nVector[1]: {Camera.drive_vector[1]}"
     def start():
         
         ctx = rs.context()
@@ -134,7 +134,6 @@ class Camera:
         Camera.imu_pipe = rs.pipeline()
         imu_cfg = rs.config()
         vision_cfg = rs.config()
-        Camera.cruise_timer.reset()
         try:
             imu_cfg.enable_device(serial)
             imu_cfg.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 250)
@@ -159,11 +158,26 @@ class Camera:
             Camera.on = False
             Camera.exception()
             print("CAMERA NOT CONNECTED", e)
-    def calculate_vectors(yaw):
-        Camera.drive_vector = np.array([
-            Camera.DRIVE_VECTOR_MULTIPLIER * Camera.turn * math.cos(yaw),
-            Camera.DRIVE_VECTOR_MULTIPLIER * Camera.drive * math.sin(yaw)
-        ])
+    def calculate_vectors(yaw,mult):
+        T = Camera.turn
+        D = Camera.drive
+        print("YAW:", yaw)
+        alpha = -math.atan2(T,mult)
+        print("ALPHA: ",alpha)
+
+        theta = yaw + alpha
+        print("THETA: ",theta)
+
+        R = math.sqrt((T ** 2)+ (mult ** 2)) + D
+        if R < 0:
+            R = 0
+        print("D: ",D)
+        print("R: ",R)
+        print("mult",mult)
+
+        Camera.drive_vector = np.array([R * math.cos(theta),R * math.sin(theta)])
+
+        
     def read():
         if (not Camera.on):
             return
@@ -244,18 +258,20 @@ class Camera:
             avg = point_sum / len(obstacle_points)
         turn = avg * Camera.TURN_P
         drive = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
+        
+        Camera.drive = drive
+        Camera.turn = turn
 
-        weighting = Camera.WEIGHT_GAIN
+        """weighting = Camera.WEIGHT_GAIN
         if (abs(drive) < abs(Camera.drive)):
             weighting = Camera.WEIGHT_LOSS
         Camera.drive = (Camera.drive * (1 - weighting)) + (drive * (weighting))
-        Camera.turn = (Camera.turn * (1 - weighting)) + (turn * (weighting))
+        Camera.turn = (Camera.turn * (1 - weighting)) + (turn * (weighting))"""
 
         if (abs(Camera.turn) < 0.05):
             Camera.turn = 0
         if (abs(Camera.turn) > 1):
             Camera.drive = -1
-            Camera.turn = (Camera.turn / abs(Camera.turn)) * 0.3
         if (Camera.too_close):
             Camera.drive = -1
             Camera.turn = 0
@@ -638,8 +654,8 @@ class Localizer():
         y,_,results = results.partition(",")
         yaw,_,results = results.partition(",")
         print(x,y,yaw)
-        Localizer.y = float(x)
-        Localizer.x = -float(y)
+        Localizer.y = float(y)
+        Localizer.x = float(x)
         Localizer.yaw = float(yaw)
     def set_odo(x=None,y=None,yaw = 0):
         value = f"x:{x},y:{y},yaw:{yaw}"

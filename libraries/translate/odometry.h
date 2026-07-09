@@ -38,8 +38,8 @@ void calculateOdometry(int right, int left){
     rightPos = right;
     leftPos = left;
 
-    deltaLeft = (double)(-(leftPos - prevLeft));
-    deltaRight = (double)(-(rightPos - prevRight));
+    deltaLeft = (double)((leftPos - prevLeft));
+    deltaRight = (double)((rightPos - prevRight));
 
     leftInches = ticksToInches(deltaLeft);
     rightInches = ticksToInches(deltaRight);
@@ -48,8 +48,8 @@ void calculateOdometry(int right, int left){
 
     averageDisplacement = (rightInches + leftInches) / 2.000;
     
-    x += averageDisplacement * sin(yaw); //East West
-    y += averageDisplacement * cos(yaw); //North South
+    x += averageDisplacement * cos(yaw);
+    y += averageDisplacement * sin(yaw);
 
     deltaYaw = (double)(wheelDifference / DISTANCE_BETWEEN_WHEELS);
 

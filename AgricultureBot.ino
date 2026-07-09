@@ -172,7 +172,7 @@ bool stopped = false;
 void loop() {
   long elapsedTime = millis() - startTime; 
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
-    turnOff();
+    stop();
   }
   calculateOdometry(DriveRightEncoderPos,DriveLeftEncoderPos);
   ledUpdate();
@@ -201,6 +201,7 @@ void loop() {
     
     if (cmd.id == Ping){
       Serial.println(strConnected + " ARDUINO PING");
+      connected = true;
       return;
     }
     if (cmd.id == Stop){
