@@ -1,6 +1,7 @@
 from System.hardware import*
 from timer import Timer
 import math
+import numpy as np
 
 def shortest_angular_distance(angle1, angle2):
     diff = (angle2 - angle1 + math.pi) % (2*math.pi) - math.pi
@@ -23,6 +24,10 @@ class Drivetrain:
     MIN_DISTANCE = 2
 
     timer = Timer()
+
+    drive_vector = np.array([0,0]) #X,Y
+
+    DRIVE_VECTOR_MULTIPLIER = 1
 
     target_drive = 0
     target_turn = 0
@@ -62,11 +67,9 @@ class Drivetrain:
 
         Drivetrain.timer.reset()
     
-    def calculate_drive_vectors(x,y,yaw,target_x,target_y,target_yaw):
-        deltaX = target_x - x
-        deltaY = target_y - y
-        Drivetrain.distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
-        
+    def vector_to_drive(x,y,yaw):
+        deltaX = Drivetrain.drive_vector[0] - x
+        deltaY = Drivetrain.drive_vector[1] - y
         if (Drivetrain.distance > Drivetrain.MIN_DISTANCE):
             target_yaw = math.atan2(deltaX,deltaY) - (math.pi/2)
             Drivetrain.delta_yaw = shortest_angular_distance(yaw,target_yaw)
@@ -80,8 +83,20 @@ class Drivetrain:
             if (Drivetrain.target_drive > 0.3):
                 Drivetrain.target_drive = 0.3
         else:
-            Drivetrain.delta_yaw = shortest_angular_distance(yaw,target_yaw)
-            Drivetrain.target_turn = Drivetrain.TURN_P * Drivetrain.delta_yaw
+            Drivetrain.delta_yaw = 0
+            Drivetrain.target_turn = 0
             Drivetrain.target_drive = 0
+
+    #Robot to Goal
+    def calculate_drive_vectors(x,y,target_x,target_y):
+        deltaX = target_x - x
+        deltaY = target_y - y
+        Drivetrain.distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
+        MULT = Drivetrain.DRIVE_VECTOR_MULTIPLIER
+        if (Drivetrain.distance < Drivetrain.DRIVE_VECTOR_MULTIPLIER):
+            MULT = Drivetrain.distance
         
+        angle = math.atan2(deltaY,deltaX) - (math.pi/2)
+        Drivetrain.drive_vector = np.array([MULT * math.cos(angle),MULT * math.sin(angle)])
+
 

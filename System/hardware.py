@@ -48,12 +48,12 @@ def send_command(command,read = False,override = False):
         return decoded
 
 def close_arduino():
-    if (Arduino.connected == False):
-        return
     Arduino.serial.close()
     Arduino.connected = False
 def stop_arduino():
-    send_command(f"{Device.Stop.value},0,0",read=True)
+    cmd = send_command(f"{Device.Stop.value},0,0",read=True,override=True)
+    if (not cmd == None and not cmd == ""):
+        close_arduino()
 def ping():
     send_command(f"{Device.Ping.value},0,0",read=True)
 class Servo:

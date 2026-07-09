@@ -144,38 +144,38 @@ export default function RobotControlPanel() {
               ------ROBOT-------
               <br/>
               TARGET_YAW:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TARGET_YAW)}/>  
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TARGET_YAW)}/>  
               <br/>
                --------------
               <br/>
               TURN_P:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TURN_P)}/>  
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TURN_P)}/>  
               <br/>
                --------------
               <br/>
               DIVE_P:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_DRIVE_P)}/>  
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_DRIVE_P)}/>  
               <br/>
                --------------
               <br/>
               MIN_DISTANCE:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MIN_DISTANCE)}/>  
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MIN_DISTANCE)}/>  
               <br/> 
               --------------
               <br/>
               AUTO_TIME:           
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
               />      
               <br/>
               -----CAMERA------
               <br/>
               CAMERA DRIVE P:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}/>
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}/>
               <br/>
               --------------
               <br/>
               CAMERA TURN P:
-              <input type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}/>  
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}/>  
               <br/>
               
                        

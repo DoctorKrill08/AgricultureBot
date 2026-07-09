@@ -78,19 +78,20 @@ class Camera:
     DRIVE_P = -0.1
     
     closest_distance = 0
-    turn_vector = 0
-    drive_vector = 0
+
+    turn = 0
+    drive = 0
+
+    drive_vector = np.array([0,0])
+    DRIVE_VECTOR_MULTIPLIER = 1
+
+    WEIGHT_GAIN = 0.5
+    WEIGHT_LOSS = 0.05
 
     IMU_enabled = False
 
     raw_accel_reading = np.array([0,0,0])
     raw_gyro_reading = np.array([0,0,0])
-
-    cruisng = False
-    CRUISE_THRESHOLD = 0.13
-
-    CRUISE_TIME = 4
-    cruise_timer = Timer()
 
     def exception():
         ctx = rs.context()
@@ -117,7 +118,7 @@ class Camera:
 
 
     def status():
-        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\nCRUISING: {Camera.cruisng}\nTURN_VECTOR: {Camera.turn_vector}\nDRIVE_VECTOR: {Camera.drive_vector}"
+        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}\nDriveP: {Camera.DRIVE_P}\nTurnP: {Camera.TURN_P}\nCRUISING: {Camera.cruisng}\nTURN_VECTOR: {Camera.turn}\nDRIVE_VECTOR: {Camera.drive}"
     def start():
         
         ctx = rs.context()
@@ -158,6 +159,11 @@ class Camera:
             Camera.on = False
             Camera.exception()
             print("CAMERA NOT CONNECTED", e)
+    def calculate_vectors(yaw):
+        Camera.drive_vector = np.array([
+            Camera.DRIVE_VECTOR_MULTIPLIER * Camera.turn * math.cos(yaw),
+            Camera.DRIVE_VECTOR_MULTIPLIER * Camera.drive * math.sin(yaw)
+        ])
     def read():
         if (not Camera.on):
             return
@@ -236,23 +242,23 @@ class Camera:
             avg = 0
         else:
             avg = point_sum / len(obstacle_points)
-        Camera.turn_vector = avg * Camera.TURN_P
-        Camera.drive_vector = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
+        turn = avg * Camera.TURN_P
+        drive = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
 
-        if (abs(Camera.drive_vector) > Camera.CRUISE_THRESHOLD):
-            Camera.cruisng = True
-            Camera.cruise_timer.reset()
-        elif (Camera.cruise_timer.time_passed() > Camera.CRUISE_TIME):
-            Camera.cruisng = False
+        weighting = Camera.WEIGHT_GAIN
+        if (abs(drive) < abs(Camera.drive)):
+            weighting = Camera.WEIGHT_LOSS
+        Camera.drive = (Camera.drive * (1 - weighting)) + (drive * (weighting))
+        Camera.turn = (Camera.turn * (1 - weighting)) + (turn * (weighting))
 
-        if (abs(Camera.turn_vector) < 0.05):
-            Camera.turn_vector = 0
-        if (abs(Camera.turn_vector) > 1):
-            Camera.drive_vector = -1
-            Camera.turn_vector = (Camera.turn_vector / abs(Camera.turn_vector)) * 0.3
+        if (abs(Camera.turn) < 0.05):
+            Camera.turn = 0
+        if (abs(Camera.turn) > 1):
+            Camera.drive = -1
+            Camera.turn = (Camera.turn / abs(Camera.turn)) * 0.3
         if (Camera.too_close):
-            Camera.drive_vector = -1
-            Camera.turn_vector = 0
+            Camera.drive = -1
+            Camera.turn = 0
         #print("visible pixels: ",len(visible_points))
         #print("too close pixels: ",len(close_points))
         size = 15

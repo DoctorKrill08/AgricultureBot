@@ -45,8 +45,8 @@ class ObstacleAvoidAuto(Auto):
             Robot.joy_x = 0
             Robot.joy_y = 0
         else:
-            Robot.joy_x = Camera.turn_vector
-            Robot.joy_y = Robot.joy_y + Camera.drive_vector
+            Robot.joy_x = Camera.turn
+            Robot.joy_y = Robot.joy_y + Camera.drive
             if (Robot.joy_y < 0):
                 Robot.joy_y = 0
             if (Robot.joy_y > 0.5):
@@ -107,7 +107,6 @@ class Robot:
         Robot.on = False
         Robot.set_state(RobotState.RESTING)
         stop_arduino()
-        close_arduino()
         Camera.stop()
     def initiate():
         print("initiate")
@@ -149,13 +148,10 @@ class Robot:
         elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
         elif (Robot.state == RobotState.MAP_CONTROL):
-            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Localizer.target_yaw)
+            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.target_x,Localizer.target_y,)
+            Camera.calculate_vectors(Localizer.yaw)
+            Drivetrain.drive_vector += Camera.drive_vector
+            Drivetrain.vector_to_drive(Localizer.x,Localizer.y,Localizer.yaw)
             Robot.joy_y = Drivetrain.target_drive
-            if (Camera.cruisng == False):
-                Robot.joy_x = Drivetrain.target_turn
-            else:
-                Robot.joy_x = Camera.turn_vector
-                Robot.joy_y += Camera.drive_vector
-            if (Robot.joy_y < 0):
-                Robot.joy_y = 0
+            Robot.joy_x = Drivetrain.target_turn
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))
