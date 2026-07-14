@@ -39,6 +39,7 @@ class Telemetry(BaseModel):
     target_yaw: float
     arduino_connected: bool
     gps_connected: bool
+    map: str
     status: str
 
 class ClientInputs(BaseModel):
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     output += f'export const COMMAND = "{COMMAND}";\n'
     output += f'export const VALUES = "{VALUES}";\n'
 
-    print("MADE JS FILE")
+    print("MADE TS FILE")
     
     with open("Interface/app/interface_map.ts", "w") as file:
         file.write(output)

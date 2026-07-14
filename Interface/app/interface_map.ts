@@ -32,6 +32,7 @@ export type Telemetry ={
   target_yaw : number;
   arduino_connected : boolean;
   gps_connected : boolean;
+  map : string;
   status : string;
 
 };

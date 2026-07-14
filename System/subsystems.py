@@ -2,10 +2,7 @@ from System.hardware import*
 from timer import Timer
 import math
 import numpy as np
-
-def shortest_angular_distance(angle1, angle2):
-    diff = (angle2 - angle1 + math.pi) % (2*math.pi) - math.pi
-    return (diff)
+from System.Angle import *
 
 class Drivetrain:
 

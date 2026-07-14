@@ -3,6 +3,7 @@ from System.subsystems import*
 from System.GPS import *
 from timer import *
 from System.Localizer import Localizer,Camera
+from System.mapping import Map
 from System.interface_map import *
 
 
@@ -80,6 +81,7 @@ class Robot:
         heading=0,
         arduino_connected=False,
         gps_connected=False,
+        map = "",
         status="",
     )
     
@@ -131,7 +133,8 @@ class Robot:
             target_yaw=Localizer.target_yaw,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Camera.status() + GPS.status() + Localizer.status(),
+            map = Map.print_nodes(),
+            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
         )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):

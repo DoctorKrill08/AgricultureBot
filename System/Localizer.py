@@ -10,6 +10,8 @@ import cv2
 import sys
 from pathlib import Path
 from System.hardware import *
+from System.mapping import Map
+from System.Angle import *
 import time
 
 import os
@@ -22,37 +24,8 @@ os.environ["LD_LIBRARY_PATH"] = os.path.expanduser('~/librealsense/build/Release
 import pyrealsense2 as rs
 
 
-def add_angle(a1,a2):
-    if (a1 > math.pi):
-        a1 -= 2 * math.pi
-    if (a2 > math.pi):
-        a2 -= 2 * math.pi
-    if (a1 < -math.pi):
-        a1 += 2 * math.pi
-    if (a2 < -math.pi):
-        a2 += 2 * math.pi
-    sum = 0
-    if (a1 / a2) < 0:
-        pos = a1
-        neg = a2
-        if (a1 < 0):
-            pos = a2
-            neg = a1
-        
-        neg += (2 * math.pi)
-        sum = pos + neg
-    else:
-        sum = a1 + a2
-    if (sum > 2 * math.pi):
-        sum -= 2 * math.pi
-    if (sum < -2 * math.pi):
-        sum += 2 * math.pi
-    return sum
-
 class Camera:
-    MIN_DISTANCE = 10 #inches
     TOO_CLOSE = 12 #inches
-    FORWARD_VIEW_DISTANCE = 30
     FPS = 15
     distance = 0
     WIDTH = 640
@@ -69,24 +42,16 @@ class Camera:
     vision_pipe = None
     imu_pipe = None
     on = False
-    ROBOT_WIDTH = 20 #inches
-    ROBOT_HEIGHT = 8
-    CAMERA_Y = 5
-    GROUND_HEIGHT = 2
 
     TURN_P = 1.5
     DRIVE_P = -0.1
     
     closest_distance = 0
 
+    relative_goal_angle = 0
+    
     turn = 0
     drive = 0
-
-    drive_vector = np.array([0,0])
-    DRIVE_VECTOR_MULTIPLIER = 1
-
-    WEIGHT_GAIN = 0.2
-    WEIGHT_LOSS = 0.2
 
     IMU_enabled = False
 
@@ -178,6 +143,7 @@ class Camera:
         Camera.drive_vector = np.array([R * math.cos(theta),R * math.sin(theta)])
 
         
+
     def read():
         if (not Camera.on):
             return
@@ -186,8 +152,14 @@ class Camera:
 
         canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
         canvas_black[20, 20] = [0, 0, 255]
-        Camera.pixels_within_distance(canvas_black,depth_frame)
+        closest = Camera.closest_pixels_1D(depth_frame)
+        Map.clear()
+        for point in closest:
+            horizontal = point[0]
+            forward = point[1]
+            Map.add_obstacle(horizontal,forward,Localizer.x,Localizer.y,Localizer.yaw)
         
+
         if (Camera.IMU_enabled):
             Camera.raw_accel_reading = None
             Camera.raw_gyro_reading = None
@@ -222,72 +194,23 @@ class Camera:
             return
         Camera.vision_pipe.stop()
         Camera.on = False
-    def pixels_within_distance(canvas,depth_frame):
+    def closest_pixels_1D(depth_frame):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
-        obstacle_points = [] #horizontal distance (x), distance (z)
-        visible_points = []
-        close_points = []
-        closest = {"x" : 0, "y": 0, "z_inches": 1000} #x,y,distance
-
-        size = Camera.SPACE_BETWEEN_RAYS
-        color = [0, 0, 255] #Red
-        point_sum = 0
+        closest_y = 1000
+        #Forward,Horizontal
+        points_1D = []
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
             for y in range(Camera.MIN_HEIGHT,Camera.MAX_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
                 z_depth = depth_frame.get_distance(x,y)
-                distance = meters_to_inches(z_depth)
-                if (distance == 0):
-                    continue
-                visible_points.append({"x" : x, "y " : y, "z_inches" : z_depth})
+                z_distance = meters_to_inches(z_depth)
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
-                horizontal_distance = meters_to_inches(spatial_point[0])  # X component inches
-                verticial_distance = meters_to_inches(spatial_point[1])
-                if abs(horizontal_distance) < Camera.ROBOT_WIDTH/2 and verticial_distance > -(Camera.ROBOT_HEIGHT - Camera.CAMERA_Y) and (verticial_distance - Camera.CAMERA_Y) < (Camera.GROUND_HEIGHT) and distance < Camera.FORWARD_VIEW_DISTANCE:
-                    obstacle_points.append({"x" : x,"x_inches" : horizontal_distance,"z_inches" : distance})
-                    if (distance < Camera.TOO_CLOSE):
-                        close_points.append({"x" : x,"y" : y,"z_inches": distance})
-                    if (distance < closest["z_inches"]):
-                        closest = {"x" : x,"y" : y,"z_inches" : distance,"y_inches" : verticial_distance}
-                    canvas[y-(size):y+(size), x-(size):x+(size)] = color
-                    if (not x == Camera.CENTER_X):
-                        point_sum += ((Camera.ROBOT_WIDTH/horizontal_distance) / distance)
-                    
-        if (len(obstacle_points) <= 0):
-            avg = 0
-        else:
-            avg = point_sum / len(obstacle_points)
-        turn = avg * Camera.TURN_P
-        drive = Camera.DRIVE_P *((Camera.TOO_CLOSE / closest["z_inches"]))
-        
-        Camera.drive = drive
-        Camera.turn = turn
+                horizontal_distance = meters_to_inches(spatial_point[0])
+                if (z_distance < closest_y):
+                    closest_y = z_distance
+                    points_1D[x] = [horizontal_distance,z_distance]
+        return points_1D                
+    
 
-        """weighting = Camera.WEIGHT_GAIN
-        if (abs(drive) < abs(Camera.drive)):
-            weighting = Camera.WEIGHT_LOSS
-        Camera.drive = (Camera.drive * (1 - weighting)) + (drive * (weighting))
-        Camera.turn = (Camera.turn * (1 - weighting)) + (turn * (weighting))"""
-
-        if (abs(Camera.turn) < 0.05):
-            Camera.turn = 0
-        if (abs(Camera.turn) > 1):
-            Camera.drive = -1
-        if (Camera.too_close):
-            Camera.drive = -1
-            Camera.turn = 0
-        #print("visible pixels: ",len(visible_points))
-        #print("too close pixels: ",len(close_points))
-        size = 15
-
-        color = [0,255,0]
-        x = closest["x"]
-        y = closest["y"]
-        canvas[y-(size):y+(size), x-(size):x+(size)] = color
-        if (len(visible_points) < Camera.MIN_NUM_OF_VISIBLE_POINTS):
-            Camera.too_close = True
-        else:
-            Camera.too_close = False
-            canvas[0:20,0:20] = [0,255,0]
 
 class IMUState(Enum):
     DISABLED = "DISABLED"
@@ -387,8 +310,7 @@ class IMU():
         raw_gyro[IMU.YAW] *= -1
         IMU.prev_accel = IMU.accel
         IMU.accel = measured_accel
-        if (MovementKalman.moving > IMU.ROTATING_KALMAN_THRESHOLD or IMU.rotating):
-            IMU.rotate_position += raw_gyro * delta_time
+        IMU.rotate_position += raw_gyro * delta_time
 
         """ K = IMU.state_variance / (IMU.state_variance + IMU.ACCEL_VARIANCE)
         IMU.accel += K * (measured_accel - IMU.accel)
@@ -407,10 +329,6 @@ class IMU():
 
         if (IMU.state == IMUState.DISABLED):
             return
-    
-        CalibrateIMUKalman.predict()
-        CalibrateIMUKalman.update(raw_accel)
-
         raw_accel -= IMU.gravity_vector
        # plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "red")
         #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "blue")
@@ -539,88 +457,6 @@ class CompassKalman():
         K = CompassKalman.yaw_variance / (CompassKalman.yaw_variance + CompassKalman.gps_variance)
         IMU.rotate_position[IMU.YAW] =   add_angle(IMU.rotate_position[IMU.YAW] * (1 - K), measure * (K))
         CompassKalman.yaw_variance = (1 - K) * CompassKalman.yaw_variance
-        
-
-class CalibrateIMUKalman():
-    state_variance = 10000
-    accel_variance = 4
-    gyro_variance = 4
-
-    Q = 1000
-    DRIFT_FACTOR = 3000
-    timer = Timer()
-
-    def predict():
-        CalibrateIMUKalman.state_variance += (CalibrateIMUKalman.Q)
-        CalibrateIMUKalman.timer.reset()
-    def update(accel):
-        angle = np.array([0,0,0],dtype=np.float32)
-        error = np.array([0,0,0],dtype=np.float32)
-
-        if (MovementKalman.isMoving()):
-            IMU.calculate_gravity_vector()
-            return
-        angle[IMU.PITCH] = math.atan2(accel[IMU.FORWARD],accel[IMU.DOWN])
-        angle[IMU.ROLL] = math.asin(max(min(accel[IMU.LEFT],-1),1) / IMU.gravity)
-        angle[IMU.YAW] = IMU.rotate_position[IMU.YAW]
-
-        sensor_variance = CalibrateIMUKalman.gyro_variance
-
-        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + sensor_variance)
-        IMU.rotate_position += K * (angle - IMU.rotate_position)
-        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
-
-        error = accel - IMU.calculate_gravity_vector()
-        sensor_variance = CalibrateIMUKalman.accel_variance
-
-        K = CalibrateIMUKalman.state_variance / (CalibrateIMUKalman.state_variance + CalibrateIMUKalman.accel_variance)
-        IMU.accel_error += K * (error - IMU.accel_error)
-        CalibrateIMUKalman.state_variance = (1 - K) * CalibrateIMUKalman.state_variance
-
-
-        
-
-
-
-class MovementKalman():
-    #0 = not moving, #1 = moving
-    moving = 0
-    state_variance = 0
-    Q = 10
-
-    IMU_VARIANCE = 0
-    GPS_VARIANCE = 0.1
-    ROTATE_VARIANCE = 0.15
-
-    MOVING_THRESHOLD = 0.07
-
-    def predict():
-        if MovementKalman.moving > 0:
-            MovementKalman.moving = MovementKalman.moving * 0.75
-        MovementKalman.state_variance += MovementKalman.Q
-    
-    def update():
-        measure_variance = MovementKalman.GPS_VARIANCE
-        measure = 0
-        if (GPS.moving):
-            measure = 1
-        if (IMU.rotating):
-            measure_variance = MovementKalman.ROTATE_VARIANCE
-            measure += (abs(IMU.delta_gyro[IMU.YAW]) / IMU.ROTATE_VEL_THRESHOLD[IMU.YAW])
-        if (IMU.jerk):
-            measure_variance = MovementKalman.IMU_VARIANCE
-            measure += 1
-        if (measure > 1):
-            measure = 1
-        K = MovementKalman.state_variance / (MovementKalman.state_variance + measure_variance)
-        MovementKalman.moving += K * (measure - MovementKalman.moving)
-        if (MovementKalman.moving < 0):
-            MovementKalman.moving = 0
-        MovementKalman.state_variance = (1 - K) * MovementKalman.state_variance
-        
-        #plt.scatter(time.perf_counter() - IMU.start_time,MovementKalman.moving,color = "red")
-    def isMoving():
-        return MovementKalman.moving > MovementKalman.MOVING_THRESHOLD
 
 class LocalizationKalman():
     GPS_POSE_NOISE = {}
@@ -688,13 +524,12 @@ class Localizer():
     def run():
         Camera.read()
         GPS.update()
-        MovementKalman.predict()
-        MovementKalman.update()
         CompassKalman.predict()
         CompassKalman.update()
         Localizer.get_raw_odo()
     def status():
-        return f"\n---LOCALIZER---\nMoving Confidence: {MovementKalman.moving}\nIs Moving: {MovementKalman.isMoving()}\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw}"
+        return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
+\n{Camera.status()}\n{GPS.status()}\n{IMU.status()}\n{Map.status()} "
     def show():
         plt.show()
 
