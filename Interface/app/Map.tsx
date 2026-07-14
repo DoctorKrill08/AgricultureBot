@@ -52,8 +52,8 @@ function obstaclesToDiv(){
     div.className = 'map-point';
     div.id = 'obstacle-point';
     div.style.backgroundColor = 'red';
-    div.style.width = String(POINT_RADIUS) + 'px'
-    div.style.height = String(POINT_RADIUS) + 'px'
+    div.style.width = String(OBSTACLE_RADIUS) + 'px'
+    div.style.height = String(OBSTACLE_RADIUS) + 'px'
     div.style.left = String(x) + 'px'
     div.style.top = String(y) + 'px'
     container.appendChild(div); 
