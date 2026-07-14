@@ -21,6 +21,7 @@ export default function RobotControlPanel() {
     heading: 0,
     arduino_connected: false,
     gps_connected: false,
+    map: "N/A",
     status: "Disconnected",
   });
 
@@ -76,6 +77,7 @@ export default function RobotControlPanel() {
           heading: data.heading,
           arduino_connected: data.arduino_connected,
           gps_connected: data.gps_connected,
+          map: data.map,
           status: data.status,
         });
       }
@@ -235,7 +237,9 @@ export default function RobotControlPanel() {
             <div>
               <strong>Target Yaw:</strong> {telemetry.target_yaw}
             </div>
-
+            <div>
+              <strong>MAP DATA:</strong> {telemetry.map}
+            </div>
             <div>
               <strong>Status: </strong> {telemetry.status}
             </div>

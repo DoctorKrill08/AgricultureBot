@@ -1,31 +1,79 @@
 'use client';
-import { relative } from 'path';
+import { parse, relative } from 'path';
 import './globals.css'
 import React, { useRef, useState } from 'react';
 
+const PIXELS_PER_INCH = 3
+const WIDTH = 800
+const HEIGHT = 800
+const POINT_RADIUS = 10
+const OBSTACLE_RADIUS = 2
 
+function realToMap(x : number,y : number,yaw : number, radius : number){
+  yaw *= -1
+  x *= PIXELS_PER_INCH
+  y *= -PIXELS_PER_INCH
 
-export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, onMove}: any) { 
+  x = (WIDTH / 2) - (radius / 2) + x
+  y = (HEIGHT / 2) - (radius / 2) + y
+  return [x,y,yaw]
+}
+var obstacles : number[][] = []
 
-  bYaw *= -1
-  tYaw *= -1
-  const PIXELS_PER_INCH = 3
-
-  bx *= PIXELS_PER_INCH
-  by *= -PIXELS_PER_INCH
-  tx *= PIXELS_PER_INCH
-  ty *= -PIXELS_PER_INCH
+function parseMap(map_data: string){
+  obstacles = []
+  var points = map_data.split('/'); //Array of Strings
+  for (let i = 0; i < points.length; i++){
+    let point = points[i].split(","); //Array of strings, x and y
+    let x = Number(point[0])
+    let y = Number(point[1])
+    let translated = realToMap(x,y,0,POINT_RADIUS);
+    x = translated[0]
+    y = translated[1]
+    obstacles[i] = [x,y]
+  }
   
-  const WIDTH = 800
-  const HEIGHT = 800
+}
+function obstaclesToDiv(){
+  const container = document.getElementById('obstalces');
+  if (container == null){
+    console.log("CONTAINER IS NULL")
+    return
+  }
+  //Clear children
+  container.replaceChildren()
 
-  const POINT_RADIUS = 10
+  for (let i = 0; i < obstacles.length; i++){
+    const div = document.createElement('div');
 
-  var botX = (WIDTH / 2) - (POINT_RADIUS / 2) + bx
-  var botY = (HEIGHT / 2) - (POINT_RADIUS /2 ) + by
+    let x = obstacles[i][0]
+    let y = obstacles[i][1]
 
-  var tarX = (WIDTH / 2) - (POINT_RADIUS / 2) + tx
-  var tarY = (HEIGHT / 2) - (POINT_RADIUS /2 ) + ty
+    div.className = 'map-point';
+    div.id = 'obstacle-point';
+    div.style.backgroundColor = 'red';
+    div.style.width = String(POINT_RADIUS) + 'px'
+    div.style.height = String(POINT_RADIUS) + 'px'
+    div.style.left = String(x) + 'px'
+    div.style.top = String(y) + 'px'
+    container.appendChild(div); 
+  }
+}
+
+export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove}: any) { 
+
+  var botPose = realToMap(bx,by,bYaw,POINT_RADIUS)
+  bx = botPose[0]
+  by = botPose[1]
+  bYaw = botPose[2]
+
+  var tarPose = realToMap(tx,ty,tYaw,POINT_RADIUS)
+  tx = tarPose[0]
+  ty = tarPose[1]
+  tYaw = tarPose[2]
+
+  parseMap(map_data)
+  obstaclesToDiv()
 
   //const [position, setPosition] = useState({ x: 0, y: 0 });
   const handleMouseDown = (event: React.MouseEvent) => {
@@ -65,22 +113,23 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, onMove}: any) {
           <div className='map-point' style={{
             width : String(POINT_RADIUS) + 'px',
             height : String(POINT_RADIUS) + 'px',
-            left : String(botX) + 'px',
-            top: String(botY) + 'px',
-            backgroundColor: 'red',
+            left : String(bx) + 'px',
+            top: String(by) + 'px',
+            backgroundColor: 'blue',
             rotate: String(bYaw) + 'rad'
         }}/>
 
         <div className='map-point' style={{
             width : String(POINT_RADIUS) + 'px',
             height : String(POINT_RADIUS) + 'px',
-            left : String(tarX) + 'px',
-            top: String(tarY) + 'px',
-            backgroundColor: 'green',
+            left : String(tx) + 'px',
+            top: String(ty) + 'px',
+            backgroundColor: 'yellow',
             rotate: String(tYaw) + 'rad'
         }}/>
-
+        <div id='obstacles'/>
       </div>
+
     </div>
   );
 }
