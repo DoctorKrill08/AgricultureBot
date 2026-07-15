@@ -20,9 +20,9 @@ class Camera:
     HEIGHT = 480
     CENTER_X = int(WIDTH / 2)
     CENTER_Y = int(HEIGHT / 2)
-    WIDTH_RANGE = CENTER_X
-    MAX_HEIGHT = HEIGHT - 200
-    MIN_HEIGHT = 30
+    WIDTH_RANGE = CENTER_X - 40
+    MIN_HEIGHT = HEIGHT - 30
+    MAX_HEIGHT = 30
     SPACE_BETWEEN_RAYS = int(4)
     MIN_NUM_OF_CLOSE_POINTS = 120
     MIN_NUM_OF_VISIBLE_POINTS = 6000
@@ -45,7 +45,9 @@ class Camera:
 
     raw_accel_reading = np.array([0,0,0])
     raw_gyro_reading = np.array([0,0,0])
-    colorizer = None
+
+    prev_frame = None
+    canvas = np.zeros((HEIGHT, WIDTH), dtype=np.uint8)
 
     def exception():
         ctx = rs.context()
@@ -94,7 +96,7 @@ class Camera:
             print("IMU NOT CONNECTED", e)
 
         try:
-            vision_cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
+            #vision_cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
             vision_cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
             Camera.vision_pipe.start(vision_cfg)
             Camera.on = True
@@ -112,19 +114,25 @@ class Camera:
         
         frame = Camera.vision_pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
-        color_frame = frame.get_color_frame()
+        #color_frame = frame.get_color_frame()
 
         depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
-        depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,
+        #color_image = np.asanyarray(color_frame.get_data())
+        #depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,alpha = 0.03), cv2.COLORMAP_JET)
+        #cv2.imshow('depth', depth_cm)
+        #cv2.imshow('rgb', color_image)
+
+        blacklisted_pixels,blacklist_image = Camera.filter_camera(depth_frame)
+        """ cv2.imshow('blacklist', blacklist_image)
+
+        colored_pixels_mask = np.any(blacklist_image > 0, axis=-1)
+        result = depth_image.copy()
+        result[colored_pixels_mask] = 0
+        result = cv2.applyColorMap(cv2.convertScaleAbs(result,
                                         alpha = 0.03), cv2.COLORMAP_JET)
-        cv2.imshow('depth', depth_cm)
-        cv2.imshow('rgb', color_image)
+        cv2.imshow('filtered', result)"""
 
-
-        canvas_black = np.zeros((Camera.HEIGHT, Camera.WIDTH, 3), dtype=np.uint8)
-        canvas_black[20, 20] = [0, 0, 255]
-        Camera.closest = Camera.closest_pixels_1D(depth_frame)
+        Camera.closest = Camera.closest_pixels_1D(depth_frame,blacklisted_pixels)
         
 
         if (Camera.IMU_enabled):
@@ -161,18 +169,49 @@ class Camera:
             return
         Camera.vision_pipe.stop()
         Camera.on = False
-    def closest_pixels_1D(depth_frame):
+    def blacklist(x,y,blacklist_array):
+        key = str(x) + "," + str(y)
+        blacklist_array[key] = [x,y]
+        return blacklist_array
+    def paint_on_canvas(canvas,x,y,size,color = [0,0,255]):
+        canvas[y-(size):y+(size), x-(size):x+(size)] = color
+        return canvas
+    def filter_camera(depth_frame):
+        depth_image = np.asanyarray(depth_frame.get_data())
+        blacklisted_pixels = {}
+        blacklist_image = np.zeros((Camera.HEIGHT, Camera.WIDTH,3), dtype=np.uint8)
+        if (Camera.prev_frame == None):
+            Camera.prev_frame = depth_frame
+            return blacklisted_pixels,depth_image
+        for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
+            for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
+                z = meters_to_inches(depth_frame.get_distance(x,y))
+                prev_z = meters_to_inches(Camera.prev_frame.get_distance(x,y))
+                if (z <= CAMERA_MIN_DEPTH or z > CAMERA_MAX_DEPTH or prev_z <= CAMERA_MIN_DEPTH or prev_z > CAMERA_MAX_DEPTH):
+                    blacklist_image = Camera.paint_on_canvas(blacklist_image,x,y,Camera.SPACE_BETWEEN_RAYS,[0,255,255])
+                    blacklisted_pixels = Camera.blacklist(x,y,blacklisted_pixels)
+                    continue
+                delta_z = z - prev_z
+                if (abs(delta_z) > 2):
+                    blacklist_image = Camera.paint_on_canvas(blacklist_image,x,y,Camera.SPACE_BETWEEN_RAYS,[0,0,255])
+                    blacklisted_pixels = Camera.blacklist(x,y,blacklisted_pixels)
+                    continue
+        Camera.prev_frame = depth_frame
+        return blacklisted_pixels,blacklist_image
+    def closest_pixels_1D(depth_frame,blacklisted_pixels = None):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
         closest_y = 1000
         #Forward,Horizontal
         points_1D = [None] * Camera.WIDTH
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
             closest_y = 1000
-            for y in range(Camera.MIN_HEIGHT,Camera.MAX_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
+            for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
+                if (not blacklisted_pixels == None):
+                    key = str(x) + "," + str(y)
+                    if not blacklisted_pixels[key] == None:
+                        continue
                 z_depth = depth_frame.get_distance(x,y)
                 z_distance = meters_to_inches(z_depth)
-                if (z_distance <= CAMERA_MIN_DEPTH or z_distance > CAMERA_MAX_DEPTH):
-                    continue
                 spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])
                 if (z_distance < closest_y):
@@ -388,7 +427,8 @@ class IMU():
                 return "Y"
             if (i == IMU.FORWARD):
                 return "Z"
-
+            
+#Windows: python -m System.Camera
 if __name__ == "__main__":
     Camera.start()
     while True:

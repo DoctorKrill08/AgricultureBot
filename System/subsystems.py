@@ -2,7 +2,7 @@ from System.hardware import*
 from timer import Timer
 import math
 import numpy as np
-from System.Angle import *
+from System.Constants import *
 
 class Drivetrain:
 
