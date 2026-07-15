@@ -2,20 +2,26 @@ import numpy as np
 import math
 from enum import Enum
 from System.Constants import *
+from timer import *
 
 class Node():
-    OBSTACLE = "OBSTACLE"
-    EMPTY = "EMPTY"
-    def __init__(self,x : float,y : float,status = EMPTY):
+    OBSTACLE = "O"
+    SAVED_OBSTACLE = "S"
+    EMPTY = "E"
+    FORGET_TIME = 10
+    def __init__(self,x : float,y : float,status = EMPTY, raw_horizontal = 0, raw_forward = 0):
         self.x  = x
         self.y = y
         self.status = status
+        self.raw_horizontal = raw_horizontal
+        self.raw_forward = raw_forward
         self.id = str(x) + "," + str(y)
+        self.timer = Timer()
     def to_string(self):
         return self.id + "," + self.status
 
 class Map:
-    INCHES_PER_NODE = 2
+    INCHES_PER_NODE = 4
     nodes =  {}
     visible_obstacles = {}
     def print_nodes(nodes):
@@ -34,39 +40,21 @@ class Map:
     def clear():
         Map.visible_obstacles = {}
     def point_to_node(x,y):
-        """threshold = Map.INCHES_PER_NODE / 2
-
-        round = x % Map.INCHES_PER_NODE
-        difference = Map.INCHES_PER_NODE - abs(round)
-        if (x > 0):
-            if (round > threshold):
-                x += difference
-            else:
-                x -= difference
-        else:
-            if (round > threshold):
-                x -= difference
-            else:
-                x += difference
-
-        round = y % Map.INCHES_PER_NODE
-        difference = Map.INCHES_PER_NODE - abs(round)
-        if (y > 0):
-            if (round > threshold):
-                y += difference
-            else:
-                y -= difference
-        else:
-            if (round > threshold):
-                y -= difference
-            else:
-                y += difference"""
         return x,y
-    def update(x,y,yaw):
-        #make visible obstacle list
-        #Calculate whether or not prior obstacles exist
-        pass
-
+        x = round_nearest(x,Map.INCHES_PER_NODE)
+        y = round_nearest(y,Map.INCHES_PER_NODE)
+        return x,y
+    def update(x,y,yaw,camera_array,too_fast):
+        if (too_fast):
+            return
+        Map.clear()
+        Map.calculate_visibility(x,y,yaw)
+        for point in camera_array:
+            if (point == None):
+                continue
+            horizontal = point[0]
+            forward = point[1]
+            Map.add_obstacle(horizontal,forward,x,y,yaw)
     def add_obstacle(horizontal,forward,x=0,y=0,yaw=0):
         if (horizontal == None or forward == None):
             return
@@ -76,35 +64,53 @@ class Map:
             #what
             return
         relative_angle = math.atan2(horizontal,forward)
+        if math.degrees(abs(relative_angle)) + 15 > CAMERA_HORIZONTAL_FOV / 2:
+            return
+
         angle = add_angle(yaw,relative_angle)
 
         x += d * math.cos(angle)
         y += d * math.sin(angle)
         x,y = Map.point_to_node(x,y)
 
-        node = Node(x,y,Node.OBSTACLE)
+        node = Node(x,y,Node.OBSTACLE,raw_horizontal=horizontal,raw_forward=forward)
         Map.visible_obstacles[node.id] = node
+        Map.nodes[node.id] = node
 
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
     def calculate_visibility(bot_x=0,bot_y=0,yaw=0):
-        for node in map.nodes:
-            if not node.status == Node.OBSTACLE:
+        if len(Map.nodes) <= 0:
+            return
+        delete_list = {}
+        for key,node in Map.nodes.items():
+            if (not isinstance(node,Node)):
+                delete_list[key] = node
+                continue
+            if (node.timer.time_passed() > Node.FORGET_TIME):
+                delete_list[key] = node
+                continue
+            if node.status == Node.EMPTY:
+                delete_list[key] = node
                 continue
             x,y = node.x,node.y
             deltaX = x - bot_x
             deltaY = y - bot_y
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             if (distance > CAMERA_MAX_DEPTH):
+                node.status = Node.SAVED_OBSTACLE
                 continue
             angle = math.atan2(deltaY,deltaX)
             delta_yaw = abs(shortest_angular_distance(angle,yaw))
-            if (delta_yaw) > math.radians(CAMERA_FOV / 2):
+            if math.degrees(delta_yaw) + 15 > (CAMERA_HORIZONTAL_FOV / 2):
+                node.status = Node.SAVED_OBSTACLE
                 continue
             #All obstacles beyond this are "theoretically visible"
             #The way we can clear obstacles that are theoretically visible is by seeing if the obstacle is farther than it should be
             #Otherwise, like if the obstacle is closer or not visible, it might or may not be there, so we keep it on the map
-            
+            delete_list[key] = node
+        for key,node in delete_list.items():
+            del Map.nodes[key]
 
 
         

@@ -23,7 +23,7 @@ class Camera:
     WIDTH_RANGE = CENTER_X - 40
     MIN_HEIGHT = HEIGHT - 30
     MAX_HEIGHT = 30
-    SPACE_BETWEEN_RAYS = int(4)
+    SPACE_BETWEEN_RAYS = int(10)
     MIN_NUM_OF_CLOSE_POINTS = 120
     MIN_NUM_OF_VISIBLE_POINTS = 6000
     too_close = False
@@ -192,7 +192,7 @@ class Camera:
                     blacklisted_pixels = Camera.blacklist(x,y,blacklisted_pixels)
                     continue
                 delta_z = z - prev_z
-                if (abs(delta_z) > 2):
+                if (abs(delta_z) > 15):
                     blacklist_image = Camera.paint_on_canvas(blacklist_image,x,y,Camera.SPACE_BETWEEN_RAYS,[0,0,255])
                     blacklisted_pixels = Camera.blacklist(x,y,blacklisted_pixels)
                     continue
@@ -203,20 +203,61 @@ class Camera:
         closest_y = 1000
         #Forward,Horizontal
         points_1D = [None] * Camera.WIDTH
-        for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
+        avg_range = round(Camera.SPACE_BETWEEN_RAYS / 2)
+        x_start = Camera.CENTER_X - Camera.WIDTH_RANGE
+        x_end = Camera.CENTER_X + Camera.WIDTH_RANGE
+        y_start = Camera.MAX_HEIGHT
+        y_end = Camera.MIN_HEIGHT
+        for x in range(x_start, x_end, Camera.SPACE_BETWEEN_RAYS):
             closest_y = 1000
-            for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
+            for y in range(y_start,y_end, Camera.SPACE_BETWEEN_RAYS): 
                 if (not blacklisted_pixels == None):
                     key = str(x) + "," + str(y)
-                    if not blacklisted_pixels[key] == None:
+                    if key in blacklisted_pixels:
                         continue
                 z_depth = depth_frame.get_distance(x,y)
-                z_distance = meters_to_inches(z_depth)
-                spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], z_depth)
+                if (z_depth == None):
+                    continue
+                spatial_point = rs.rs2_deproject_pixel_to_point(depth_intrin, [x, y], (z_depth))
+                z_depth = meters_to_inches(z_depth)
                 horizontal_distance = meters_to_inches(spatial_point[0])
-                if (z_distance < closest_y):
-                    closest_y = z_distance
-                    points_1D[x] = [horizontal_distance,z_distance]
+                vertical_distance = meters_to_inches(spatial_point[1])
+
+                if (z_depth > closest_y):
+                    continue
+                if (z_depth < CAMERA_MIN_DEPTH or z_depth > CAMERA_MAX_DEPTH):
+                    continue
+                if (abs(vertical_distance) > 8):
+                    continue
+
+                #For averaging, make sure neighboring vertical pixels EXIST
+
+                average_y_start = y - avg_range
+                average_y_end = y + avg_range
+                if average_y_start < y_start:
+                    continue
+                if average_y_end > y_end:
+                    continue
+                average_depth = z_depth
+                quantity = 1
+                for y_compare in range(average_y_start, average_y_end):
+                    key = str(x) + "," + str(y_compare)
+                    if key in blacklisted_pixels:
+                        continue
+                    z_compare = (depth_frame.get_distance(x,y_compare))
+                    if (z_compare == None):
+                        continue
+                    z_compare = meters_to_inches(z_compare)
+                    if (z_compare > CAMERA_MAX_DEPTH or z_compare < CAMERA_MIN_DEPTH):
+                        continue
+                    average_depth += z_compare
+                    quantity += 1
+                average_depth /= quantity
+                z_depth = average_depth
+
+                if (z_depth < closest_y):
+                    closest_y = z_depth
+                    points_1D[x] = [horizontal_distance,z_depth]
         return points_1D                
 
 class IMUState(Enum):
@@ -301,6 +342,10 @@ class IMU():
     ROTATING_KALMAN_THRESHOLD = 0.05
 
     jerk = False
+    def rotating_fast():
+        print(abs(IMU.gyro[IMU.YAW]))
+        return abs(IMU.gyro[IMU.YAW]) > 1
+
     def calculate_gravity_vector():
         IMU.gravity_vector[IMU.FORWARD] = IMU.gravity * math.sin(IMU.rotate_position[IMU.PITCH])
         IMU.gravity_vector[IMU.LEFT] = (IMU.gravity * math.cos(IMU.rotate_position[IMU.PITCH]) * math.sin(IMU.rotate_position[IMU.ROLL]))

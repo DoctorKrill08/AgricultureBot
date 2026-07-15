@@ -52,6 +52,8 @@ COMMAND = '0'
 VALUES = '1'
 
 
+INCHES_PER_NODE = 2
+
 def python_type_to_typescript(type:str):
     print(type)
     if (type == 'str'):
@@ -93,6 +95,7 @@ if __name__ == "__main__":
 
     output += f'export const COMMAND = "{COMMAND}";\n'
     output += f'export const VALUES = "{VALUES}";\n'
+    output += f'export const INCHES_PER_NODE = "{INCHES_PER_NODE}";\n'
 
     print("MADE TS FILE")
     

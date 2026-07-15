@@ -133,7 +133,7 @@ class Robot:
             target_yaw=Localizer.target_yaw,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            map = Map.print_nodes(Map.visible_obstacles),
+            map = Map.print_nodes(Map.nodes),
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
         )
         Localizer.run()

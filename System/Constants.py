@@ -4,9 +4,12 @@ ROBOT_HEIGHT = 8
 CAMERA_Y = 5
 CAMERA_DISTANCE_FROM_ROBOT = 7
 GROUND_HEIGHT = 2
-CAMERA_FOV = 87 #Degrees
+CAMERA_HORIZONTAL_FOV = 87 #Degrees
+CAMERA_VERTICAL_FOV = 53 #Degrees
 CAMERA_MAX_DEPTH = 118 # Inches
 CAMERA_MIN_DEPTH = 8 #Inches
+def round_nearest(number, base):
+    return round(number / base) * base
 def meters_to_inches(meters):
     return meters * 39.3700787402
 def add_angle(a1,a2):

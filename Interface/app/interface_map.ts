@@ -38,3 +38,4 @@ export type Telemetry ={
 };
 export const COMMAND = "0";
 export const VALUES = "1";
+export const INCHES_PER_NODE = "2";

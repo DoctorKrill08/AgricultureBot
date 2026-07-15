@@ -1,14 +1,15 @@
 'use client';
-import { parse, relative } from 'path';
 import './globals.css'
-import React, { useRef, useState } from 'react';
+import './interface_map'
+import { INCHES_PER_NODE } from './interface_map';
+
 
 
 const PIXELS_PER_INCH = 5
 const WIDTH = 800
 const HEIGHT = 800
-const POINT_RADIUS = 10
-const OBSTACLE_RADIUS = PIXELS_PER_INCH
+const POINT_RADIUS = PIXELS_PER_INCH * 10
+const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE)
 
 function realToMap(x : number,y : number,yaw : number, radius : number){
   yaw *= -1
@@ -19,7 +20,7 @@ function realToMap(x : number,y : number,yaw : number, radius : number){
   y = (HEIGHT / 2) - (radius / 2) + y
   return [x,y,yaw]
 }
-var obstacles : number[][] = []
+var obstacles : any[][] = []
 
 function parseMap(map_data: string){
   obstacles = []
@@ -36,9 +37,18 @@ function parseMap(map_data: string){
     let translated = realToMap(x,y,0,POINT_RADIUS);
     x = translated[0]
     y = translated[1]
-    obstacles[i] = [x,y]
+    obstacles[i] = [x,y,status]
   }
   
+}
+function statusToColor(status: any){
+  if (status == "O"){
+    return 'red'
+  }
+  if (status == 'S'){
+    return 'orange'
+  }
+  return 'white'
 }
 
 function obstaclesToDiv(){
@@ -53,7 +63,7 @@ function obstaclesToDiv(){
             height : String(OBSTACLE_RADIUS) + 'px',
             left : String(item[0]) + 'px',
             top: String(item[1]) + 'px',
-            backgroundColor: 'red',
+            backgroundColor: statusToColor(item[2]),
             borderWidth: 0
         }}/>
       ))}

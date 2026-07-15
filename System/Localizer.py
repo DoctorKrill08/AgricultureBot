@@ -103,13 +103,7 @@ class Localizer():
         Localizer.yaw = IMU.rotate_position[IMU.YAW]
 
         #TODO Replace with map update method
-        Map.clear()
-        for point in Camera.closest:
-            if (point == None):
-                continue
-            horizontal = point[0]
-            forward = point[1]
-            Map.add_obstacle(horizontal,forward,Localizer.x,Localizer.y,Localizer.yaw)
+        Map.update(Localizer.x,Localizer.y,Localizer.yaw,Camera.closest,IMU.rotating_fast())
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
