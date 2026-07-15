@@ -1,21 +1,12 @@
 import numpy as np
 import math
 from enum import Enum
-from System.Angle import *
+from System.Constants import *
 
-
-ROBOT_WIDTH = 20 #inches
-ROBOT_HEIGHT = 8
-CAMERA_Y = 5
-CAMERA_DISTANCE_FROM_ROBOT = 10
-GROUND_HEIGHT = 2
-CAMERA_FOV = 87 #Degrees
-CAMERA_MAX_DEPTH = 3 # Meters
-
-class Node(Enum):
+class Node():
     OBSTACLE = "OBSTACLE"
     EMPTY = "EMPTY"
-    def __init__(self,x,y,status = EMPTY):
+    def __init__(self,x : float,y : float,status = EMPTY):
         self.x  = x
         self.y = y
         self.status = status
@@ -28,19 +19,22 @@ class Map:
     nodes =  {}
     visible_obstacles = {}
     def print_nodes(nodes):
-        for node in Map.nodes:
+        telemetry = ""
+        for id, node in nodes.items():
+            if node == None or node == "" or not isinstance(node,Node):
+                return
             telemetry += f"{node.to_string()}/" 
+        return telemetry
     def status():
-        telemetry = "NODES:\n"
-        for node in Map.nodes:
-            telemetry += f"{node.to_string()}/" 
+        telemetry = "\n---MAP---\n"
+        telemetry += "NODES:\n"
+        telemetry += Map.print_nodes(Map.nodes)
         telemetry += "\nVISIBLE:\n"
-        for node in Map.nodes:
-            telemetry += f"{node.to_string()}/" 
+        telemetry += Map.print_nodes(Map.visible_obstacles)
     def clear():
         Map.visible_obstacles = {}
     def point_to_node(x,y):
-        threshold = Map.INCHES_PER_NODE / 2
+        """threshold = Map.INCHES_PER_NODE / 2
 
         round = x % Map.INCHES_PER_NODE
         difference = Map.INCHES_PER_NODE - abs(round)
@@ -66,7 +60,7 @@ class Map:
             if (round > threshold):
                 y -= difference
             else:
-                y += difference
+                y += difference"""
         return x,y
     def update(x,y,yaw):
         #make visible obstacle list
@@ -74,13 +68,15 @@ class Map:
         pass
 
     def add_obstacle(horizontal,forward,x=0,y=0,yaw=0):
-        d = math.sqrt(horizontal ** 2, forward ** 2)
-        d = d - CAMERA_DISTANCE_FROM_ROBOT
+        if (horizontal == None or forward == None):
+            return
+        d = math.sqrt((horizontal ** 2) + (forward ** 2))
+        d = d + CAMERA_DISTANCE_FROM_ROBOT
         if d <= 0:
             #what
             return
         relative_angle = math.atan2(horizontal,forward)
-        angle = add_angle(relative_angle,yaw)
+        angle = add_angle(yaw,relative_angle)
 
         x += d * math.cos(angle)
         y += d * math.sin(angle)

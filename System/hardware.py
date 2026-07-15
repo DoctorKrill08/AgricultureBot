@@ -30,8 +30,9 @@ class Arduino:
                 print(f"Arduino connected: {Arduino.connected}")
             except:
                 Arduino.connected = False
-        time.sleep(2)
-        send_command(f"{Device.Start.value},0,0",override=True)
+        time.sleep(1.5)
+        if (Arduino.connected):
+            send_command(f"{Device.Start.value},0,0",override=True)
 def send_command(command,read = False,override = False):
     if (not Arduino.connected and not override):
         print("Arduino not connected")

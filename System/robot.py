@@ -133,7 +133,7 @@ class Robot:
             target_yaw=Localizer.target_yaw,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            map = Map.print_nodes(),
+            map = Map.print_nodes(Map.visible_obstacles),
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
         )
         Localizer.run()
@@ -152,8 +152,6 @@ class Robot:
             Robot.auto.loop()
         elif (Robot.state == RobotState.MAP_CONTROL):
             Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.target_x,Localizer.target_y)
-            Camera.calculate_vectors(Drivetrain.angle,Drivetrain.MULT)
-            Drivetrain.drive_vector = Camera.drive_vector
             Drivetrain.vector_to_drive(Localizer.x,Localizer.y,Localizer.yaw)
             Robot.joy_y = Drivetrain.target_drive
             Robot.joy_x = Drivetrain.target_turn
