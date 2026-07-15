@@ -158,10 +158,7 @@ class Camera:
                 array[IMU.PITCH] = -gyro_data.x
                 array[IMU.YAW] = gyro_data.y
                 Camera.raw_gyro_reading = array
-                #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")
-            
-        IMU.run(Camera.raw_accel_reading,Camera.raw_gyro_reading)
-            
+                #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")            
         #cv2.imshow('to close', canvas_black)
 
     def stop():
@@ -260,75 +257,7 @@ class Camera:
                     points_1D[x] = [horizontal_distance,z_depth]
         return points_1D                
 
-class IMUState(Enum):
-    DISABLED = "DISABLED"
-    CONFIG_ANGLE = "CONFIG_ANGLE"
-    CONFIG_ERROR = "CONFIG_ERROR"
-    ACTIVE = "ACTIVE"
-
 class IMU():
-    state = IMUState.DISABLED
-
-
-    def add_angle(a,b):
-        return a + b
-
-    POSITION = 0
-    ROTATE = 1
-
-    ACCEL_VARIANCE = np.array([20,20,20],dtype=np.float32)
-
-    state_variance = np.array([1000.0,1000.0,1000.0])
-
-    gravity = 386.089 #Inches per second^2
-
-    accel = np.array([0.0,0.0,0.0])
-    gyro = np.array([0.0,0.0,0.0])
-
-    delta_accel = np.array([0.0,0.0,0.0])
-    delta_gyro = np.array([0.0,0.0,0.0])
-
-    prev_gyro = np.array([0.0,0.0,0.0])
-    prev_accel = np.array([0.0,0.0,0.0])
-
-    velocity = np.array([0.0,0.0,0.0])
-
-    position = np.array([0.0,0.0,0.0])
-    rotate_position = np.array([0,0,0],dtype=np.float32)
-
-    gravity_vector = np.array([0,0,0],dtype=np.float32)
-
-    z = np.array([0.0,0.0,0.0]) #Weight in zindex - 1
-
-    p = np.array([0.0,0.0,0.0]) #Proportional
-    e = np.array([0.0,0.0,0.0]) #Exponential 
-    
-    ACCEL_THRESHOLD = np.array([2,2,2],dtype=np.float32)
-    JERK_THRESHOLD = np.array([50,50,50])
-
-    MOVE_VEL_THRESHOLD = np.array([2,2,2])
-    ROTATE_VEL_THRESHOLD = np.array([0.01,0.01,0.04])
-
-    timer = Timer()
-
-    rotational_acceleration = False
-    translational_acceleration = False
-
-    rotational_movement = False
-    translational_movement = False
-
-    first_reading = True
-
-    Q = np.array([100,100,100])
-
-
-    accel_error = np.array([0,0,0],dtype=np.float32)
-
-    start_time = time.perf_counter()
-
-    current_config_sample = 0
-    CONFIG_SAMPLES = 5
-    
 
     LEFT = 0 #X
     DOWN = 1 #Y
@@ -337,141 +266,6 @@ class IMU():
     ROLL = 0
     PITCH = 1
     YAW = 2
-    
-    rotating = False
-    ROTATING_KALMAN_THRESHOLD = 0.05
-
-    jerk = False
-    def rotating_fast():
-        print(abs(IMU.gyro[IMU.YAW]))
-        return abs(IMU.gyro[IMU.YAW]) > 1
-
-    def calculate_gravity_vector():
-        IMU.gravity_vector[IMU.FORWARD] = IMU.gravity * math.sin(IMU.rotate_position[IMU.PITCH])
-        IMU.gravity_vector[IMU.LEFT] = (IMU.gravity * math.cos(IMU.rotate_position[IMU.PITCH]) * math.sin(IMU.rotate_position[IMU.ROLL]))
-        IMU.gravity_vector[IMU.DOWN] = IMU.gravity * math.cos(IMU.rotate_position[IMU.PITCH]) * math.cos(IMU.rotate_position[IMU.ROLL])
-        return IMU.gravity_vector
-    def start():
-        IMU.start_time = time.perf_counter()
-        IMU.timer.reset()
-        IMU.state = IMUState.CONFIG_ANGLE
-    def predict(delta_time):
-        #IMU.position += IMU.velocity * delta_time
-        IMU.state_variance += (IMU.Q * delta_time)
-    def update(measured_accel,raw_gyro,delta_time):
-        IMU.prev_accel = IMU.accel
-        IMU.accel = measured_accel
-        IMU.rotate_position += raw_gyro * delta_time
-
-        """ K = IMU.state_variance / (IMU.state_variance + IMU.ACCEL_VARIANCE)
-        IMU.accel += K * (measured_accel - IMU.accel)
-        IMU.state_variance = (np.array([1,1,1]) - K) * (IMU.state_variance)"""
-
-        #IMU.ACCEL_VARIANCE += IMU.ACCEL_VARIANCE * delta_time * 0.01
-    def run(raw_accel, raw_gyro):
-
-        if (raw_accel.any() == None):
-            return
-        if (raw_gyro.any() == None):
-            return
-        
-
-        raw_accel = meters_to_inches(raw_accel)
-
-        if (IMU.state == IMUState.DISABLED):
-            return
-        raw_accel -= IMU.gravity_vector
-       # plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.YAW],color = "red")
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.PITCH],color = "blue")
-        #plt.scatter(time.perf_counter() - IMU.start_time,IMU.rotate_position[IMU.ROLL],color = "green")
-
-        
-        raw_accel -= IMU.accel_error
-
-        delta_time = IMU.timer.time_passed()
-        IMU.timer.reset()
-
-        IMU.predict(delta_time)
-
-        IMU.gyro = raw_gyro
-
-        IMU.update(raw_accel,raw_gyro,delta_time)
-
-        #plt.scatter(time.perf_counter() - IMU.start_time,jerk[0],color = "red")
-
-        #plt.scatter(time.perf_counter() - IMU.start_time,raw_gyro[IMU.YAW],color = "red")
-
-
-        if (IMU.first_reading):
-            IMU.first_reading = False
-            IMU.position = np.array([0.0,0.0,0.0])
-            IMU.velocity = np.array([0.0,0.0,0.0])
-            IMU.predicted_accel = np.array([0.0,0.0,0.0])
-
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.FORWARD],color = "red")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.DOWN],color = "blue")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.accel[IMU.LEFT],color = "green")
-
-     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.FORWARD],color = "red")
-     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.DOWN],color = "blue")
-     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.velocity[IMU.LEFT],color = "green")
-
-     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.FORWARD],color = "red")
-     #   plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.DOWN],color = "blue")
-      #  plt.scatter(time.perf_counter() - IMU.start_time,IMU.position[IMU.LEFT],color = "green")
-
-        #print(IMU.status())
-        
-        
-    def status():
-        stats = "---IMU---"
-       # stats += f"\nTRANSLATE ACCELLERATING: {IMU.translational_acceleration}"
-       # stats += f"\nROTATIONAL ACCELLERATING: {IMU.rotational_acceleration}"
-       # stats += f"\nTRANSLATE MOVING: {IMU.translational_movement}"
-       # stats += f"\nROTATIONAL MOVING: {IMU.rotational_movement}"
-
-        stats += "\nACCEL: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.POSITION,i)}: {IMU.accel[i]} "
-        stats += "\nGYRO: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.ROTATE,i)}: {IMU.gyro[i]} "
-
-        stats += "\nDELTA_ACCEL: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.POSITION,i)}: {IMU.delta_accel[i]} "
-        
-
-        stats += "\nVELOCITY: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.POSITION,i)}: {IMU.velocity[i]} "
-        
-        stats += "\nPOSITION: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.POSITION,i)}: {IMU.position[i]} "
-        stats += "\nROTATE_POSITION: "
-        for i in range(3):
-            stats += f"{IMU.i_to_axis(IMU.ROTATE,i)}: {IMU.rotate_position[i]} "
-        stats += "\nMODEL VARIANCE: "
-        for i in range(3):
-            stats += str(IMU.state_variance[i])
-        return stats
-        
-    def i_to_axis(sensor,i):
-        if (sensor == IMU.ROTATE):
-            if (i == IMU.ROLL):
-                return "ROLL"
-            if (i == IMU.PITCH):
-                return "PITCH"
-            if (i == IMU.YAW):
-                return "YAW"
-        else:
-            if (i == IMU.LEFT):
-                return "X"
-            if (i == IMU.DOWN):
-                return "Y"
-            if (i == IMU.FORWARD):
-                return "Z"
             
 #Windows: python -m System.Camera
 if __name__ == "__main__":

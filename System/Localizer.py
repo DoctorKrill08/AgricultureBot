@@ -31,25 +31,40 @@ class CompassKalman():
         CompassKalman.yaw_variance = (1 - K) * CompassKalman.yaw_variance
 
 class LocalizationKalman():
-    GPS_POSE_NOISE = {}
-    GPS_POSE_NOISE[FIX_STANDARD_GPS] = 200
-    GPS_POSE_NOISE[FIX_DIFFERENTIAL_GPS] = 79
-    GPS_POSE_NOISE[FIX_RTK_FLOAT] = 39
-    GPS_POSE_NOISE[FIX_RTK_FIXED] = 15
+    GYRO_VARIANCE_GAIN = 0.01
+    ODOMETRY_VARIANCE_GAIN = 0.01
+    Q = 0.001
 
-    GPS_COG_NOISE = 0.1
-    RTK_GPS_COG_NOISE = 0.05
+    odo_variance = 0.1
 
-    IMU_NOISE = 0.0001
+    timer = Timer()
 
-    position_estimate_noise = 100
-    yaw_esimate_noise = 100
+    prev_x = 0
+    prev_y = 0
+
+    delta_yaw_measured = 0
 
     def predict():
-        pass
-    def update():
-        pass
+        Localizer.get_raw_odo()
+        delta_time = LocalizationKalman.timer.time_passed()
+        delta_x = Localizer.x - LocalizationKalman.prev_x
+        delta_y = Localizer.y - LocalizationKalman.prev_y
+        distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
 
+        LocalizationKalman.gyro_variance += (delta_time * LocalizationKalman.GYRO_VARIANCE_GAIN) + LocalizationKalman.Q
+        LocalizationKalman.odo_variance += (delta_time * LocalizationKalman.ODOMETRY_VARIANCE_GAIN * distance) + LocalizationKalman.Q
+
+        LocalizationKalman.prev_x = Localizer.x
+        LocalizationKalman.prev_y = Localizer.y
+
+        LocalizationKalman.delta_yaw_measured = Camera.raw_gyro_reading[IMU.YAW] * delta_time
+
+        LocalizationKalman.timer.reset()
+    def update():
+        K = (LocalizationKalman.odo_variance) / (LocalizationKalman.odo_variance + LocalizationKalman.gyro_variance)
+        measured_yaw = LocalizationKalman.delta_yaw_measured + Localizer.yaw
+        Localizer.yaw += K * (measured_yaw - Localizer.yaw)
+        LocalizationKalman.odo_variance = (1 - K) * LocalizationKalman.odo_variance
 class Localizer():
     def get_raw_odo():
         results = send_command(f'{Device.Odometry.value},{Request.GET.value},{"0"}',read=True)
@@ -65,9 +80,6 @@ class Localizer():
         Localizer.y = float(y)
         Localizer.x = float(x)
         Localizer.yaw =float(yaw)
-    def set_odo(x=None,y=None,yaw = 0):
-        value = f"x:{x},y:{y},yaw:{yaw}"
-        send_command(f'{Device.Odometry.value},{Request.SET.value},{value}')
     moving = False
     timer = Timer()
 
@@ -78,6 +90,9 @@ class Localizer():
     target_x = 0
     target_y = 0
     target_yaw = 0
+
+    def rotating_fast():
+        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 1
 
     def start():
         Camera.start()
@@ -97,17 +112,17 @@ class Localizer():
     def run():
         Camera.read()
         GPS.update()
-        CompassKalman.predict()
-        CompassKalman.update()
-        Localizer.get_raw_odo()
-        Localizer.yaw = IMU.rotate_position[IMU.YAW]
+        #CompassKalman.predict()
+        #CompassKalman.update()
+        LocalizationKalman.predict()
+        LocalizationKalman.update()
 
         #TODO Replace with map update method
-        Map.update(Localizer.x,Localizer.y,Localizer.yaw,Camera.closest,IMU.rotating_fast())
+        Map.update(Localizer.x,Localizer.y,Localizer.yaw,Camera.closest,Localizer.rotating_fast())
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
-\n{Camera.status()}\n{GPS.status()}\n{IMU.status()}\n{Map.status()} "
+\n{Camera.status()}\n{GPS.status()}\n{Map.status()} "
     def show():
         plt.show()
 
