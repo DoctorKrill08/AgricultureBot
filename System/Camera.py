@@ -13,7 +13,6 @@ os.environ["LD_LIBRARY_PATH"] = os.path.expanduser('~/librealsense/build/Release
 import pyrealsense2 as rs
 
 class Camera:
-    TOO_CLOSE = 12 #inches
     FPS = 15
     distance = 0
     WIDTH = 640
@@ -25,8 +24,8 @@ class Camera:
     MAX_HEIGHT = 30
     SPACE_BETWEEN_RAYS = int(10)
     MIN_NUM_OF_CLOSE_POINTS = 120
-    MIN_NUM_OF_VISIBLE_POINTS = 6000
-    too_close = False
+    OBSTRUCTED_PIXEL_THRESHOLD = 1500
+    obstructed = False
     vision_pipe = None
     imu_pipe = None
     on = False
@@ -74,7 +73,7 @@ class Camera:
 
 
     def status():
-        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nTOO CLOSE: {Camera.too_close}"
+        return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nOBSTRUCTED: {Camera.obstructed}"
     def start():
 
         Camera.angle = [0,0,0] #pitch roll yaw
@@ -88,7 +87,6 @@ class Camera:
             imu_cfg.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 400)
             Camera.imu_pipe.start(imu_cfg)
             Camera.IMU_enabled = True
-            IMU.start()
             print("IMU CONNECTED")
         except Exception as e:
             Camera.IMU_enabled = False
@@ -108,8 +106,9 @@ class Camera:
 
         
 
-    def read():
+    def update():
         if (not Camera.on):
+            Camera.obstructed = True
             return
         
         frame = Camera.vision_pipe.wait_for_frames()
@@ -133,7 +132,10 @@ class Camera:
         cv2.imshow('filtered', result)"""
 
         Camera.closest = Camera.closest_pixels_1D(depth_frame,blacklisted_pixels)
-        
+        if (len(blacklisted_pixels) > Camera.OBSTRUCTED_PIXEL_THRESHOLD):
+            Camera.obstructed = True
+        else:
+            Camera.obstructed = False
 
         if (Camera.IMU_enabled):
             Camera.raw_accel_reading = None
@@ -224,7 +226,7 @@ class Camera:
                     continue
                 if (z_depth < CAMERA_MIN_DEPTH or z_depth > CAMERA_MAX_DEPTH):
                     continue
-                if (abs(vertical_distance) > 8):
+                if (vertical_distance < -4):
                     continue
 
                 #For averaging, make sure neighboring vertical pixels EXIST
@@ -271,7 +273,7 @@ class IMU():
 if __name__ == "__main__":
     Camera.start()
     while True:
-        Camera.read()
+        Camera.update()
         if cv2.waitKey(1) == ord('q'):
             break
     Camera.stop()

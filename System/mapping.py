@@ -44,9 +44,7 @@ class Map:
         x = round_nearest(x,Map.INCHES_PER_NODE)
         y = round_nearest(y,Map.INCHES_PER_NODE)
         return x,y
-    def update(x,y,yaw,camera_array,too_fast):
-        if (too_fast):
-            return
+    def update(x,y,yaw,camera_array):
         Map.clear()
         Map.calculate_visibility(x,y,yaw)
         for point in camera_array:

@@ -205,7 +205,6 @@ void loop() {
       return;
     }
     if (cmd.id == Odometry){
-      //TODO add set odometry instead of purely reading
       String output = "ODOMETRY,";
       output += String(x);
       output += ",";
@@ -213,7 +212,9 @@ void loop() {
       output += ",";
       output += String(yaw);
       Serial.println(output);
-      odometryClear();
+      yaw = 0;
+      x = 0;
+      y = 0;
       return;
     }
 

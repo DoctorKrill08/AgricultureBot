@@ -5,7 +5,7 @@ import { INCHES_PER_NODE } from './interface_map';
 
 
 
-const PIXELS_PER_INCH = 5
+const PIXELS_PER_INCH = 10
 const WIDTH = 800
 const HEIGHT = 800
 const POINT_RADIUS = PIXELS_PER_INCH * 10
@@ -127,6 +127,19 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove
         `,
         backgroundSize: String(PIXELS_PER_INCH) + 'px '+ String(PIXELS_PER_INCH) + 'px' 
       }}>
+        <div className='map-box-overlay'
+        style={{
+          position: 'absolute',
+          
+          width : '100%',
+          height: '100%',
+          backgroundColor: '#ff000000',
+          backgroundImage: `
+            linear-gradient(to right, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: String(OBSTACLE_RADIUS) + 'px '+ String(OBSTACLE_RADIUS) + 'px' 
+        }}/>
           <div className='map-point' style={{
             width : String(POINT_RADIUS) + 'px',
             height : String(POINT_RADIUS) + 'px',

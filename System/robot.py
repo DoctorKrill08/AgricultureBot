@@ -29,7 +29,7 @@ class DriveForwardWithCamera(Auto):
     def loop(self):
         Robot.joy_x = 0
         Robot.joy_y = 0.35
-        if (Camera.too_close or not Camera.on):
+        if (Camera.obstructed or not Camera.on):
             Robot.joy_x = 0
             Robot.joy_y = 0
         if (self.timer.time_passed() > self.RUN_TIME):
@@ -155,6 +155,6 @@ class Robot:
             Drivetrain.vector_to_drive(Localizer.x,Localizer.y,Localizer.yaw)
             Robot.joy_y = Drivetrain.target_drive
             Robot.joy_x = Drivetrain.target_turn
-            if (Camera.too_close):
+            if (Camera.obstructed):
                 Robot.joy_y = 0
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))
