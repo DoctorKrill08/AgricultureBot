@@ -133,14 +133,6 @@ void doLeftEncoder(){
   }
 }
 
-void odometryClear(){
-    yaw = 0;
-    x = 0;
-    y = 0;
-    DriveLeftEncoderPos = 0;
-    DriveRightEncoderPos = 0;
-}
-
 //IF THE ARDUINO STOPS RECEIVING SIGNALS FOR TOO LONG, ARDUINO STOPS EVERYTHING
 unsigned long startTime; // Stores the starting time
 
@@ -221,6 +213,7 @@ void loop() {
       output += ",";
       output += String(yaw);
       Serial.println(output);
+      odometryClear();
       return;
     }
 

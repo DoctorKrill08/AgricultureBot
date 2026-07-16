@@ -30,7 +30,11 @@ const double DISTANCE_BETWEEN_WHEELS = 13.00;
 double ticksToInches(int ticks){
     return ((ticks / TICKS_PER_ROTATION) * WHEEL_CIRCUMFERENCE);
 }
-
+void odometryClear(){
+    deltaYaw = 0;
+    x = 0;
+    y = 0;
+}
 void calculateOdometry(int right, int left){
     prevRight = rightPos;
     prevLeft = leftPos;

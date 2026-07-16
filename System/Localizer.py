@@ -39,32 +39,29 @@ class LocalizationKalman():
 
     timer = Timer()
 
-    prev_x = 0
-    prev_y = 0
-
     delta_yaw_measured = 0
 
     def predict():
-        Localizer.get_raw_odo()
         delta_time = LocalizationKalman.timer.time_passed()
-        delta_x = Localizer.x - LocalizationKalman.prev_x
-        delta_y = Localizer.y - LocalizationKalman.prev_y
+        delta_x,delta_y,delta_yaw = Localizer.get_raw_odo()
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+        
+        delta_yaw = LocalizationKalman.gyro_odo_fusion(odo_delta_yaw = delta_yaw,
+                                                       gyro_delta_yaw=Camera.raw_gyro_reading[IMU.YAW] * delta_time)
+        Localizer.yaw += delta_yaw
+        Localizer.yaw = angle_wrap(Localizer.yaw)
+        Localizer.x += distance * math.cos(Localizer.yaw)
+        Localizer.y += distance * math.sin(Localizer.yaw)
 
         LocalizationKalman.gyro_variance += (delta_time * LocalizationKalman.GYRO_VARIANCE_GAIN) + LocalizationKalman.Q
         LocalizationKalman.odo_variance += (delta_time * LocalizationKalman.ODOMETRY_VARIANCE_GAIN * distance) + LocalizationKalman.Q
 
-        LocalizationKalman.prev_x = Localizer.x
-        LocalizationKalman.prev_y = Localizer.y
-
-        LocalizationKalman.delta_yaw_measured = Camera.raw_gyro_reading[IMU.YAW] * delta_time
-
         LocalizationKalman.timer.reset()
-    def update():
+    def gyro_odo_fusion(odo_delta_yaw,gyro_delta_yaw):
         K = (LocalizationKalman.odo_variance) / (LocalizationKalman.odo_variance + LocalizationKalman.gyro_variance)
-        measured_yaw = LocalizationKalman.delta_yaw_measured + Localizer.yaw
-        Localizer.yaw += K * (measured_yaw - Localizer.yaw)
+        odo_delta_yaw += K * (odo_delta_yaw - gyro_delta_yaw)
         LocalizationKalman.odo_variance = (1 - K) * LocalizationKalman.odo_variance
+        return odo_delta_yaw
 class Localizer():
     def get_raw_odo():
         results = send_command(f'{Device.Odometry.value},{Request.GET.value},{"0"}',read=True)
@@ -77,9 +74,7 @@ class Localizer():
         y,_,results = results.partition(",")
         yaw,_,results = results.partition(",")
         print(x,y,yaw)
-        Localizer.y = float(y)
-        Localizer.x = float(x)
-        Localizer.yaw =float(yaw)
+        return x,y,yaw
     moving = False
     timer = Timer()
 
