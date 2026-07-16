@@ -3,7 +3,7 @@ from System.subsystems import*
 from System.GPS import *
 from timer import *
 from System.Localizer import Localizer,Camera
-from System.mapping import Map
+from System.mapping import Map,Node
 from System.interface_map import *
 
 
@@ -95,9 +95,8 @@ class Robot:
         if (not Robot.state == RobotState.MAP_CONTROL):
             return
         x,y = values.split(",")
-        Localizer.target_x = float(x)
-        Localizer.target_y= float(y)
-        print(x,y)
+        Localizer.target_x = Localizer.x + float(x)
+        Localizer.target_y= Localizer.y + float(y)
     def set_state(state):
         if (Robot.state == state):
             return
@@ -133,7 +132,7 @@ class Robot:
             target_yaw=Localizer.target_yaw,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            map = Map.print_nodes(Map.nodes),
+            map = Map.print_nodes(),
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
         )
         Localizer.run()

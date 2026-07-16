@@ -185,7 +185,7 @@ export default function RobotControlPanel() {
 
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
-            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} map_data = {telemetry.map} onMove = {handleMapCommand}/>
+            <Map tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} map_data = {telemetry.map} onMove = {handleMapCommand}/>
 
           </div>
           {/* Telemetry Section */}
