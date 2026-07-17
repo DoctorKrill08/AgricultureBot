@@ -34,7 +34,6 @@ class LocalizationKalman():
         LocalizationKalman.odo_variance += (delta_time * LocalizationKalman.ODOMETRY_VARIANCE_GAIN * distance) + LocalizationKalman.Q
         
         gyro_delta_yaw = Camera.raw_gyro_reading[IMU.YAW] * delta_time
-        print(gyro_delta_yaw,delta_time)
 
         if (not Arduino.connected):
             delta_yaw = gyro_delta_yaw
@@ -50,7 +49,6 @@ class LocalizationKalman():
         LocalizationKalman.timer.reset()
     def gyro_odo_fusion(odo_delta_yaw,gyro_delta_yaw):
         K = (LocalizationKalman.odo_variance) / (LocalizationKalman.odo_variance + LocalizationKalman.GYRO_VARIANCE)
-        print(K)
         odo_delta_yaw +=(K * (odo_delta_yaw - gyro_delta_yaw))
         LocalizationKalman.odo_variance = (1 - K) * LocalizationKalman.odo_variance
         return odo_delta_yaw
@@ -65,7 +63,6 @@ class Localizer():
         x,_,results = results.partition(",")
         y,_,results = results.partition(",")
         yaw,_,results = results.partition(",")
-        print(x,y,yaw)
         return float(x),float(y),float(yaw)
     moving = False
     timer = Timer()

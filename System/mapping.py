@@ -21,7 +21,7 @@ class Node():
         return self.id + "," + self.status
 
 class Map:
-    INCHES_PER_NODE = 4
+    MAX_DISTANCE = 70 #Inches
     nodes =  {}
     visible_obstacles = {}
     def print_nodes(nodes):
@@ -60,6 +60,8 @@ class Map:
         d = d + CAMERA_DISTANCE_FROM_ROBOT
         if d <= 0:
             #what
+            return
+        if d >= Map.MAX_DISTANCE:
             return
         relative_angle = math.atan2(horizontal,forward)
         if math.degrees(abs(relative_angle)) + 15 > CAMERA_HORIZONTAL_FOV / 2:

@@ -5,6 +5,7 @@ from timer import *
 from System.Localizer import Localizer,Camera
 from System.mapping import Map
 from System.interface_map import *
+from System.Pathing import Pathing
 
 
 
@@ -151,10 +152,11 @@ class Robot:
         elif (Robot.state == RobotState.AUTONOMOUS):
             Robot.auto.loop()
         elif (Robot.state == RobotState.MAP_CONTROL):
-            Drivetrain.calculate_drive_vectors(Localizer.x,Localizer.y,Localizer.target_x,Localizer.target_y)
-            Drivetrain.vector_to_drive(Localizer.x,Localizer.y,Localizer.yaw)
-            Robot.joy_y = Drivetrain.target_drive
-            Robot.joy_x = Drivetrain.target_turn
+            turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Map.nodes)
+            Robot.joy_y = drive
+            Robot.joy_x = turn
+            print(turn,drive,status)
             if (Camera.obstructed):
                 Robot.joy_y = 0
+                Robot.joy_x = 0
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

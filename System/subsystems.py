@@ -16,23 +16,11 @@ class Drivetrain:
     MIN_TURN = 0.1
 
     TURN_P = -1.5
-    DRIVE_P = 0.04
+    DRIVE_P = 0.035
 
     MIN_DISTANCE = 2
 
     timer = Timer()
-
-    drive_vector = np.array([0,0]) #X,Y
-
-    DRIVE_VECTOR_MULTIPLIER = 1
-    MULT = 1
-    angle = 0
-
-    target_drive = 0
-    target_turn = 0
-
-    delta_yaw = 0
-    distance = 0
 
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
@@ -42,7 +30,7 @@ class Drivetrain:
         telemetry = "\n--- DRIVETRAIN ---\n"
         telemetry += Drivetrain.left_motor.status()
         telemetry += Drivetrain.right_motor.status()
-        telemetry += f'\nDRIVE_P: {Drivetrain.DRIVE_P}\nTURN_P: {Drivetrain.TURN_P}\nMIN_DISTANCE: {Drivetrain.MIN_DISTANCE}\nTARGET_DRIVE: {Drivetrain.target_drive}\nTARGET_TURN: {Drivetrain.target_turn}\nDELTA_YAW: {Drivetrain.delta_yaw}\nVECTOR:{Drivetrain.drive_vector[0]},{Drivetrain.drive_vector[1]}'
+        telemetry += f'\nDRIVE_P: {Drivetrain.DRIVE_P}\nTURN_P: {Drivetrain.TURN_P}'
         return telemetry
     def to_scale(drive,turn,gamepad = True):
         if (abs(turn) < Drivetrain.MIN_TURN and gamepad):
@@ -66,36 +54,17 @@ class Drivetrain:
 
         Drivetrain.timer.reset()
     
-    def vector_to_drive(x,y,yaw):
-        deltaX = Drivetrain.drive_vector[0]
-        deltaY = Drivetrain.drive_vector[1]
-        if (Drivetrain.distance > Drivetrain.MIN_DISTANCE):
-            target_yaw = math.atan2(deltaY,deltaX)# - (math.pi/2)
-            Drivetrain.delta_yaw = shortest_angular_distance(yaw,target_yaw)
-            Drivetrain.target_turn = Drivetrain.TURN_P * Drivetrain.delta_yaw
-            Drivetrain.target_drive = Drivetrain.DRIVE_P * Drivetrain.distance * math.cos(Drivetrain.delta_yaw)
-            if (Drivetrain.target_drive < 0):
-                Drivetrain.target_drive = 0
-            if (abs(Drivetrain.target_turn) > 0.8):
-                Drivetrain.target_turn = 0.8 * (Drivetrain.target_turn / abs(Drivetrain.target_turn))
-                Drivetrain.target_drive = 0
-            if (Drivetrain.target_drive > 0.5):
-                Drivetrain.target_drive = 0.5
-        else:
-            Drivetrain.delta_yaw = 0
-            Drivetrain.target_turn = 0
-            Drivetrain.target_drive = 0
-
-    #Robot to Goal
-    def calculate_drive_vectors(x,y,target_x,target_y):
-        deltaX = target_x - x
-        deltaY = target_y - y
-        Drivetrain.distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
-        Drivetrain.MULT = Drivetrain.DRIVE_VECTOR_MULTIPLIER
-        if (Drivetrain.distance < Drivetrain.DRIVE_VECTOR_MULTIPLIER):
-            Drivetrain.MULT = Drivetrain.distance
-        
-        Drivetrain.angle = math.atan2(deltaY,deltaX)
-        Drivetrain.drive_vector = np.array([Drivetrain.MULT * math.cos(Drivetrain.angle),Drivetrain.MULT * math.sin(Drivetrain.angle)])
-
-
+    def vector_to_drive(vector_x,vector_y,yaw):
+        distance = math.sqrt((vector_x ** 2) + (vector_y  ** 2))
+        target_yaw = math.atan2(vector_y,vector_x)
+        delta_yaw = shortest_angular_distance(yaw,target_yaw)
+        target_turn = Drivetrain.TURN_P * delta_yaw
+        target_drive = Drivetrain.DRIVE_P * distance * math.cos(delta_yaw)
+        if (target_drive < 0):
+            target_drive = 0
+        if (abs(target_turn) > 0.8):
+            target_turn = 0.8 * (target_turn / abs(target_turn))
+            target_drive = 0
+        if (target_drive > 0.5):
+            target_drive = 0.5
+        return target_turn,target_drive
