@@ -5,11 +5,11 @@ import { INCHES_PER_NODE } from './interface_map';
 
 
 
-const PIXELS_PER_INCH = 5
+const PIXELS_PER_INCH = 10
 const WIDTH = 800
 const HEIGHT = 800
 const POINT_RADIUS = PIXELS_PER_INCH * 10
-const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE) * 2
+const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE)
 
 function realToMap(x : number,y : number,yaw : number, radius : number){
   yaw *= -1
@@ -30,9 +30,6 @@ function parseMap(map_data: string){
   }
   var points = map_data.split('/'); //Array of Strings
   for (let i = 0; i < points.length; i++){
-    if(!points[i].includes(',')){
-      continue
-    }
     let point = points[i].split(","); //Array of strings, x and y
     let x = Number(point[0])
     let y = Number(point[1])
@@ -46,16 +43,10 @@ function parseMap(map_data: string){
 }
 function statusToColor(status: any){
   if (status == "O"){
-    return 'maroon'
+    return 'red'
   }
   if (status == 'S'){
     return 'orange'
-  }
-  if (status == 'A'){
-    return 'red'
-  }
-  if (status == 'T'){
-    return 'green'
   }
   return 'white'
 }
@@ -81,11 +72,11 @@ function obstaclesToDiv(){
     
   }
 
-export default function Map({tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove}: any) { 
+export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove}: any) { 
   
-  var botPose = realToMap(0,0,bYaw,POINT_RADIUS)
-  let bx = botPose[0]
-  let by = botPose[1]
+  var botPose = realToMap(bx,by,bYaw,POINT_RADIUS)
+  bx = botPose[0]
+  by = botPose[1]
   bYaw = botPose[2]
 
   var tarPose = realToMap(tx,ty,tYaw,POINT_RADIUS)

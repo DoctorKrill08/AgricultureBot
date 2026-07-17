@@ -226,7 +226,7 @@ class Camera:
                     continue
                 if (z_depth < CAMERA_MIN_DEPTH or z_depth > CAMERA_MAX_DEPTH):
                     continue
-                if (vertical_distance < -3):
+                if (vertical_distance < -4):
                     continue
 
                 #For averaging, make sure neighboring vertical pixels EXIST
