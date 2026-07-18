@@ -2,12 +2,22 @@ import math
 from System.mapping import Node
 from System.subsystems import Drivetrain
 from enum import Enum
+
+def vector_clamp(vx,vy,max):
+    v = math.sqrt((vx ** 2)+ (vy ** 2))
+    if (v < max):
+        return vx,vy
+    angle = math.atan2(vy,vx)
+    vx = max * math.cos(angle)
+    vy = max * math.sin(angle)
+    return vx,vy
+
 class APF:
     g_star = 30 #Inches, what is the maximum effective radius of the force
     kR = 2000 # repulsive force constant
 
     kA = 1
-    max_attractive = 30 #Max length of attractive vector
+    max_force = 30
 
     stuck_threshold = 1
     def calculate_attractive_vectors(x,y,tx,ty):
@@ -16,8 +26,8 @@ class APF:
         delta_x = tx - x
         delta_y = ty - y
         force = APF.kA * math.sqrt((delta_x ** 2) + (delta_y ** 2))
-        if force > APF.max_attractive:
-            force = APF.max_attractive
+        if force > APF.max_force:
+            force = APF.max_force
         angle = math.atan2(delta_y,delta_x)
         vector_x = force * math.cos(angle)
         vector_y = force * math.sin(angle)
@@ -38,8 +48,8 @@ class APF:
             if (g > APF.g_star):
                 continue
             velocity = APF.kR * ((1 / g) - (1 / APF.g_star))
-            if velocity > APF.max_attractive:
-                velocity = APF.max_attractive
+            if velocity > APF.max_force:
+                velocity = APF.max_force
             angle = math.atan2(delta_y,delta_x)
             vector_x += velocity * -math.cos(angle)
             vector_y += velocity * -math.sin(angle)
@@ -100,6 +110,8 @@ class Pathing:
 
             Pathing.vector_x = Pathing.drive_vector_x + Pathing.obstacle_vector_x
             Pathing.vector_y = Pathing.drive_vector_y + Pathing.obstacle_vector_y
+
+            Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,APF.max_force)
             print("NET VECTORS",Pathing.vector_x,Pathing.vector_y)
 
             if (APF.is_stuck(Pathing.vector_x,Pathing.vector_y)):

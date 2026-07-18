@@ -3,11 +3,11 @@
 
 #include "Arduino.h"
 
-int rightPos = 0;
-int leftPos = 0;
+long rightPos = 0;
+long leftPos = 0;
 
-int prevRight = 0;
-int prevLeft = 0;
+long prevRight = 0;
+long prevLeft = 0;
 
 double deltaRight = 0;
 double deltaLeft = 0;
@@ -27,7 +27,7 @@ const double WHEEL_DIAMETER = 7.5;
 const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI;
 const double DISTANCE_BETWEEN_WHEELS = 12.00;
 
-double ticksToInches(int ticks){
+double ticksToInches(long ticks){
     return ((ticks / TICKS_PER_ROTATION) * WHEEL_CIRCUMFERENCE);
 }
 void odometryClear(){
@@ -36,6 +36,10 @@ void odometryClear(){
     y = 0;
 }
 void calculateOdometry(int right, int left){
+    if (prevRight == right and prevLeft == left){
+        return
+    }
+
     prevRight = rightPos;
     prevLeft = leftPos;
 
@@ -51,18 +55,18 @@ void calculateOdometry(int right, int left){
     wheelDifference = (double)(rightInches - leftInches); 
 
     averageDisplacement = (rightInches + leftInches) / 2.000;
-    
-    x += averageDisplacement * cos(yaw);
-    y += averageDisplacement * sin(yaw);
 
     deltaYaw = (double)(wheelDifference / DISTANCE_BETWEEN_WHEELS);
+    
+    x += averageDisplacement * cos(yaw + (deltaYaw / 2));
+    y += averageDisplacement * sin(yaw + (deltaYaw / 2));
 
     yaw += deltaYaw;
 
-    if (yaw > PI){
+    while (yaw > PI){
         yaw -= 2 * PI;
     }
-    if (yaw < -PI){
+    while (yaw < -PI){
         yaw += 2 * PI;
     }
 }
