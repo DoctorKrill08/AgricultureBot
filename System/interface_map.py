@@ -35,6 +35,12 @@ class Telemetry(BaseModel):
     y: float
     tx: float
     ty: float
+    drive_vector_x : float
+    drive_vector_y : float
+    obstacle_vector_x : float
+    obstacle_vector_y : float
+    vector_x : float
+    vector_y : float
     heading: float
     target_yaw: float
     arduino_connected: bool

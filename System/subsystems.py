@@ -16,7 +16,7 @@ class Drivetrain:
     MIN_TURN = 0.1
 
     TURN_P = -1.5
-    DRIVE_P = 0.035
+    DRIVE_P = 0.02
 
     MIN_DISTANCE = 2
 

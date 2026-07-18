@@ -3,11 +3,11 @@ from System.mapping import Node
 from System.subsystems import Drivetrain
 from enum import Enum
 class APF:
-    g_star = 20 #Inches, what is the maximum effective radius of the force
-    kR = 10 # repulsive force constant
+    g_star = 30 #Inches, what is the maximum effective radius of the force
+    kR = 2000 # repulsive force constant
 
     kA = 1
-    max_attractive = 20 #Max length of attractive vector
+    max_attractive = 30 #Max length of attractive vector
 
     stuck_threshold = 1
     def calculate_attractive_vectors(x,y,tx,ty):
@@ -27,7 +27,7 @@ class APF:
         vector_x = 0
         vector_y = 0
         quantity = 0
-        for obstacle in obstacles:
+        for id,obstacle in obstacles.items():
             if (not isinstance(obstacle,Node)):
                 continue
             if (not obstacle.status == Node.OBSTACLE and not obstacle.status == Node.SAVED_OBSTACLE):
@@ -35,19 +35,19 @@ class APF:
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
             g = math.sqrt((delta_x ** 2) + (delta_y ** 2))
-            if (g < APF.g_star):
+            if (g > APF.g_star):
                 continue
             velocity = APF.kR * ((1 / g) - (1 / APF.g_star))
             if velocity > APF.max_attractive:
                 velocity = APF.max_attractive
             angle = math.atan2(delta_y,delta_x)
-            vector_x += velocity * math.cos(angle)
-            vector_y += velocity * math.sin(angle)
+            vector_x += velocity * -math.cos(angle)
+            vector_y += velocity * -math.sin(angle)
             quantity += 1
         if (quantity > 1):
             vector_x /= quantity
             vector_y /= quantity
-        return -vector_x,-vector_y
+        return vector_x,vector_y
     
     def is_stuck(vector_x,vector_y):
         return (abs(vector_x) + abs(vector_y) < APF.stuck_threshold)
@@ -76,6 +76,15 @@ class Pathing:
     mode = APF
 
     GOAL_DISTANCE_THRESHOLD = 5
+
+    drive_vector_x = 0
+    drive_vector_y = 0
+
+    obstacle_vector_x = 0
+    obstacle_vector_y = 0
+
+    vector_x = 0
+    vector_y = 0
     
     def calculate(x,y,yaw,tx,ty,obstacles):
         if (Pathing.mode == Pathing.APF):
@@ -83,16 +92,20 @@ class Pathing:
             if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
                 return 0,0,PathingStatus.GOAL_REACHED
             
-            drive_vector_x,drive_vector_y = APF.calculate_attractive_vectors(x,y,tx,ty)
-            obstacle_vector_x,obstacle_vector_y = APF.calculate_obstacle_vectors(x,y,obstacles)
+            Pathing.drive_vector_x,Pathing.drive_vector_y = APF.calculate_attractive_vectors(x,y,tx,ty)
+            Pathing.obstacle_vector_x,Pathing.obstacle_vector_y = APF.calculate_obstacle_vectors(x,y,obstacles)
+            print("DRIVE VECTORS",Pathing.drive_vector_x,Pathing.drive_vector_y)
+            print("OBSTACLE VECTORS",Pathing.obstacle_vector_x,Pathing.obstacle_vector_y)
 
-            vector_x = drive_vector_x + obstacle_vector_x
-            vector_y = drive_vector_y + obstacle_vector_y
 
-            if (APF.is_stuck(vector_x,vector_y)):
+            Pathing.vector_x = Pathing.drive_vector_x + Pathing.obstacle_vector_x
+            Pathing.vector_y = Pathing.drive_vector_y + Pathing.obstacle_vector_y
+            print("NET VECTORS",Pathing.vector_x,Pathing.vector_y)
+
+            if (APF.is_stuck(Pathing.vector_x,Pathing.vector_y)):
                 return 0,0,PathingStatus.STUCK
             
-            turn,drive = Drivetrain.vector_to_drive(vector_x,vector_y,yaw)
+            turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
             return turn,drive,PathingStatus.DRIVING
         return 0,0,PathingStatus.IDLE
             

@@ -17,6 +17,12 @@ export default function RobotControlPanel() {
     y: 0,
     tx: 0,
     ty: 0,
+    obstacle_vector_x: 0,
+    obstacle_vector_y: 0,
+    drive_vector_x: 0,
+    drive_vector_y: 0,
+    vector_x: 0,
+    vector_y: 0,
     target_yaw: 0,
     heading: 0,
     arduino_connected: false,
@@ -73,6 +79,12 @@ export default function RobotControlPanel() {
           y: data.y,
           tx: data.tx,
           ty: data.ty,
+          obstacle_vector_x: data.obstacle_vector_x,
+          obstacle_vector_y: data.obstacle_vector_y,
+          drive_vector_x: data.drive_vector_x,
+          drive_vector_y: data.drive_vector_y,
+          vector_x: data.vector_x,
+          vector_y: data.vector_y,
           target_yaw: data.target_yaw,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
@@ -185,7 +197,9 @@ export default function RobotControlPanel() {
 
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
-            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} map_data = {telemetry.map} onMove = {handleMapCommand}/>
+            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} 
+            dx = {telemetry.drive_vector_x} dy = {telemetry.drive_vector_y} ox = {telemetry.drive_vector_x} oy = {telemetry.drive_vector_y} vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
+            map_data = {telemetry.map} onMove = {handleMapCommand}/>
 
           </div>
           {/* Telemetry Section */}
@@ -234,9 +248,35 @@ export default function RobotControlPanel() {
             <div>
               <strong>TY:</strong> {telemetry.ty}
             </div>
+            
             <div>
               <strong>Target Yaw:</strong> {telemetry.target_yaw}
             </div>
+
+            <div>
+              <strong>Drive Vector X:</strong> {telemetry.drive_vector_x}
+            </div>
+
+            <div>
+              <strong>Drive Vector Y:</strong> {telemetry.drive_vector_y}
+            </div>
+
+            <div>
+              <strong>Obstacle Vector X:</strong> {telemetry.obstacle_vector_x}
+            </div>
+
+            <div>
+              <strong>Obstacle Vector Y:</strong> {telemetry.obstacle_vector_y}
+            </div>
+
+            <div>
+              <strong>Net Vector X:</strong> {telemetry.vector_x}
+            </div>
+
+            <div>
+              <strong>Net Vector Y:</strong> {telemetry.vector_y}
+            </div>
+
             <div>
               <strong>MAP DATA:</strong> {telemetry.map}
             </div>

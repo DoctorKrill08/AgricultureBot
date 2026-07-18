@@ -34,6 +34,7 @@ class Camera:
     DRIVE_P = -0.1
     
     closest_distance = 0
+    closest = []
 
     relative_goal_angle = 0
     
@@ -105,12 +106,16 @@ class Camera:
             print("CAMERA NOT CONNECTED", e)
 
         
-
+    UPDATE_FRAME_RATE = 2
+    current_frame = 0
     def update():
         if (not Camera.on):
             Camera.obstructed = True
             return
-        
+        Camera.current_frame += 1
+        if (Camera.current_frame < Camera.UPDATE_FRAME_RATE):
+            return
+        Camera.current_frame = 0
         frame = Camera.vision_pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
         #color_frame = frame.get_color_frame()
@@ -186,7 +191,7 @@ class Camera:
             for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
                 z = meters_to_inches(depth_frame.get_distance(x,y))
                 prev_z = meters_to_inches(Camera.prev_frame.get_distance(x,y))
-                if (z <= CAMERA_MIN_DEPTH or z > CAMERA_MAX_DEPTH or prev_z <= CAMERA_MIN_DEPTH or prev_z > CAMERA_MAX_DEPTH):
+                if (z <= CAMERA_MIN_DEPTH  or prev_z <= CAMERA_MIN_DEPTH):
                     blacklist_image = Camera.paint_on_canvas(blacklist_image,x,y,Camera.SPACE_BETWEEN_RAYS,[0,255,255])
                     blacklisted_pixels = Camera.blacklist(x,y,blacklisted_pixels)
                     continue
@@ -224,7 +229,7 @@ class Camera:
 
                 if (z_depth > closest_y):
                     continue
-                if (z_depth < CAMERA_MIN_DEPTH or z_depth > CAMERA_MAX_DEPTH):
+                if (z_depth < CAMERA_MIN_DEPTH):
                     continue
                 if (vertical_distance < -4):
                     continue
@@ -247,7 +252,7 @@ class Camera:
                     if (z_compare == None):
                         continue
                     z_compare = meters_to_inches(z_compare)
-                    if (z_compare > CAMERA_MAX_DEPTH or z_compare < CAMERA_MIN_DEPTH):
+                    if (z_compare < CAMERA_MIN_DEPTH):
                         continue
                     average_depth += z_compare
                     quantity += 1

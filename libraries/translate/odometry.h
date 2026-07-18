@@ -25,7 +25,7 @@ double  y = 0;
 const double TICKS_PER_ROTATION = 35391;
 const double WHEEL_DIAMETER = 7.5;
 const double WHEEL_CIRCUMFERENCE = WHEEL_DIAMETER * PI;
-const double DISTANCE_BETWEEN_WHEELS = 13.00;
+const double DISTANCE_BETWEEN_WHEELS = 12.00;
 
 double ticksToInches(int ticks){
     return ((ticks / TICKS_PER_ROTATION) * WHEEL_CIRCUMFERENCE);

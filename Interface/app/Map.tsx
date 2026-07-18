@@ -43,7 +43,7 @@ function parseMap(map_data: string){
 }
 function statusToColor(status: any){
   if (status == "O"){
-    return 'red'
+    return 'maroon'
   }
   if (status == 'S'){
     return 'orange'
@@ -72,8 +72,25 @@ function obstaclesToDiv(){
     
   }
 
-export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove}: any) { 
-  
+export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0,oy=0,vx=0,vy=0, map_data, onMove}: any) { 
+  dx += bx
+  dy += by
+  var drivePose = realToMap(dx,dy,0,OBSTACLE_RADIUS)
+  dx = drivePose[0]
+  dy = drivePose[1]
+
+  ox += bx
+  oy += by
+  var obstaclePose = realToMap(ox,oy,0,OBSTACLE_RADIUS)
+  ox = obstaclePose[0]
+  oy = obstaclePose[1]
+
+  vx += bx
+  vy += by
+  var netPose = realToMap(vx,vy,0,OBSTACLE_RADIUS)
+  vx = netPose[0]
+  vy = netPose[1]
+
   var botPose = realToMap(bx,by,bYaw,POINT_RADIUS)
   bx = botPose[0]
   by = botPose[1]
@@ -97,8 +114,8 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove
     x -= (WIDTH / 2)
     y -= (HEIGHT / 2)
 
-    x -= POINT_RADIUS/2
-    y -= POINT_RADIUS
+    x -=0
+    y += 0
 
     x /= PIXELS_PER_INCH
     y /= -PIXELS_PER_INCH
@@ -155,8 +172,43 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0, map_data, onMove
             left : String(tx) + 'px',
             top: String(ty) + 'px',
             backgroundColor: 'yellow',
-            rotate: String(tYaw) + 'rad'
+            rotate: String(tYaw) + 'rad',
+            borderWidth: 0
         }}/>
+        
+        <div className='map-point' style={{
+            width : String(OBSTACLE_RADIUS) + 'px',
+            height : String(OBSTACLE_RADIUS) + 'px',
+            left : String(dx) + 'px',
+            top: String(dy) + 'px',
+            backgroundColor: 'green',
+            borderWidth: 0,
+            zIndex: 100,
+            rotate: String(0) + 'rad'
+        }}/>
+
+        <div className='map-point' style={{
+            width : String(OBSTACLE_RADIUS) + 'px',
+            height : String(OBSTACLE_RADIUS) + 'px',
+            left : String(ox) + 'px',
+            top: String(oy) + 'px',
+            backgroundColor: 'red',
+            borderWidth: 0,
+            zIndex: 100,
+            rotate: String(0) + 'rad'
+        }}/>
+
+        <div className='map-point' style={{
+            width : String(OBSTACLE_RADIUS) + 'px',
+            height : String(OBSTACLE_RADIUS) + 'px',
+            left : String(vx) + 'px',
+            top: String(vy) + 'px',
+            backgroundColor: 'purple',
+            zIndex: 100,
+            rotate: String(0) + 'rad'
+        }}/>
+
+
         {obstaclesToDiv()}
       </div>
 

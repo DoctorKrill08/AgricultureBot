@@ -28,6 +28,12 @@ export type Telemetry ={
   y : number;
   tx : number;
   ty : number;
+  drive_vector_x : number;
+  drive_vector_y : number;
+  obstacle_vector_x : number;
+  obstacle_vector_y : number;
+  vector_x : number;
+  vector_y : number;
   heading : number;
   target_yaw : number;
   arduino_connected : boolean;
