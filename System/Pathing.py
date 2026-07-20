@@ -1,6 +1,7 @@
 import math
 from System.mapping import Node
 from System.subsystems import Drivetrain
+from System.Constants import *
 from enum import Enum
 
 def vector_clamp(vx,vy,max):
@@ -14,7 +15,8 @@ def vector_clamp(vx,vy,max):
 
 class APF:
     g_star = 30 #Inches, what is the maximum effective radius of the force
-    kR = 2000 # repulsive force constant
+    kR = 10000 # repulsive force constant
+    turnR = -1.6
 
     kA = 1
     max_force = 30
@@ -33,7 +35,7 @@ class APF:
         vector_y = force * math.sin(angle)
         return vector_x,vector_y
 
-    def calculate_obstacle_vectors(x,y,obstacles):
+    def calculate_obstacle_vectors(x,y,yaw,obstacles):
         vector_x = 0
         vector_y = 0
         quantity = 0
@@ -44,19 +46,20 @@ class APF:
                 continue
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
+
             g = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+
             if (g > APF.g_star):
                 continue
-            velocity = APF.kR * ((1 / g) - (1 / APF.g_star))
-            if velocity > APF.max_force:
-                velocity = APF.max_force
             angle = math.atan2(delta_y,delta_x)
+            velocity = APF.kR * (((1 / g) ** 2) - ((1 / APF.g_star) ** 2))
             vector_x += velocity * -math.cos(angle)
             vector_y += velocity * -math.sin(angle)
             quantity += 1
         if (quantity > 1):
             vector_x /= quantity
             vector_y /= quantity
+        vector_x,vector_y = vector_clamp(vector_x,vector_y,APF.max_force)
         return vector_x,vector_y
     
     def is_stuck(vector_x,vector_y):
@@ -103,7 +106,7 @@ class Pathing:
                 return 0,0,PathingStatus.GOAL_REACHED
             
             Pathing.drive_vector_x,Pathing.drive_vector_y = APF.calculate_attractive_vectors(x,y,tx,ty)
-            Pathing.obstacle_vector_x,Pathing.obstacle_vector_y = APF.calculate_obstacle_vectors(x,y,obstacles)
+            Pathing.obstacle_vector_x,Pathing.obstacle_vector_y = APF.calculate_obstacle_vectors(x,y,yaw,obstacles)
             print("DRIVE VECTORS",Pathing.drive_vector_x,Pathing.drive_vector_y)
             print("OBSTACLE VECTORS",Pathing.obstacle_vector_x,Pathing.obstacle_vector_y)
 

@@ -21,7 +21,7 @@ class Node():
         return self.id + "," + self.status
 
 class Map:
-    MAX_DISTANCE = 70 #Inches
+    MAX_DISTANCE = 40 #Inches
     nodes =  {}
     visible_obstacles = {}
     def print_nodes(nodes):
@@ -58,7 +58,7 @@ class Map:
             return
         d = math.sqrt((horizontal ** 2) + (forward ** 2))
         d = d + CAMERA_DISTANCE_FROM_ROBOT
-        if d <= 0:
+        if d <= CAMERA_DISTANCE_FROM_ROBOT + CAMERA_MIN_DEPTH:
             #what
             return
         if d >= Map.MAX_DISTANCE:
@@ -99,6 +99,8 @@ class Map:
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             if (distance > CAMERA_MAX_DEPTH):
                 node.status = Node.SAVED_OBSTACLE
+                continue
+            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT):
                 continue
             angle = math.atan2(deltaY,deltaX)
             delta_yaw = abs(shortest_angular_distance(angle,yaw))

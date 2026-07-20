@@ -51,7 +51,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.54.132.25:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.41:8000/ws");
 
     socketRef.current = socket;
 
@@ -198,7 +198,7 @@ export default function RobotControlPanel() {
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
             <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} 
-            dx = {telemetry.drive_vector_x} dy = {telemetry.drive_vector_y} ox = {telemetry.drive_vector_x} oy = {telemetry.drive_vector_y} vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
+            dx = {telemetry.drive_vector_x} dy = {telemetry.drive_vector_y} ox = {telemetry.obstacle_vector_x} oy = {telemetry.obstacle_vector_y} vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
             map_data = {telemetry.map} onMove = {handleMapCommand}/>
 
           </div>

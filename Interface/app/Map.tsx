@@ -5,7 +5,7 @@ import { INCHES_PER_NODE } from './interface_map';
 
 
 
-const PIXELS_PER_INCH = 10
+const PIXELS_PER_INCH = 5
 const WIDTH = 800
 const HEIGHT = 800
 const POINT_RADIUS = PIXELS_PER_INCH * 10
