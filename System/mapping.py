@@ -8,7 +8,7 @@ class Node():
     OBSTACLE = "O"
     SAVED_OBSTACLE = "S"
     EMPTY = "E"
-    FORGET_TIME = 10
+    FORGET_TIME = 60
     def __init__(self,x : float,y : float,status = EMPTY, raw_horizontal = 0, raw_forward = 0):
         self.x  = x
         self.y = y
@@ -19,6 +19,8 @@ class Node():
         self.timer = Timer()
     def to_string(self):
         return self.id + "," + self.status
+    def is_obstacle(self):
+        return self.status == Node.OBSTACLE or self.status == Node.SAVED_OBSTACLE
 
 class Map:
     MAX_DISTANCE = 40 #Inches
@@ -98,9 +100,9 @@ class Map:
             deltaY = y - bot_y
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             if (distance > CAMERA_MAX_DEPTH):
-                node.status = Node.SAVED_OBSTACLE
+                delete_list[key] = node
                 continue
-            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT):
+            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT + 5):
                 continue
             angle = math.atan2(deltaY,deltaX)
             delta_yaw = abs(shortest_angular_distance(angle,yaw))

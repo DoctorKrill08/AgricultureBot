@@ -30,6 +30,8 @@ export type Telemetry ={
   ty : number;
   drive_vector_x : number;
   drive_vector_y : number;
+  edge_vector_x : number;
+  edge_vector_y : number;
   obstacle_vector_x : number;
   obstacle_vector_y : number;
   vector_x : number;
