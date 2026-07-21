@@ -19,6 +19,9 @@ class Node():
         self.timer = Timer()
     def to_string(self):
         return self.id + "," + self.status
+    def save_obstacle(self):
+        self.timer.reset()
+        self.status = Node.SAVED_OBSTACLE
     def is_obstacle(self):
         return self.status == Node.OBSTACLE or self.status == Node.SAVED_OBSTACLE
 
@@ -102,12 +105,13 @@ class Map:
             if (distance > CAMERA_MAX_DEPTH):
                 delete_list[key] = node
                 continue
-            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT + 5):
+            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT + 1):
+                node.save_obstacle()
                 continue
             angle = math.atan2(deltaY,deltaX)
             delta_yaw = abs(shortest_angular_distance(angle,yaw))
-            if math.degrees(delta_yaw) + 15 > (CAMERA_HORIZONTAL_FOV / 2):
-                node.status = Node.SAVED_OBSTACLE
+            if math.degrees(delta_yaw) + 20 > (CAMERA_HORIZONTAL_FOV / 2):
+                node.save_obstacle()
                 continue
             #All obstacles beyond this are "theoretically visible"
             #The way we can clear obstacles that are theoretically visible is by seeing if the obstacle is farther than it should be

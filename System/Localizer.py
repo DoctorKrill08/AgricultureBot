@@ -10,6 +10,7 @@ from pathlib import Path
 from System.hardware import *
 from System.mapping import *
 from System.Constants import *
+from System.Pathing import *
 import time
 
 class LocalizationKalman():
@@ -102,7 +103,7 @@ class Localizer():
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
-\n{Camera.status()}\n{GPS.status()}\n{Map.status()} "
+\n{Camera.status()}\n{GPS.status()}\n{Map.status()}\n{Pathing.status()} "
     def show():
         plt.show()
 

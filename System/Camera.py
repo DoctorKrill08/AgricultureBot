@@ -120,7 +120,7 @@ class Camera:
         depth_frame = frame.get_depth_frame()
         #color_frame = frame.get_color_frame()
 
-        depth_image = np.asanyarray(depth_frame.get_data())
+        #depth_image = np.asanyarray(depth_frame.get_data())
         #color_image = np.asanyarray(color_frame.get_data())
         #depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,alpha = 0.03), cv2.COLORMAP_JET)
         #cv2.imshow('depth', depth_cm)

@@ -69,6 +69,9 @@ class EdgeFinder:
     MAX_DISTANCE = 40
 
     VECTOR_STRENGTH = 10
+    
+    UPDATE_RATE = 5
+    current_tick = 0
 
     obstructed = False
     def is_obstacle_near_point(x,y,obstacles):
@@ -76,17 +79,17 @@ class EdgeFinder:
             delta_x = obstacle.x - x
             delta_y = obstacle.y- y
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
-            if (distance < ROBOT_WIDTH):
+            if (distance < ROBOT_WIDTH / 2):
                 return True
             else:
                 continue
         return False
 
-    def get_nearest_obstacles(target : Node,obstacles):
+    def get_nearest_obstacles(target,obstacles):
         x = target.x
         y = target.y
         nearest = []
-        nearest[0] = target
+        nearest.append(target)
         for id,obstacle in obstacles.items():
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
@@ -107,7 +110,7 @@ class EdgeFinder:
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
-            if (distance < EdgeFinder.MAX_DISTANCE):
+            if (distance > EdgeFinder.MAX_DISTANCE):
                 continue
             nearest = EdgeFinder.get_nearest_obstacles(obstacle,obstacles)
             if (len(nearest) == 1):
@@ -116,23 +119,11 @@ class EdgeFinder:
         list = sorted(list,key = len)
         return list
                 
-    def get_edges(sorted_obstacles):
-        split_index = 0
-        can_split = False
-        for i in range(len(sorted_obstacles)):
-            nearest = sorted_obstacles[i]
-            if (len(nearest) > 3):
-                can_split = True
-                split_index = i
-                break
-        if (not can_split):
-            return sorted_obstacles
-        return sorted_obstacles.slice(0,split_index + 1)
-    def get_closest_edge(tx,ty,windows):
+    def get_closest_edge(tx,ty,edges):
         min_distance = 10000
         closest = None
-        for i in range(len(windows)):
-            nearest = windows[i]
+        for i in range(len(edges)):
+            nearest = edges[i]
             obstacle = nearest[0]
             delta_x = tx - obstacle.x
             delta_y = ty - obstacle.y
@@ -170,14 +161,16 @@ class EdgeFinder:
             return None 
         #For each obstacle, find adjacent obstacles, then sort an array based on the amount of adjacent obstacles each obstacle has
         edges = EdgeFinder.sort_obstacles(x,y,obstacles)
-        #Filter out obstacles with a lot of adjacent obstacles (more than 3)
-        edges = EdgeFinder.get_edges(edges)
         if len(edges) == 0:
             return None
         #get the obstacle thats closest to the target
         closest = EdgeFinder.get_closest_edge(tx,ty,edges)
         return closest
     def calculate_vectors(x,y,tx,ty,obstacles):
+        EdgeFinder.current_tick += 1
+        if (EdgeFinder.current_tick < EdgeFinder.UPDATE_RATE):
+            return
+        EdgeFinder.current_tick = 0
         edge = EdgeFinder.calculate_closest_edge(x,y,tx,ty,obstacles)
         if (edge == None or not isinstance(edge,Node)):
             return 0,0
@@ -211,6 +204,7 @@ class Pathing:
 
     vector_x = 0
     vector_y = 0
+
     def status():
         return f'\n---PATHING---\nPath obstructed: {EdgeFinder.obstructed}'
     
@@ -230,6 +224,7 @@ class Pathing:
 
 
             Pathing.edge_vector_x,Pathing.edge_vector_y = EdgeFinder.calculate_vectors(x,y,tx,ty,obstacles)
+            print("EDGE VECTORS",Pathing.edge_vector_x,Pathing.edge_vector_y)
 
             #TODO add edge vector logic
             Pathing.vector_x = Pathing.goal_vector_x + Pathing.obstacle_vector_x
