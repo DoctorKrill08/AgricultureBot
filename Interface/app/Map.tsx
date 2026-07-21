@@ -111,8 +111,8 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
   oy = obstaclePose[1]
 
   var edgePose = realToMap(ex,ey,0,OBSTACLE_RADIUS)
-  ex = obstaclePose[0]
-  ey = obstaclePose[1]
+  ex = edgePose[0]
+  ey = edgePose[1]
 
   vx += bx
   vy += by

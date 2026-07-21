@@ -212,6 +212,8 @@ class Camera:
         x_end = Camera.CENTER_X + Camera.WIDTH_RANGE
         y_start = Camera.MAX_HEIGHT
         y_end = Camera.MIN_HEIGHT
+
+        prev_horizontal = 0
         for x in range(x_start, x_end, Camera.SPACE_BETWEEN_RAYS):
             closest_y = 1000
             for y in range(y_start,y_end, Camera.SPACE_BETWEEN_RAYS): 
@@ -227,12 +229,18 @@ class Camera:
                 horizontal_distance = meters_to_inches(spatial_point[0])
                 vertical_distance = meters_to_inches(spatial_point[1])
 
+
                 if (z_depth > closest_y):
                     continue
                 if (z_depth < CAMERA_MIN_DEPTH):
                     continue
                 if (vertical_distance < -4):
                     continue
+
+                delta_horizontal = horizontal_distance - prev_horizontal
+                if (abs(delta_horizontal) < 1):
+                    continue
+                prev_horizontal = horizontal_distance
 
                 #For averaging, make sure neighboring vertical pixels EXIST
 

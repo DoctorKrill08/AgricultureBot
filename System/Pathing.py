@@ -67,8 +67,9 @@ class APF:
 
 class EdgeFinder:
     MAX_DISTANCE = 40
+    MIN_DISTANCE = 1.5
 
-    VECTOR_STRENGTH = 10
+    VECTOR_STRENGTH = 5
     
     UPDATE_RATE = 5
     current_tick = 0
@@ -94,13 +95,13 @@ class EdgeFinder:
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
-            if (distance < ROBOT_WIDTH):
+            if (distance < ROBOT_WIDTH and distance > EdgeFinder.MIN_DISTANCE):
                 nearest.append(obstacle)
             else:
                 continue
         return nearest
 
-    def sort_obstacles(x,y,obstacles):
+    def get_edges(x,y,obstacles):
         list = []
         for id,obstacle in obstacles.items():
             if (not isinstance(obstacle,Node)):
@@ -112,11 +113,16 @@ class EdgeFinder:
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
             if (distance > EdgeFinder.MAX_DISTANCE):
                 continue
+            if (distance < ROBOT_WIDTH / 2):
+                continue
             nearest = EdgeFinder.get_nearest_obstacles(obstacle,obstacles)
             if (len(nearest) == 1):
                 continue
             list.append(nearest)
         list = sorted(list,key = len)
+        if (len(list) < 8):
+            return list
+        list = list[:int(0.2 * len(list))]
         return list
                 
     def get_closest_edge(tx,ty,edges):
@@ -160,23 +166,27 @@ class EdgeFinder:
         if (not EdgeFinder.obstructed):
             return None 
         #For each obstacle, find adjacent obstacles, then sort an array based on the amount of adjacent obstacles each obstacle has
-        edges = EdgeFinder.sort_obstacles(x,y,obstacles)
+        edges = EdgeFinder.get_edges(x,y,obstacles)
         if len(edges) == 0:
             return None
+        print("#edges:",len(edges))
         #get the obstacle thats closest to the target
         closest = EdgeFinder.get_closest_edge(tx,ty,edges)
         return closest
     def calculate_vectors(x,y,tx,ty,obstacles):
         EdgeFinder.current_tick += 1
         if (EdgeFinder.current_tick < EdgeFinder.UPDATE_RATE):
-            return
+            return None,None
         EdgeFinder.current_tick = 0
         edge = EdgeFinder.calculate_closest_edge(x,y,tx,ty,obstacles)
         if (edge == None or not isinstance(edge,Node)):
             return 0,0
         delta_x = edge.x - x
         delta_y = edge.y - y
-        return vector_clamp(delta_x,delta_y,EdgeFinder.VECTOR_STRENGTH)
+        strength = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+        if (strength > EdgeFinder.VECTOR_STRENGTH):
+            strength = EdgeFinder.VECTOR_STRENGTH
+        return vector_clamp(delta_x,delta_y,strength)
         
 
 class PathingStatus():
@@ -223,12 +233,21 @@ class Pathing:
             print("OBSTACLE VECTORS",Pathing.obstacle_vector_x,Pathing.obstacle_vector_y)
 
 
-            Pathing.edge_vector_x,Pathing.edge_vector_y = EdgeFinder.calculate_vectors(x,y,tx,ty,obstacles)
+            ex,ey = EdgeFinder.calculate_vectors(x,y,tx,ty,obstacles)
+            if not ex == None and not ey == None:
+                Pathing.edge_vector_x = ex
+                Pathing.edge_vector_y = ey
             print("EDGE VECTORS",Pathing.edge_vector_x,Pathing.edge_vector_y)
 
-            #TODO add edge vector logic
-            Pathing.vector_x = Pathing.goal_vector_x + Pathing.obstacle_vector_x
-            Pathing.vector_y = Pathing.goal_vector_y + Pathing.obstacle_vector_y
+
+
+            Pathing.vector_x = Pathing.goal_vector_x + Pathing.edge_vector_x
+            Pathing.vector_y = Pathing.goal_vector_y + Pathing.edge_vector_y
+
+            Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,max)
+
+            Pathing.vector_x += Pathing.obstacle_vector_x
+            Pathing.vector_y += Pathing.obstacle_vector_y
 
             Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,max)
             print("NET VECTORS",Pathing.vector_x,Pathing.vector_y)

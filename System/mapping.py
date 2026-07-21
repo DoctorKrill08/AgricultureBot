@@ -110,7 +110,7 @@ class Map:
                 continue
             angle = math.atan2(deltaY,deltaX)
             delta_yaw = abs(shortest_angular_distance(angle,yaw))
-            if math.degrees(delta_yaw) + 20 > (CAMERA_HORIZONTAL_FOV / 2):
+            if math.degrees(delta_yaw) > (CAMERA_HORIZONTAL_FOV / 2):
                 node.save_obstacle()
                 continue
             #All obstacles beyond this are "theoretically visible"
