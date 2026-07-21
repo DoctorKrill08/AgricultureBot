@@ -21,6 +21,8 @@ export default function RobotControlPanel() {
     obstacle_vector_y: 0,
     drive_vector_x: 0,
     drive_vector_y: 0,
+    edge_vector_x: 0,
+    edge_vector_y: 0,
     vector_x: 0,
     vector_y: 0,
     target_yaw: 0,
@@ -83,6 +85,8 @@ export default function RobotControlPanel() {
           obstacle_vector_y: data.obstacle_vector_y,
           drive_vector_x: data.drive_vector_x,
           drive_vector_y: data.drive_vector_y,
+          edge_vector_x: data.edge_vector_x,
+          edge_vector_y: data.edge_vector_y,
           vector_x: data.vector_x,
           vector_y: data.vector_y,
           target_yaw: data.target_yaw,
@@ -198,7 +202,10 @@ export default function RobotControlPanel() {
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
             <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} 
-            dx = {telemetry.drive_vector_x} dy = {telemetry.drive_vector_y} ox = {telemetry.obstacle_vector_x} oy = {telemetry.obstacle_vector_y} vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
+            dx = {telemetry.drive_vector_x} dy = {telemetry.drive_vector_y}
+            ox = {telemetry.obstacle_vector_x} oy = {telemetry.obstacle_vector_y}
+            vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
+            ex = {telemetry.edge_vector_x} ey = {telemetry.edge_vector_y}
             map_data = {telemetry.map} onMove = {handleMapCommand}/>
 
           </div>

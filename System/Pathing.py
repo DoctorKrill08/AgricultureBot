@@ -180,7 +180,7 @@ class EdgeFinder:
     def calculate_vectors(x,y,tx,ty,obstacles):
         edge = EdgeFinder.calculate_closest_edge(x,y,tx,ty,obstacles)
         if (edge == None or not isinstance(edge,Node)):
-            return x,y,0,0
+            return 0,0
         delta_x = edge.x - x
         delta_y = edge.y - y
         return vector_clamp(delta_x,delta_y,EdgeFinder.VECTOR_STRENGTH)
@@ -211,6 +211,8 @@ class Pathing:
 
     vector_x = 0
     vector_y = 0
+    def status():
+        return f'\n---PATHING---\nPath obstructed: {EdgeFinder.obstructed}'
     
     def calculate(x,y,yaw,tx,ty,obstacles):
         if (Pathing.mode == Pathing.APF):
