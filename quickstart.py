@@ -27,12 +27,13 @@ if driver.start_scan():
     print("Scanning started...")
     
     try:
-        for i in range(10):  # Get 10 scans
+        for i in range(100):  # Get 10 scans
             scan_data = driver.get_scan_data()
             if scan_data:
                 angles, ranges, qualities = scan_data
                 print(f"Scan {i+1}: {len(angles)} points")
             time.sleep(0.1)
     finally:
-        driver.stop_scan()
-        driver.disconnect()
+        #driver.stop_scan()
+        #driver.disconnect()
+        pass
