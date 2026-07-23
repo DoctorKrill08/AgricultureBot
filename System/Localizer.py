@@ -40,8 +40,9 @@ class LocalizationKalman():
         if (not Arduino.connected):
             delta_yaw = gyro_delta_yaw
         else:
-            delta_yaw = LocalizationKalman.gyro_odo_fusion(odo_delta_yaw = delta_yaw,
-                                                       gyro_delta_yaw=gyro_delta_yaw)
+            if (Camera.on):
+                delta_yaw = LocalizationKalman.gyro_odo_fusion(odo_delta_yaw = delta_yaw,
+                                                         gyro_delta_yaw=gyro_delta_yaw)
         
         Localizer.yaw += delta_yaw
         Localizer.yaw = angle_wrap(Localizer.yaw)

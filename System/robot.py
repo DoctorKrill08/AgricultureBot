@@ -173,7 +173,4 @@ class Robot:
             Robot.joy_y = drive
             Robot.joy_x = turn
             print(turn,drive,status)
-            if (Camera.obstructed):
-                Robot.joy_y = 0
-                Robot.joy_x = 0
         Drivetrain.run(drive = Robot.joy_y, turn = Robot.joy_x, gamepad = (Robot.state == RobotState.GAMEPAD))

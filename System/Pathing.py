@@ -233,16 +233,16 @@ class Pathing:
             print("OBSTACLE VECTORS",Pathing.obstacle_vector_x,Pathing.obstacle_vector_y)
 
 
-            ex,ey = EdgeFinder.calculate_vectors(x,y,tx,ty,obstacles)
+            """ex,ey = EdgeFinder.calculate_vectors(x,y,tx,ty,obstacles)
             if not ex == None and not ey == None:
                 Pathing.edge_vector_x = ex
                 Pathing.edge_vector_y = ey
-            print("EDGE VECTORS",Pathing.edge_vector_x,Pathing.edge_vector_y)
+            print("EDGE VECTORS",Pathing.edge_vector_x,Pathing.edge_vector_y)"""
 
 
 
-            Pathing.vector_x = Pathing.goal_vector_x + Pathing.edge_vector_x
-            Pathing.vector_y = Pathing.goal_vector_y + Pathing.edge_vector_y
+            Pathing.vector_x = Pathing.goal_vector_x# + Pathing.edge_vector_x
+            Pathing.vector_y = Pathing.goal_vector_y# + Pathing.edge_vector_y
 
             Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,max)
 

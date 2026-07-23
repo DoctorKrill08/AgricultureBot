@@ -5,7 +5,8 @@ import pyrplidarsdk
 class Lidar:
     MAX_DISTANCE = 40
     ANGLE_RANGE = 160 #Degrees
-    POS_ON_BOT = 10
+    LIDAR_X = 12
+    LIDAR_Y = 0
     port = "COM3"
     BAUD_RATE = 1000000
     ANGLE_INCREMENT = 2 #Degrees
@@ -39,11 +40,24 @@ class Lidar:
 
     def relative_to_global(x,y,yaw,distance,angle):
         #yaw and angle in rads
-        angle = yaw + angle
+        lidar_global_x = (
+            x
+            + Lidar.LIDAR_X * math.cos(yaw)
+            - Lidar.LIDAR_Y * math.sin(yaw)
+        )
+
+        lidar_global_y = (
+            y
+            + Lidar.LIDAR_X * math.sin(yaw)
+            + Lidar.LIDAR_Y * math.cos(yaw)
+        )
+        angle = yaw - angle
         while angle > math.pi:
             angle -= (2 * math.pi)
         while angle < -math.pi:
             angle += (2 * math.pi)
+        x = lidar_global_x
+        y = lidar_global_y
         x += distance * math.cos(angle)
         y += distance * math.sin(angle)
         return x,y
