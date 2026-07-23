@@ -102,7 +102,7 @@ class Localizer():
         Lidar.calculate(Localizer.x,Localizer.y,Localizer.yaw)
         LocalizationKalman.predict()
         if (not Localizer.rotating_fast()):
-            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.latest_scan)
+            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.obstacles)
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \

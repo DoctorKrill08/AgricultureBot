@@ -1,33 +1,40 @@
 from rplidar import *   
 from System.Constants import * 
-import threading
+import pyrplidarsdk
 
 class Lidar:
-    MAX_DISTANCE = 18
+    MAX_DISTANCE = 40
     ANGLE_RANGE = 160 #Degrees
     POS_ON_BOT = 10
     port = "COM3"
     BAUD_RATE = 1000000
     ANGLE_INCREMENT = 2 #Degrees
-    lidar = None
+    driver = None
 
-    latest_scan = []
     obstacles = []
 
-    lock = None
-    thread = None
-    running = False
+    connected = False
     def start():
-        Lidar.lock = threading.Lock()
-        Lidar.thread = None
-        Lidar.running = True
+        Lidar.driver = pyrplidarsdk.RplidarDriver(port="COM3")
+        Lidar.connected = False
+        # Connect to the device
+        if not Lidar.driver.connect():
+            print("Failed to connect!")
+            return
 
-        Lidar.thread = threading.Thread(
-            target=Lidar.lidar_thread,
-            daemon=True
-        )
-        Lidar.thread.start()
-        print("Lidar threading started")
+        # Get device information
+        info = Lidar.driver.get_device_info()
+        if info:
+            print(f"Connected to RPLIDAR model {info.model}")
+            print(f"Firmware: {info.firmware_version}")
+            print(f"Hardware: {info.hardware_version}")
+            print(f"Serial: {info.serial_number}")
+
+        # Check device health
+        health = Lidar.driver.get_health()
+        if health:
+            print(f"Device health: {health.status}")
+        Lidar.driver.start_scan()
         
 
     def relative_to_global(x,y,yaw,distance,angle):
@@ -40,81 +47,50 @@ class Lidar:
         x += distance * math.cos(angle)
         y += distance * math.sin(angle)
         return x,y
-    
-    def lidar_thread():
-        #Repeat as loing as lidar is supposed to be running
-        while Lidar.running:
-            time.sleep(2)
-            Lidar.lidar = None
-            #connecting the lidar
-            try:
-                Lidar.lidar = RPLidar(Lidar.port,Lidar.BAUD_RATE)
-                print("Conencted to Lidar")
-                Lidar.running = True
-            except Exception as e:
-                print("Failed to connect to Lidar: ", e) 
-            time.sleep(1)
-            #read the lidar, shoulld loop until program ends, but data could be corrupted
-            try:
-                for scan in Lidar.lidar.iter_scans():
-                    if not Lidar.running:
-                        break
-                    with Lidar.lock:
-                        Lidar.latest_scan = scan
-            except Exception as e:
-                print("FAILED TO SCAN LIDAR: ",e)
-            finally:
-                if (isinstance(Lidar.lidar,RPLidar)): 
-                    try:
-                        Lidar.lidar.stop()
-                        Lidar.lidar.disconnect()
-                    except Exception as e:
-                        print("Lidar closing error: ",e)
-            time.sleep(2)
-    def stop():
-        Lidar.running = False
-        # Wait for reader thread to completely exit
-        if (
-            Lidar.thread is not None
-            and Lidar.thread.is_alive()
-        ):
 
-            Lidar.thread.join(
-                timeout=5
-            )
-        Lidar.thread = None
+    def stop():
+        if (not Lidar.connected):
+            return
+        Lidar.driver.stop_scan()
+        Lidar.driver.disconnect()
+    
+    def status():
+        return f"---LIDAR---\nCONNECTED: {Lidar.connected}\nobstacles len{len(Lidar.obstacles)}"
         
     def calculate(bot_x,bot_y,yaw):
         prev_angle = 0
-        with Lidar.lock:
-            print("latest scan ", Lidar.latest_scan)
-            if len(Lidar.latest_scan) == 0:
-                return
-            if Lidar.latest_scan == None:
-                return
-            for scan in Lidar.latest_scan:
-                if (len(scan) < 3):
-                    continue
-                quality = scan[0]
-                angle = scan[1]
-                distance = scan[2]
-                #angle is in degrees initially
-                if (not angle < Lidar.ANGLE_RANGE / 2 and not angle > 360 - Lidar.ANGLE_RANGE / 2):
-                    continue
-                angle = math.radians(angle)
-                distance = mm_to_inches(distance)
-                if quality < 5:
-                    continue
-                if (distance > Lidar.MAX_DISTANCE):
-                    continue
-                if (distance <= 1):
-                    continue
-                if (math.degrees(shortest_angular_distance(angle,prev_angle)) < Lidar.ANGLE_INCREMENT):
-                    continue
-                prev_angle = angle #rads
-                # Ignore low-quality points
-                x,y = Lidar.relative_to_global(bot_x,bot_y,yaw,distance,angle)
-                Lidar.obstacles.append([x,y])
+        if (not isinstance(Lidar.driver,pyrplidarsdk.RplidarDriver)):
+            return      
+        scan_data = Lidar.driver.get_scan_data()
+        if (not scan_data):
+            return
+        Lidar.obstacles.clear()
+        angles, ranges, qualities = scan_data
+        for i in range(len(angles)):
+            angle = angles[i] #rads
+            distance = ranges[i] #meters
+            quality = qualities[i] #idk bro
+            #angle is in rads
+            if (not angle < math.radians(Lidar.ANGLE_RANGE / 2) and not angle > math.radians(360 - Lidar.ANGLE_RANGE / 2)):
+                continue
+            distance = meters_to_inches(distance)
+            if quality < 5:
+                #print("low quality: ",quality)
+                continue
+            if (distance > Lidar.MAX_DISTANCE):
+                #print("too far",distance)
+                continue
+            if (distance <= 1):
+                #print("too close",distance)
+                continue
+            if (abs(math.degrees(shortest_angular_distance(angle,prev_angle))) < Lidar.ANGLE_INCREMENT):
+                #print("angle difference to small ",math.degrees(shortest_angular_distance(angle,prev_angle)) )
+                continue
+            prev_angle = angle #rads
+            # Ignore low-quality points
+            x,y = Lidar.relative_to_global(bot_x,bot_y,yaw,distance,angle)
+            Lidar.obstacles.append([x,y])
+        #print(Lidar.obstacles)
 
 #Windows: python -m System.Lidar
 RATE = 1
@@ -127,7 +103,6 @@ if __name__ == "__main__":
             Lidar.calculate(0,0,0)
             print("----")
             start_time = time.perf_counter()
-            print(Lidar.latest_scan)
             if (elapsed < RATE):
                 time.sleep(RATE - elapsed)
     finally:

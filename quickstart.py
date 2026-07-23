@@ -31,7 +31,7 @@ if driver.start_scan():
             scan_data = driver.get_scan_data()
             if scan_data:
                 angles, ranges, qualities = scan_data
-                print(f"Scan {i+1}: {len(angles)} points")
+                print(f"Scan {i+1}: {len(angles)},{len(ranges)},{len(qualities)} points")
             time.sleep(0.1)
     finally:
         #driver.stop_scan()
