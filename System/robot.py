@@ -83,7 +83,7 @@ class Robot:
         Arduino.connect_arduino()
         Robot.on = True
     def status():
-        return f"Auto Time: {Robot.auto.RUN_TIME} \n"
+        return f"\n---ROBOT---\n"
     def update():
         Robot.telemetry = Telemetry(
             mode=Robot.state.value,

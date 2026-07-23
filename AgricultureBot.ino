@@ -166,20 +166,8 @@ void loop() {
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
     stop();
   }
-
-  long right;
-  long left;
-
-  noInterrupts();
-
-  right = DriveRightEncoderPos;
-  left = DriveLeftEncoderPos;
-
-  interrupts();
-
-  calculateOdometry(right, left);
+  calculateOdometry(DriveRightEncoderPos,DriveLeftEncoderPos);
   ledUpdate();
-
   if (Serial.available() > 0) {
     // Read the incoming byte
     String message = Serial.readStringUntil('\n');
@@ -217,13 +205,16 @@ void loop() {
       return;
     }
     if (cmd.id == Odometry){
-      Serrial.print("ODOMETRY,")
-      Serial.print(x)
-      Serial.print(",");
-      Serial.print(y);
-      Serial.print(",");
-      Serial.println(yaw);
-      odometryClear()
+      String output = "ODOMETRY,";
+      output += String(x);
+      output += ",";
+      output += String(y);
+      output += ",";
+      output += String(yaw);
+      Serial.println(output);
+      yaw = 0;
+      x = 0;
+      y = 0;
       return;
     }
 
