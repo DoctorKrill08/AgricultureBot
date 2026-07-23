@@ -17,14 +17,28 @@ class APF:
     g_star = 25 #Inches, what is the maximum effective radius of the force
     kR = 550 # repulsive force constant
     max_repulsive = 50
-    repulsive_exponent = 0.5
+    repulsive_exponent = 0.21
 
 
     kA = 5
     attractive_exponent = 0.5
     max_attractive = 35
 
+    chaos_force = 3
+    chaos_min_distance = 10
+
     stuck_threshold = 1
+    
+    def calculate_chaos(x,y,yaw,tx,ty):
+        delta_x = tx - x
+        delta_y = ty - y
+        distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+        force = distance / APF.chaos_min_distance
+        if (force > APF.chaos_force):
+            force = APF.chaos_force
+        x = force * math.cos(yaw)
+        y = force * math.sin(yaw)
+        return x,y
     def calculate_attractive_vectors(x,y,tx,ty):
         vector_x = 0
         vector_y = 0
@@ -244,15 +258,10 @@ class Pathing:
                 Pathing.edge_vector_y = ey
             print("EDGE VECTORS",Pathing.edge_vector_x,Pathing.edge_vector_y)"""
 
+            Pathing.edge_vector_x,Pathing.edge_vector_y = APF.calculate_chaos(x,y,yaw,tx,ty)
 
-
-            Pathing.vector_x = Pathing.goal_vector_x# + Pathing.edge_vector_x
-            Pathing.vector_y = Pathing.goal_vector_y# + Pathing.edge_vector_y
-
-            Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,max)
-
-            Pathing.vector_x += Pathing.obstacle_vector_x
-            Pathing.vector_y += Pathing.obstacle_vector_y
+            Pathing.vector_x = Pathing.goal_vector_x + Pathing.edge_vector_x + Pathing.obstacle_vector_x
+            Pathing.vector_y = Pathing.goal_vector_y + Pathing.edge_vector_y + Pathing.obstacle_vector_y
 
             Pathing.vector_x,Pathing.vector_y = vector_clamp(Pathing.vector_x,Pathing.vector_y,max)
             print("NET VECTORS",Pathing.vector_x,Pathing.vector_y)

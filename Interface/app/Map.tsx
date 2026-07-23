@@ -110,6 +110,8 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
   ox = obstaclePose[0]
   oy = obstaclePose[1]
 
+  ex += bx
+  ey += by
   var edgePose = realToMap(ex,ey,0,OBSTACLE_RADIUS)
   ex = edgePose[0]
   ey = edgePose[1]
@@ -207,7 +209,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
             borderWidth: 0
         }}/>
         <div className='map-point' style={{
-           /* width : String(OBSTACLE_RADIUS) + 'px',
+            width : String(OBSTACLE_RADIUS) + 'px',
             height : String(OBSTACLE_RADIUS) + 'px',
             left : String(ex) + 'px',
             top: String(ey) + 'px',
@@ -215,9 +217,9 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
             borderWidth: 0,
             zIndex: 100,
             rotate: String(0) + 'rad'
-            */
+            
         }}/>
-        {//vector_to_div(bx,by,ex,ey,'pink')
+        {vector_to_div(bx,by,ex,ey,'pink')
         }
         <div className='map-point' style={{
             width : String(OBSTACLE_RADIUS) + 'px',
