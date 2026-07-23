@@ -213,7 +213,6 @@ except Exception as e:
     print("ERROR: ",e)
 
 finally:
-
     lidar.stop()
     lidar.disconnect()
 
