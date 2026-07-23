@@ -12,52 +12,6 @@ from System.Pathing import Pathing
 PING_TIME = 1 #Every half a second
 UPDATE_TIME = 0.05
 
-class AutoState(Enum):
-    CRUISE = "CRUISE"
-    AIM = "AIM"
-class Auto():
-    timer = None
-    RUN_TIME = 10
-    def __init__(self):
-        self.timer = Timer()
-    def loop(self):
-        pass
-    def end(self):
-        Robot.set_state(RobotState.RESTING)
-class DriveForwardWithCamera(Auto):
-    def __init__(self):
-        self.timer = Timer()
-    def loop(self):
-        Robot.joy_x = 0
-        Robot.joy_y = 0.35
-        if (Camera.obstructed or not Camera.on):
-            Robot.joy_x = 0
-            Robot.joy_y = 0
-        if (self.timer.time_passed() > self.RUN_TIME):
-            self.end()
-    def end(self):
-        Robot.set_state(RobotState.RESTING)
-class ObstacleAvoidAuto(Auto):
-    def __init__(self):
-        self.timer = Timer()
-    def loop(self):
-        Robot.joy_x = 0
-        Robot.joy_y = 0.35
-        if (not Camera.on):
-            Robot.joy_x = 0
-            Robot.joy_y = 0
-        else:
-            Robot.joy_x = Camera.turn
-            Robot.joy_y = Robot.joy_y + Camera.drive
-            if (Robot.joy_y < 0):
-                Robot.joy_y = 0
-            if (Robot.joy_y > 0.5):
-                Robot.joy_y = 0.5
-        if (self.timer.time_passed() > self.RUN_TIME):
-            self.end()
-    def end(self):
-        Robot.set_state(RobotState.RESTING)
-
 class Robot:
     on = True
     gamepad = None
@@ -68,8 +22,6 @@ class Robot:
     joy_x = 0
     joy_y = 0
 
-    auto_state = AutoState.AIM
-    auto = Auto()
 
     telemetry = Telemetry(
         mode=state.value,
@@ -110,8 +62,9 @@ class Robot:
     def set_state(state):
         if (Robot.state == state):
             return
-        if (state == RobotState.AUTONOMOUS):
-            Robot.auto = ObstacleAvoidAuto()
+        if (state == RobotState.MAP_CONTROL):
+            Localizer.target_x = Localizer.x
+            Localizer.target_y = Localizer.y
         Robot.state = state
     def turn_off():
         print("Turn off Robot")
