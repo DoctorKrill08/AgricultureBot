@@ -207,16 +207,18 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
             borderWidth: 0
         }}/>
         <div className='map-point' style={{
-            width : String(OBSTACLE_RADIUS) + 'px',
+           /* width : String(OBSTACLE_RADIUS) + 'px',
             height : String(OBSTACLE_RADIUS) + 'px',
             left : String(ex) + 'px',
             top: String(ey) + 'px',
-            backgroundColor: 'orange',
+            backgroundColor: 'pink',
             borderWidth: 0,
             zIndex: 100,
             rotate: String(0) + 'rad'
+            */
         }}/>
-        {vector_to_div(bx,by,ex,ey,'orange')}
+        {//vector_to_div(bx,by,ex,ey,'pink')
+        }
         <div className='map-point' style={{
             width : String(OBSTACLE_RADIUS) + 'px',
             height : String(OBSTACLE_RADIUS) + 'px',

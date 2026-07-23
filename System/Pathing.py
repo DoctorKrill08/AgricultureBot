@@ -14,11 +14,15 @@ def vector_clamp(vx,vy,max):
     return vx,vy
 
 class APF:
-    g_star = 30 #Inches, what is the maximum effective radius of the force
-    kR = 8000 # repulsive force constant
+    g_star = 25 #Inches, what is the maximum effective radius of the force
+    kR = 550 # repulsive force constant
+    max_repulsive = 50
+    repulsive_exponent = 0.5
 
-    kA = 1
-    max_force = 30
+
+    kA = 5
+    attractive_exponent = 0.5
+    max_attractive = 35
 
     stuck_threshold = 1
     def calculate_attractive_vectors(x,y,tx,ty):
@@ -26,9 +30,10 @@ class APF:
         vector_y = 0
         delta_x = tx - x
         delta_y = ty - y
-        force = APF.kA * math.sqrt((delta_x ** 2) + (delta_y ** 2))
-        if force > APF.max_force:
-            force = APF.max_force
+        force = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+        force = APF.kA * math.pow(force,APF.attractive_exponent)
+        if force > APF.max_attractive:
+            force = APF.max_attractive
         angle = math.atan2(delta_y,delta_x)
         vector_x = force * math.cos(angle)
         vector_y = force * math.sin(angle)
@@ -51,14 +56,14 @@ class APF:
             if (g > APF.g_star):
                 continue
             angle = math.atan2(delta_y,delta_x)
-            velocity = APF.kR * (((1 / g) ** 2) - ((1 / APF.g_star) ** 2))
+            velocity = APF.kR * (((1 / g) ** APF.repulsive_exponent) - ((1 / APF.g_star) ** APF.repulsive_exponent))
             vector_x += velocity * -math.cos(angle)
             vector_y += velocity * -math.sin(angle)
             quantity += 1
         if (quantity > 1):
             vector_x /= quantity
             vector_y /= quantity
-        vector_x,vector_y = vector_clamp(vector_x,vector_y,APF.max_force + 5)
+        vector_x,vector_y = vector_clamp(vector_x,vector_y,APF.max_repulsive)
         return vector_x,vector_y
     
     def is_stuck(vector_x,vector_y):
@@ -201,7 +206,7 @@ class Pathing:
     APF = "APF"
     mode = APF
 
-    GOAL_DISTANCE_THRESHOLD = 5
+    GOAL_DISTANCE_THRESHOLD = 10
 
     goal_vector_x = 0
     goal_vector_y = 0

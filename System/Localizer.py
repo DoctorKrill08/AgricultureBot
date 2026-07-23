@@ -43,6 +43,8 @@ class LocalizationKalman():
             if (Camera.on):
                 delta_yaw = LocalizationKalman.gyro_odo_fusion(odo_delta_yaw = delta_yaw,
                                                          gyro_delta_yaw=gyro_delta_yaw)
+
+        Localizer.estimated_rotational_velocity = delta_yaw / delta_time
         
         Localizer.yaw += delta_yaw
         Localizer.yaw = angle_wrap(Localizer.yaw)
@@ -78,8 +80,10 @@ class Localizer():
     target_y = 0
     target_yaw = 0
 
+    estimated_rotational_velocity = 0
+
     def rotating_fast():
-        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 1
+        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 0.5 or abs(Localizer.estimated_rotational_velocity) > 0.5
 
     def start():
         Camera.start()

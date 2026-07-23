@@ -3,8 +3,9 @@ from System.Constants import *
 import pyrplidarsdk
 
 class Lidar:
-    MAX_DISTANCE = 40
-    ANGLE_RANGE = 160 #Degrees
+    MAX_DISTANCE = 25
+    MIN_DISTANCE = 5
+    ANGLE_RANGE = 70 #Degrees
     LIDAR_X = 12
     LIDAR_Y = 0
     port = "COM3"
@@ -94,7 +95,7 @@ class Lidar:
             if (distance > Lidar.MAX_DISTANCE):
                 #print("too far",distance)
                 continue
-            if (distance <= 1):
+            if (distance <= Lidar.MIN_DISTANCE):
                 #print("too close",distance)
                 continue
             if (abs(math.degrees(shortest_angular_distance(angle,prev_angle))) < Lidar.ANGLE_INCREMENT):
