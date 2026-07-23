@@ -12,6 +12,8 @@ def round_nearest(number, base):
     return round(number / base) * base
 def meters_to_inches(meters):
     return meters * 39.3700787402
+def mm_to_inches(mm):
+    return mm / 25.4
 def angle_wrap(angle):
     if (angle > math.pi):
         return angle - (2 * math.pi)

@@ -2,7 +2,7 @@ from enum import Enum
 from System.subsystems import*
 from System.GPS import *
 from timer import *
-from System.Localizer import Localizer,Camera
+from System.Localizer import Localizer,Camera,Lidar
 from System.mapping import Map
 from System.interface_map import *
 from System.Pathing import Pathing
@@ -118,6 +118,7 @@ class Robot:
         Robot.on = False
         Robot.set_state(RobotState.RESTING)
         stop_arduino()
+        Lidar.stop()
         Camera.stop()
     def initiate():
         print("initiate")

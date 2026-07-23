@@ -44,44 +44,21 @@ class Map:
         telemetry += Map.print_nodes(Map.visible_obstacles)
     def clear():
         Map.visible_obstacles = {}
+        Map.nodes = {}
     def point_to_node(x,y):
         return x,y
         x = round_nearest(x,Map.INCHES_PER_NODE)
         y = round_nearest(y,Map.INCHES_PER_NODE)
         return x,y
-    def update(x,y,yaw,camera_array):
+    def update(x,y,yaw,lidar_data):
         Map.clear()
         Map.calculate_visibility(x,y,yaw)
-        for point in camera_array:
+        for point in lidar_data:
             if (point == None):
                 continue
-            horizontal = point[0]
-            forward = point[1]
-            Map.add_obstacle(horizontal,forward,x,y,yaw)
-    def add_obstacle(horizontal,forward,x=0,y=0,yaw=0):
-        if (horizontal == None or forward == None):
-            return
-        d = math.sqrt((horizontal ** 2) + (forward ** 2))
-        d = d + CAMERA_DISTANCE_FROM_ROBOT
-        if d <= CAMERA_DISTANCE_FROM_ROBOT + CAMERA_MIN_DEPTH:
-            #what
-            return
-        if d >= Map.MAX_DISTANCE:
-            return
-        relative_angle = math.atan2(horizontal,forward)
-        if math.degrees(abs(relative_angle)) + 15 > CAMERA_HORIZONTAL_FOV / 2:
-            return
-
-        angle = add_angle(yaw,relative_angle)
-
-        x += d * math.cos(angle)
-        y += d * math.sin(angle)
-        x,y = Map.point_to_node(x,y)
-
-        node = Node(x,y,Node.OBSTACLE,raw_horizontal=horizontal,raw_forward=forward)
-        Map.visible_obstacles[node.id] = node
-        Map.nodes[node.id] = node
-
+            node = Node(point[0],point[1],Node.OBSTACLE)
+            Map.nodes[node.id] = node
+            
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
     def calculate_visibility(bot_x=0,bot_y=0,yaw=0):

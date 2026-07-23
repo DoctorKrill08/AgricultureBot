@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from enum import Enum
 from System.GPS import *
 from System.Camera import Camera,IMU
+from System.Lidar import Lidar
 import numpy as np
 
 from pathlib import Path
@@ -82,6 +83,7 @@ class Localizer():
     def start():
         Camera.start()
         GPS.start()
+        Lidar.start()
         time.sleep(0.5)
         Localizer.timer.reset()
         plt.xlabel('Delta Time')
@@ -97,9 +99,10 @@ class Localizer():
     def run():
         Camera.update()
         GPS.update()
+        Lidar.calculate(Localizer.x,Localizer.y,Localizer.yaw)
         LocalizationKalman.predict()
-        if (not Localizer.rotating_fast() and not Camera.obstructed):
-            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Camera.closest)
+        if (not Localizer.rotating_fast()):
+            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.latest_scan)
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
