@@ -4,14 +4,10 @@ export const Command = Object.freeze({
   ON : "1",
   SET_STATE : "2",
   JOYSTICK : "3",
-  CAM_DRIVE_P : "4",
-  CAM_TURN_P : "5",
-  AUTO_TIME : "9",
   SET_TARGET_POSE : "10",
   SET_TARGET_YAW : "11",
-  SET_DRIVE_P : "12",
-  SET_TURN_P : "13",
-  SET_MIN_DISTANCE : "14",
+  SET_CLEARANCE : "12",
+  SET_ANGLE_PENALTY : "13",
 
 });
 export const RobotState = Object.freeze({

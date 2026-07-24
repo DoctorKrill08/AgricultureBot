@@ -152,36 +152,15 @@ export default function RobotControlPanel() {
               TARGET_YAW:
               <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TARGET_YAW)}/>  
               <br/>
-               --------------
+              -----Dynamic Window Approach------
               <br/>
-              TURN_P:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TURN_P)}/>  
+              Clearance Score:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_CLEARANCE)}/>
               <br/>
-               --------------
+              -----------
               <br/>
-              DIVE_P:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_DRIVE_P)}/>  
-              <br/>
-               --------------
-              <br/>
-              MIN_DISTANCE:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MIN_DISTANCE)}/>  
-              <br/> 
-              --------------
-              <br/>
-              AUTO_TIME:           
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.AUTO_TIME)}
-              />      
-              <br/>
-              -----CAMERA------
-              <br/>
-              CAMERA DRIVE P:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_DRIVE_P)}/>
-              <br/>
-              --------------
-              <br/>
-              CAMERA TURN P:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.CAM_TURN_P)}/>  
+              Angle Penalty:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_ANGLE_PENALTY)}/>
               <br/>
               
                        

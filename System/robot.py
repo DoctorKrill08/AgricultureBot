@@ -54,6 +54,8 @@ class Robot:
         Localizer.target_y= float(y)
         print(x,y)
     def set_state(state):
+        Robot.joy_x = 0
+        Robot.joy_y = 0
         if (Robot.state == state):
             return
         if (state == RobotState.MAP_CONTROL):
@@ -69,13 +71,13 @@ class Robot:
         Camera.stop()
     def initiate():
         print("initiate")
+        Robot.on = True
         Robot.state = RobotState.RESTING
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
         Localizer.start()
         #GPS.connect_gps()
         Arduino.connect_arduino()
-        Robot.on = True
     def status():
         return f"\n---ROBOT---\n"
     def update():
@@ -108,7 +110,7 @@ class Robot:
             ping()
             Robot.ping_stopwatch.go()
         elif (Robot.state == RobotState.AUTONOMOUS):
-            Robot.auto.loop()
+            pass
         elif (Robot.state == RobotState.MAP_CONTROL):
             turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Map.nodes)
             Robot.joy_y = drive

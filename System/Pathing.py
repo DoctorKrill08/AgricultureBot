@@ -24,7 +24,7 @@ class DynamicWindow:
     ANGLE_INCREMENT = 15 #Degrees
     ANGLE_RANGE = 180 #Degrees
 
-    ANGLE_SCORE = 0.1
+    ANGLE_PENALTY = 0.1
     CLEARANCE_SCORE = 0.8
 
     OBSTRUCTION_PENALTY = 100
@@ -118,7 +118,7 @@ class DynamicWindow:
             #greater clearance means greater weighting
             score += clearance * DynamicWindow.CLEARANCE_SCORE
             #greater angle offset, less score
-            score += abs(degree_offset) * -DynamicWindow.ANGLE_SCORE
+            score += abs(degree_offset) * -DynamicWindow.ANGLE_PENALTY
 
             if (score > greatest_score):
                 greatest_score = score

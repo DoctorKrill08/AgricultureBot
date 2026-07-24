@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from System.robot import Robot, RobotState,Localizer,Camera,Drivetrain
+from System.Pathing import DynamicWindow
 from System.interface_map import *
 import asyncio
 
@@ -30,31 +31,22 @@ async def telemetry_task(websocket: WebSocket):
 
 async def command_task(websocket: WebSocket):
     while True:
-
         data = await websocket.receive_json()
         print(data)
         if data[COMMAND] == Command.SET_STATE.value:
             Robot.set_state(RobotState(data[VALUES]))
-        elif data[COMMAND] == Command.CAM_TURN_P.value:
-            Camera.TURN_P = float(data[VALUES])
-        elif data[COMMAND] == Command.CAM_DRIVE_P.value:
-            Camera.DRIVE_P = float(data[VALUES])
         elif data[COMMAND] == Command.OFF.value:
             Robot.turn_off()
         elif data[COMMAND] == Command.ON.value:
             Robot.initiate()
         elif data[COMMAND] == Command.JOYSTICK.value:
             Robot.set_joystick(data[VALUES])
-        elif data[COMMAND] == Command.SET_TARGET_POSE.value:
-            Robot.set_position(data[VALUES])
-        elif data[COMMAND] == Command.SET_DRIVE_P.value:
-            Drivetrain.DRIVE_P = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_TURN_P.value:
-            Drivetrain.TURN_P = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_MIN_DISTANCE.value:
-            Drivetrain.MIN_DISTANCE = float(data[VALUES])
         elif data[COMMAND] == Command.SET_TARGET_YAW.value:
             Localizer.target_yaw = float(data[VALUES])
+        elif data[COMMAND] == Command.SET_CLEARANCE.value:
+            DynamicWindow.CLEARANCE_SCORE = float(data[VALUES])
+        elif data[COMMAND] == Command.SET_ANGLE_PENALTY.value:
+            DynamicWindow.ANGLE_PENALTY = float(data[VALUES])
         
 
 @app.websocket("/ws")
