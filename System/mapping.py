@@ -10,7 +10,7 @@ class Node():
     OBSTACLE = "O"
     SAVED_OBSTACLE = "S"
     EMPTY = "E"
-    DEFAULT_CONFIDENCE = 200
+    DEFAULT_CONFIDENCE = 300
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
         self.y = y
@@ -120,7 +120,7 @@ class Map:
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             #passive confidence decay
             if (node.status == Node.SAVED_OBSTACLE):
-                node.confidence -= 2
+                node.confidence -= 0.01
             if (distance > CAMERA_MAX_DEPTH):
                 node.save_obstacle()
                 continue
@@ -133,7 +133,7 @@ class Map:
                 node.save_obstacle()
                 continue
             if (node.status == Node.SAVED_OBSTACLE):
-                node.confidence -= 8 * max((0.5 / rotational_movement),1)
+                node.confidence -= 0.02 * max((0.5 / rotational_movement),1)
             elif(node.status == Node.OBSTACLE):
                 node.save_obstacle()
         for key,node in delete_list.items():

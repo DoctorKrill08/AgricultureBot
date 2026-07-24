@@ -24,15 +24,19 @@ class DynamicWindow:
     ANGLE_INCREMENT = 15 #Degrees
     ANGLE_RANGE = 180 #Degrees
 
-    ANGLE_PENALTY = 0.1
-    CLEARANCE_SCORE = 0.8
+    ANGLE_PENALTY = 1
+    CLEARANCE_SCORE = 1
+    CHANGE_PENALTY = 10
+    MIN_CHANGE_PENALTY = 5
 
-    OBSTRUCTION_PENALTY = 100
 
-    MIN_CLEARANCE = ROBOT_WIDTH / 2
-    MAX_CLEARANCE = 20
+    OBSTRUCTION_PENALTY = 100000
+
+    MIN_CLEARANCE = ROBOT_WIDTH
+    MAX_CLEARANCE = 8
 
     obstructed = False
+    current_angle = 0
 
     def calculate_clearance(x,y,obstacles):
         obstructed = False
@@ -43,7 +47,7 @@ class DynamicWindow:
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
             if (distance < clearance):
                 clearance = distance
-            if (distance < DynamicWindow.MIN_CLEARANCE):
+            if (distance < DynamicWindow.MIN_CLEARANCE + 5):
                 obstructed = True
             continue
         return obstructed,clearance
@@ -56,13 +60,17 @@ class DynamicWindow:
 
         check_distance = 40
         furthest = 0
-        increment = ROBOT_WIDTH
+        increment = DynamicWindow.MIN_CLEARANCE / 2
         i = 0
         clearance = 100000
         obstructed = False
-        while furthest < check_distance and not obstructed:
-            i += 1
+
+        complete = False
+        while not complete and not obstructed:
             furthest = i * increment
+            i += 1
+            if (furthest > check_distance):
+                furthest = check_distance
             x = furthest * math.cos(angle)
             y = furthest * math.sin(angle)
             obstructed,this_clearance = DynamicWindow.calculate_clearance(x,y,obstacles)
@@ -70,6 +78,8 @@ class DynamicWindow:
                 clearance = this_clearance
             if (obstructed):
                 break
+            if furthest == check_distance:
+                complete = True
         return obstructed,clearance
     
     
@@ -80,10 +90,10 @@ class DynamicWindow:
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
 
         DynamicWindow.obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,tx,ty,obstacles)
-        
+        force = max(distance,DynamicWindow.VECTOR_STRENGTH)
         if (not DynamicWindow.obstructed):
-            force = max(distance,DynamicWindow.VECTOR_STRENGTH)
-
+            best_path_clearance =  -10000
+            DynamicWindow.current_angle = 0
             goal_vector_x = force * math.cos(target_yaw)
             goal_vector_y = force * math.sin(target_yaw)
             return goal_vector_x,goal_vector_y
@@ -94,8 +104,8 @@ class DynamicWindow:
         greatest_score = -10000
         best_path_clearance = 0
 
-        for degree_offset in range(-(DynamicWindow.ANGLE_RANGE / 2),(DynamicWindow.ANGLE_RANGE / 2),DynamicWindow.ANGLE_INCREMENT):
-            angle = angle_wrap(math.radians(degree_offset) + target_yaw)
+        for degree_offset in range(-int(DynamicWindow.ANGLE_RANGE / 2),int(DynamicWindow.ANGLE_RANGE / 2),DynamicWindow.ANGLE_INCREMENT):
+            angle = add_angle(math.radians(degree_offset),target_yaw)
             vector_x = force * math.cos(angle)
             vector_y = force * math.sin(angle)
 
@@ -120,12 +130,17 @@ class DynamicWindow:
             #greater angle offset, less score
             score += abs(degree_offset) * -DynamicWindow.ANGLE_PENALTY
 
+            if (not degree_offset == DynamicWindow.current_angle):
+                score -= DynamicWindow.MIN_CHANGE_PENALTY
+                number_of_changes = abs(DynamicWindow.current_angle - degree_offset)
+                score -= DynamicWindow.CHANGE_PENALTY * number_of_changes
+
             if (score > greatest_score):
                 greatest_score = score
                 goal_vector_x = vector_x
                 goal_vector_y = vector_y
                 best_path_clearance = max(min(clearance,0),DynamicWindow.VECTOR_STRENGTH)
-
+                DynamicWindow.current_angle = degree_offset
         return vector_clamp(goal_vector_x,goal_vector_y,best_path_clearance)
 
 class PathingStatus():
@@ -151,7 +166,7 @@ class Pathing:
         Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
         print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
 
-        if (abs(Pathing.vector_x) < 1 or abs(Pathing.vector_y) < 1):
+        if (abs(Pathing.vector_x) < 1 and abs(Pathing.vector_y) < 1):
             return 0,0,PathingStatus.STUCK
         
         turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
