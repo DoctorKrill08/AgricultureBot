@@ -70,7 +70,7 @@ class DynamicWindow:
                 clearance = this_clearance
             if (obstructed):
                 break
-        return obstructed
+        return obstructed,clearance
     
     
     def calculate(x,y,yaw,tx,ty,obstacles):
@@ -144,17 +144,15 @@ class Pathing:
         return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}'
     
     def calculate(x,y,yaw,tx,ty,obstacles):
-        if (Pathing.mode == Pathing.APF):
-            distance = math.sqrt(((tx - x) ** 2) + ((ty - y) ** 2))
-            if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
-                return 0,0,PathingStatus.GOAL_REACHED
-            
-            Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
-            print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
+        distance = math.sqrt(((tx - x) ** 2) + ((ty - y) ** 2))
+        if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
+            return 0,0,PathingStatus.GOAL_REACHED
+        
+        Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
+        print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
 
-            if (abs(Pathing.vector_x) < 1 or abs(Pathing.vector_y) < 1):
-                return 0,0,PathingStatus.STUCK
-            
-            turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
-            return turn,drive,PathingStatus.DRIVING
-        return 0,0,PathingStatus.IDLE
+        if (abs(Pathing.vector_x) < 1 or abs(Pathing.vector_y) < 1):
+            return 0,0,PathingStatus.STUCK
+        
+        turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
+        return turn,drive,PathingStatus.DRIVING

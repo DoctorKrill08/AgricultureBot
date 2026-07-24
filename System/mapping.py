@@ -10,7 +10,7 @@ class Node():
     OBSTACLE = "O"
     SAVED_OBSTACLE = "S"
     EMPTY = "E"
-    DEFAULT_CONFIDENCE = 100
+    DEFAULT_CONFIDENCE = 200
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
         self.y = y
@@ -68,11 +68,11 @@ class Map:
 
         x += d * math.cos(angle)
         y += d * math.sin(angle)
-        x,y = Map.point_to_node(x,y)
+        rounded_x,rounded_y = Map.point_to_node(x,y)
 
-        node = Node(x,y,Node.OBSTACLE,raw_horizontal=horizontal,raw_forward=forward)
-        Map.visible_obstacles[node.id] = node
+        node = Node(rounded_x,rounded_y,Node.OBSTACLE,raw_x = x, raw_y = y)
         Map.nodes[node.id] = node
+
     def update(x,y,yaw,lidar_data,camera_data = None,rotational_movement = 0):
         Map.calculate_visibility(x,y,yaw,rotational_movement)
         for point in lidar_data:
@@ -121,10 +121,10 @@ class Map:
             #passive confidence decay
             if (node.status == Node.SAVED_OBSTACLE):
                 node.confidence -= 2
-            if (distance > Lidar.MAX_DISTANCE):
+            if (distance > CAMERA_MAX_DEPTH):
                 node.save_obstacle()
                 continue
-            if (distance < Lidar.MIN_DISTANCE + Lidar.LIDAR_X):
+            if (distance < CAMERA_MIN_DEPTH + CAMERA_DISTANCE_FROM_ROBOT):
                 node.save_obstacle()
                 continue
             angle = math.atan2(deltaY,deltaX)
@@ -133,7 +133,9 @@ class Map:
                 node.save_obstacle()
                 continue
             if (node.status == Node.SAVED_OBSTACLE):
-                node.confidence -= 10 * max((0.5 / rotational_movement),1)
+                node.confidence -= 8 * max((0.5 / rotational_movement),1)
+            elif(node.status == Node.OBSTACLE):
+                node.save_obstacle()
         for key,node in delete_list.items():
             del Map.nodes[key]
 

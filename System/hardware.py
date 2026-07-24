@@ -32,7 +32,7 @@ class Arduino:
                 Arduino.connected = False
         time.sleep(1.5)
         if (Arduino.connected):
-            send_command(f"{Device.Start.value},0,0",override=True)
+            send_command(f"{Device.Ping.value},0,0",override=True)
 def send_command(command,read = False,override = False):
     if (not Arduino.connected and not override):
         print("Arduino not connected")
@@ -67,11 +67,11 @@ class Servo:
         self.initiated = True
     def set(self,target):
         self.target = target
-        send_command(f'{self.id},{Request.SET.value},{target}')
+        send_command(f'{self.id},{target}')
     def get(self):
-        send_command(f'{self.id},{Request.GET.value},{"0"}')
+        send_command(f'{self.id},{"0"}')
     def turn_off(self):
-        send_command(f'{self.id},{Request.OFF.value},{"0"}')
+        send_command(f'{self.id},{"0"}')
 class Motor:
     TYPE = HardwareType.MOTOR
     target = 0
@@ -103,7 +103,7 @@ class Motor:
         target = int(target)
         if (target > MOTOR_RANGE):
             target = MOTOR_RANGE
-        send_command(f'{self.id},{Request.SET.value},{target}')
+        send_command(f'{self.id},{target}')
     def stop(self):
         self.target = 0
-        send_command(f'{self.id},{Request.OFF.value},{"0"}')
+        send_command(f'{self.id},{"0"}')

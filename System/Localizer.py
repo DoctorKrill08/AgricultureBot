@@ -60,7 +60,7 @@ class LocalizationKalman():
         return odo_delta_yaw
 class Localizer():
     def get_raw_odo():
-        results = send_command(f'{Device.Odometry.value},{Request.GET.value},{"0"}',read=True)
+        results = send_command(f'{Device.Odometry.value},{"0"}',read=True)
         if (results == None):
             return 0,0,0
         Label,_,results = results.partition(",")
@@ -110,7 +110,7 @@ class Localizer():
         Lidar.calculate(Localizer.x,Localizer.y,Localizer.yaw)
         LocalizationKalman.predict()
         if (not Localizer.rotating_fast() and not Localizer.moving_fast()):
-            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.obstacles)
+            Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.obstacles,Camera.closest,Localizer.estimated_rotational_velocity)
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \

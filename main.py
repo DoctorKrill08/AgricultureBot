@@ -41,6 +41,8 @@ async def command_task(websocket: WebSocket):
             Robot.initiate()
         elif data[COMMAND] == Command.JOYSTICK.value:
             Robot.set_joystick(data[VALUES])
+        elif data[COMMAND] == Command.SET_TARGET_POSE.value:
+            Robot.set_position(data[VALUES])
         elif data[COMMAND] == Command.SET_TARGET_YAW.value:
             Localizer.target_yaw = float(data[VALUES])
         elif data[COMMAND] == Command.SET_CLEARANCE.value:

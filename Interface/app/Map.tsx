@@ -2,11 +2,11 @@
 import './globals.css'
 import './interface_map'
 import { INCHES_PER_NODE } from './interface_map';
-import React, { useRef, useState } from 'react';
+//import React, { useRef, useState } from 'react';
 
-const [xOffset, setXOffset] = useState(0);
+/*const [xOffset, setXOffset] = useState(0);
 const [yOffset, setYOffset] = useState(0);
-const [zoom, setZoom] = useState(1);
+const [zoom, setZoom] = useState(1);*/
 
 
 const PIXELS_PER_INCH = 5
@@ -17,7 +17,7 @@ const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE)
 
 
 function realToMap(x : number,y : number,yaw : number, radius : number){
-  let pixelsPerInch = PIXELS_PER_INCH * zoom
+  let pixelsPerInch = PIXELS_PER_INCH
   yaw *= -1
   x *= pixelsPerInch
   y *= -pixelsPerInch

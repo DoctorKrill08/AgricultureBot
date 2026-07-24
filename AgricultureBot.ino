@@ -82,8 +82,8 @@ Motor getMotor(int id){
 };
 
 void stop(){
-    int result = motorCommand(driveLeftMotor.driverPort,driveLeftMotor.pwmPort,OFF,0);
-    result = motorCommand(driveRightMotor.driverPort,driveRightMotor.pwmPort,OFF,0);
+    motorCommand(driveLeftMotor,0);
+    motorCommand(driveRightMotor,0);
 }
 
 void turnOff(){
@@ -113,7 +113,6 @@ unsigned long startTime; // Stores the starting time
 
 void setup() {
   Serial.begin(115200); 
-  clawServo.attach(clawPort); 
   pinMode(DriveLeftMotorDriverPort, OUTPUT);
   pinMode(DriveLeftMotorPWMPort, OUTPUT);
 
@@ -134,7 +133,6 @@ void setup() {
 
 
 const long ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS = 1500;
-bool stopped = false;
 
 void loop() {
   long elapsedTime = millis() - startTime; 
@@ -153,17 +151,14 @@ void loop() {
       strConnected = "CONNECTED";
     }
 
-    if (cmd.id == Start){
-      odometryClear();
-      connected = true;
-      startTime = millis() + 5000;
-      ledStayOn();
-      Serial.println("ARDUINO RECIEVED START");
-      return;
-    }
-
     if (cmd.id >= 0){
       startTime = millis();
+      if (!connected){
+        odometryClear();
+        startTime = millis() + 5000;
+        ledStayOn();
+        connected = true;
+      }
     }
     
     if (cmd.id == Ping){
@@ -193,11 +188,9 @@ void loop() {
       return;
     }
 
-
     char type = getType(cmd.id);
     if (type == MOTOR_VALUE){
-      Motor motor = getMotor(cmd.id);
-      int result = motorCommand(motor,cmd.value);
+      motorCommand(getMotor(cmd.id),cmd.value);
     }
   }
 }

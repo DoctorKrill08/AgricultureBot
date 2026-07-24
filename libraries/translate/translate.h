@@ -45,7 +45,6 @@ static const char SERVO_VALUE = 'S';
 static const char MOTOR_VALUE = 'M';
 static const int BAUD_RATE = 115200;
 enum Device {
-    Start = -2,
     Stop = -1,
     Ping = 0,
     DriveLeft = 1,

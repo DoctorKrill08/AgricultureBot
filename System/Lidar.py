@@ -75,7 +75,9 @@ class Lidar:
     def calculate(bot_x,bot_y,yaw):
         prev_angle = 0
         if (not isinstance(Lidar.driver,pyrplidarsdk.RplidarDriver)):
-            return      
+            return 
+        if not Lidar.connected:
+            return     
         scan_data = Lidar.driver.get_scan_data()
         if (not scan_data):
             return
