@@ -10,7 +10,7 @@ class Node():
     OBSTACLE = "O"
     SAVED_OBSTACLE = "S"
     EMPTY = "E"
-    FORGET_TIME = 60
+    DEFAULT_CONFIDENCE = 100
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
         self.y = y
@@ -18,16 +18,19 @@ class Node():
         self.raw_x = raw_x
         self.raw_y = raw_y
         self.id = Node.generate_id(x,y)
-        self.timer = Timer()
+        self.confidence = Node.DEFAULT_CONFIDENCE
     def generate_id(x,y):
         return str(x) + "," + str(y)
     def to_string(self):
         return self.id + "," + self.status
     def save_obstacle(self):
-        self.timer.reset()
+        if (self.status == Node.SAVED_OBSTACLE):
+            return
+        self.confidence = Node.DEFAULT_CONFIDENCE
         self.status = Node.SAVED_OBSTACLE
     def is_obstacle(self):
         return self.status == Node.OBSTACLE or self.status == Node.SAVED_OBSTACLE
+    
 
 class Map:
     MAX_DISTANCE = 40 #Inches
@@ -47,8 +50,8 @@ class Map:
         x = round_nearest(x,INCHES_PER_NODE)
         y = round_nearest(y,INCHES_PER_NODE)
         return x,y
-    def update(x,y,yaw,lidar_data):
-        Map.calculate_visibility(x,y,yaw)
+    def update(x,y,yaw,lidar_data,rotational_movement = 0):
+        Map.calculate_visibility(x,y,yaw,rotational_movement)
         for point in lidar_data:
             if (point == None):
                 continue
@@ -65,7 +68,7 @@ class Map:
             
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
-    def calculate_visibility(bot_x=0,bot_y=0,yaw=0):
+    def calculate_visibility(bot_x=0,bot_y=0,yaw=0,rotational_movement = 0):
         if len(Map.nodes) <= 0:
             return
         delete_list = {}
@@ -73,7 +76,7 @@ class Map:
             if (not isinstance(node,Node)):
                 delete_list[key] = node
                 continue
-            if (node.timer.time_passed() > Node.FORGET_TIME):
+            if (node.confidence < 0):
                 delete_list[key] = node
                 continue
             if node.status == Node.EMPTY:
@@ -86,8 +89,11 @@ class Map:
             deltaX = x - bot_x
             deltaY = y - bot_y
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
+            #passive confidence decay
+            if (node.status == Node.SAVED_OBSTACLE):
+                node.confidence -= 2
             if (distance > Lidar.MAX_DISTANCE):
-                delete_list[key] = node
+                node.save_obstacle()
                 continue
             if (distance < Lidar.MIN_DISTANCE + Lidar.LIDAR_X):
                 node.save_obstacle()
@@ -97,13 +103,8 @@ class Map:
             if math.degrees(delta_yaw) > (Lidar.ANGLE_RANGE / 2):
                 node.save_obstacle()
                 continue
-
-            #if moving to much save obstacles and continue
-            #All obstacles beyond this are "theoretically visible"
-            #The way we can clear obstacles that are theoretically visible is by seeing if the obstacle is farther than it should be
-            #Otherwise, like if the obstacle is closer or not visible, it might or may not be there, so we keep it on the map
-            
-            delete_list[key] = node
+            if (node.status == Node.SAVED_OBSTACLE):
+                node.confidence -= 10 * max((0.5 / rotational_movement),1)
         for key,node in delete_list.items():
             del Map.nodes[key]
 
