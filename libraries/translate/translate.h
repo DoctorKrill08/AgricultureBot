@@ -15,9 +15,6 @@ char getType(int key){
         case 2:
          return 'M';
 
-        case 3:
-         return 'B';
-
         case 4:
          return 'M';
 
@@ -46,20 +43,13 @@ char getType(int key){
 #endif
 static const char SERVO_VALUE = 'S';
 static const char MOTOR_VALUE = 'M';
-static const char BATTERY_VALUE = 'B';
 static const int BAUD_RATE = 115200;
-enum Request {
-    OFF = 0,
-    SET = 1,
-    GET = 2,
-};
 enum Device {
     Start = -2,
     Stop = -1,
     Ping = 0,
     DriveLeft = 1,
     DriveRight = 2,
-    Battery = 3,
     Turret = 4,
     ShoulderLeft = 5,
     ShoulderRight = 6,

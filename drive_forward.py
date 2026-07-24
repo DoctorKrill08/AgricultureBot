@@ -9,6 +9,6 @@ if __name__ == "__main__":
     time.sleep(.1)
     time.sleep(1)
     while (timer.time_passed() < RUN_TIME):
-       # Robot.joy_y = 0.35
+        Robot.joy_y = 0.35
         Robot.update()
     Robot.turn_off()

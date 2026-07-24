@@ -2,7 +2,11 @@
 import './globals.css'
 import './interface_map'
 import { INCHES_PER_NODE } from './interface_map';
+import React, { useRef, useState } from 'react';
 
+const [xOffset, setXOffset] = useState(0);
+const [yOffset, setYOffset] = useState(0);
+const [zoom, setZoom] = useState(1);
 
 
 const PIXELS_PER_INCH = 5
@@ -11,10 +15,12 @@ const HEIGHT = 800
 const POINT_RADIUS = PIXELS_PER_INCH * 10
 const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE)
 
+
 function realToMap(x : number,y : number,yaw : number, radius : number){
+  let pixelsPerInch = PIXELS_PER_INCH * zoom
   yaw *= -1
-  x *= PIXELS_PER_INCH
-  y *= -PIXELS_PER_INCH
+  x *= pixelsPerInch
+  y *= -pixelsPerInch
 
   x = (WIDTH / 2) + x
   y = (HEIGHT / 2) + y
@@ -98,9 +104,6 @@ function vector_to_div(bx: number, by: number, vx : number,vy : number, color : 
 }
 
 export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_data, onMove}: any) { 
- 
-
-
   vx += bx
   vy += by
   var netPose = realToMap(vx,vy,0,OBSTACLE_RADIUS)

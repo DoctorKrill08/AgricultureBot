@@ -22,47 +22,30 @@ Command parseCommand(const char* input)
 {
     Command cmd;
 
-    sscanf(input, "%d,%d,%d",
+    sscanf(input, "%d,%d",
            &cmd.id,
-           &cmd.request,
            &cmd.value);
 
     return cmd;
 }
 
-int servoCommand(Servo servo, int request, int value){
-  if (request == OFF){
-    servo.detach();
-    return 0;
-  }else if (request == SET){
-    servo.write(value);
-  }else if (request == GET){
-    return servo.read();
-  }
-  return -1;
-}
-int motorCommand(int driverPort, int pwmPort,  int request, int value){
+void motorCommand(Motor motor, int value){
   //Turn off
-  if (request == OFF){
-    digitalWrite(driverPort, LOW);
-    analogWrite(pwmPort, 0);
-    return 0;
+  if (value == 0){
+    digitalWrite(motor.driverPort, LOW);
+    analogWrite(motor.pwmPort, 0);
+    return;
   }
   //set target
-  if (request == SET){
-    if (value < 0){
-      digitalWrite(driverPort, LOW);
-      value = value * -1;
-    }else{
-      digitalWrite(driverPort, HIGH);
-    }
-    analogWrite(pwmPort, value);
-    return 0;
+  if (value < 0){
+    digitalWrite(motor.driverPort, LOW);
+    value = value * -1;
+  }else{
+    digitalWrite(motor.driverPort, HIGH);
   }
-  return -1;
+  analogWrite(motor.pwmPort, value);
+  return;
 }
-
-const int clawPort = 5;
 
 const int DriveLeftMotorDriverPort = 12;
 const int DriveLeftMotorPWMPort = 4;
@@ -81,18 +64,10 @@ volatile long DriveLeftEncoderPos = 0;
 
 bool connected = false;
 
-Servo clawServo;
 
 Motor driveLeftMotor = {DriveLeftMotorDriverPort,DriveLeftMotorPWMPort};
 Motor driveRightMotor = {DriveRightMotorDriverPort,DriveRightMotorPWMPort};
 
-
-Servo getServo(int id){
-  if (id == Claw){
-    return clawServo;
-  }
-  return;
-}
 
 Motor getMotor(int id){
   switch (id)
@@ -220,12 +195,9 @@ void loop() {
 
 
     char type = getType(cmd.id);
-    if (type == SERVO_VALUE){
-      Servo servo = getServo(cmd.id);
-      int result = servoCommand(servo,cmd.request,cmd.value);
-    }else if (type == MOTOR_VALUE){
+    if (type == MOTOR_VALUE){
       Motor motor = getMotor(cmd.id);
-      int result = motorCommand(motor.driverPort,motor.pwmPort,cmd.request,cmd.value);
+      int result = motorCommand(motor,cmd.value);
     }
   }
 }

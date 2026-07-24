@@ -27,6 +27,8 @@ class DynamicWindow:
     ANGLE_SCORE = 0.1
     CLEARANCE_SCORE = 0.8
 
+    OBSTRUCTION_PENALTY = 100
+
     MIN_CLEARANCE = ROBOT_WIDTH / 2
     MAX_CLEARANCE = 20
 
@@ -101,9 +103,12 @@ class DynamicWindow:
             target_y = vector_y + y
 
             obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_x,target_y,obstacles)
+            score = 0
             #obstructed penalty
             if (obstructed):
                 clearance = 0
+                score -= DynamicWindow.OBSTRUCTION_PENALTY
+
 
             #Theoretically should not be negative unless path is obstructed
             clearance -= DynamicWindow.MIN_DISTANCE
@@ -111,7 +116,7 @@ class DynamicWindow:
             clearance = max(clearance,DynamicWindow.MAX_CLEARANCE)
 
             #greater clearance means greater weighting
-            score = clearance * DynamicWindow.CLEARANCE_SCORE
+            score += clearance * DynamicWindow.CLEARANCE_SCORE
             #greater angle offset, less score
             score += abs(degree_offset) * -DynamicWindow.ANGLE_SCORE
 

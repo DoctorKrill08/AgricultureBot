@@ -12,7 +12,6 @@ class Device(Enum):
     #Specific devices -> 1 and up
     DriveLeft = '1'
     DriveRight = '2'
-    Battery = '3'
     Turret = '4'
     ShoulderLeft = '5'
     ShoulderRight = '6'
@@ -25,18 +24,12 @@ class Device(Enum):
 class HardwareType(Enum):
     SERVO = 'S'
     MOTOR = 'M'
-    BATTERY = 'B'
-class Request(Enum):
-    OFF = "0"
-    SET = "1"
-    GET = "2"
 
 BAUD_RATE = 115200
 
 hardware_type_map = {}
 hardware_type_map[Device.DriveLeft.value] = HardwareType.MOTOR.value
 hardware_type_map[Device.DriveRight.value] = HardwareType.MOTOR.value
-hardware_type_map[Device.Battery.value] = HardwareType.BATTERY.value
 hardware_type_map[Device.Turret.value] = HardwareType.MOTOR.value
 hardware_type_map[Device.ShoulderLeft.value] = HardwareType.MOTOR.value
 hardware_type_map[Device.ShoulderRight.value] = HardwareType.MOTOR.value
@@ -75,16 +68,10 @@ char getType(int key){
 
     header_content += f"\nstatic const char SERVO_VALUE = '{HardwareType.SERVO.value}';"
     header_content += f"\nstatic const char MOTOR_VALUE = '{HardwareType.MOTOR.value}';"
-    header_content += f"\nstatic const char BATTERY_VALUE = '{HardwareType.BATTERY.value}';"
     header_content += f"\nstatic const int BAUD_RATE = {BAUD_RATE};"
 
     #make a struct request -> equivalent of that enum
-    header_content += "\nenum Request {"
     command_list.clear()
-    for key,item in Request.__members__.items():
-        command_list.append(f"\n    {key} = {item.value},")
-    header_content += "".join(command_list)
-    header_content += "\n};"
 
     #make a struct Device -> equivalent of that enum
     header_content += "\nenum Device {"
