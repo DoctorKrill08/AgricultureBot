@@ -97,24 +97,9 @@ function vector_to_div(bx: number, by: number, vx : number,vy : number, color : 
 
 }
 
-export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0,oy=0,ex=0,ey=0,vx=0,vy=0, map_data, onMove}: any) { 
-  dx += bx
-  dy += by
-  var drivePose = realToMap(dx,dy,0,OBSTACLE_RADIUS)
-  dx = drivePose[0]
-  dy = drivePose[1]
+export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_data, onMove}: any) { 
+ 
 
-  ox += bx
-  oy += by
-  var obstaclePose = realToMap(ox,oy,0,OBSTACLE_RADIUS)
-  ox = obstaclePose[0]
-  oy = obstaclePose[1]
-
-  ex += bx
-  ey += by
-  var edgePose = realToMap(ex,ey,0,OBSTACLE_RADIUS)
-  ex = edgePose[0]
-  ey = edgePose[1]
 
   vx += bx
   vy += by
@@ -208,42 +193,6 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,dx = 0,dy =0,ox=0
             rotate: String(tYaw) + 'rad',
             borderWidth: 0
         }}/>
-        <div className='map-point' style={{
-            width : String(OBSTACLE_RADIUS) + 'px',
-            height : String(OBSTACLE_RADIUS) + 'px',
-            left : String(ex) + 'px',
-            top: String(ey) + 'px',
-            backgroundColor: 'pink',
-            borderWidth: 0,
-            zIndex: 100,
-            rotate: String(0) + 'rad'
-            
-        }}/>
-        {vector_to_div(bx,by,ex,ey,'pink')
-        }
-        <div className='map-point' style={{
-            width : String(OBSTACLE_RADIUS) + 'px',
-            height : String(OBSTACLE_RADIUS) + 'px',
-            left : String(dx) + 'px',
-            top: String(dy) + 'px',
-            backgroundColor: 'green',
-            borderWidth: 0,
-            zIndex: 100,
-            rotate: String(0) + 'rad'
-        }}/>
-        {vector_to_div(bx,by,dx,dy,'green')}
-
-        <div className='map-point' style={{
-            width : String(OBSTACLE_RADIUS) + 'px',
-            height : String(OBSTACLE_RADIUS) + 'px',
-            left : String(ox) + 'px',
-            top: String(oy) + 'px',
-            backgroundColor: 'red',
-            borderWidth: 0,
-            zIndex: 100,
-            rotate: String(0) + 'rad'
-        }}/>
-        {vector_to_div(bx,by,ox,oy,'red')}
 
         <div className='map-point' style={{
             width : String(OBSTACLE_RADIUS) + 'px',
