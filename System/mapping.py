@@ -3,13 +3,14 @@ import math
 from enum import Enum
 from System.Constants import *
 from System.Lidar import *
-from System.interface_map import INCHES_PER_NODE
+from System.interface_map import INCHES_PER_NODE,MapKey
 from timer import *
 
+EMPTY = MapKey.EMPTY.value
+OBSTACLE = MapKey.OBSTACLE.value
+SAVED_OBSTACLE = MapKey.SAVED_OBSTACLE.value
+
 class Node():
-    OBSTACLE = "O"
-    SAVED_OBSTACLE = "S"
-    EMPTY = "E"
     DEFAULT_CONFIDENCE = 300
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
@@ -24,12 +25,12 @@ class Node():
     def to_string(self):
         return self.id + "," + self.status
     def save_obstacle(self):
-        if (self.status == Node.SAVED_OBSTACLE):
+        if (self.status == SAVED_OBSTACLE):
             return
         self.confidence = Node.DEFAULT_CONFIDENCE
-        self.status = Node.SAVED_OBSTACLE
+        self.status = SAVED_OBSTACLE
     def is_obstacle(self):
-        return self.status == Node.OBSTACLE or self.status == Node.SAVED_OBSTACLE
+        return self.status == OBSTACLE or self.status == SAVED_OBSTACLE
     
 
 class Map:
@@ -70,7 +71,7 @@ class Map:
         y += d * math.sin(angle)
         rounded_x,rounded_y = Map.point_to_node(x,y)
 
-        node = Node(rounded_x,rounded_y,Node.OBSTACLE,raw_x = x, raw_y = y)
+        node = Node(rounded_x,rounded_y,OBSTACLE,raw_x = x, raw_y = y)
         Map.nodes[node.id] = node
 
     def update(x,y,yaw,lidar_data,camera_data = None,rotational_movement = 0):
@@ -84,9 +85,9 @@ class Map:
             if id in Map.nodes:
                 node = Map.nodes[id]
                 if (isinstance(node,Node)):
-                    if (node.status == Node.OBSTACLE):
+                    if (node.status == OBSTACLE):
                         continue
-            node = Node(x,y,Node.OBSTACLE,raw_x=point[0],raw_y=point[1])
+            node = Node(x,y,OBSTACLE,raw_x=point[0],raw_y=point[1])
             Map.nodes[node.id] = node
         for point in camera_data:
             if (point == None):
@@ -119,7 +120,7 @@ class Map:
             deltaY = y - bot_y
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             #passive confidence decay
-            if (node.status == Node.SAVED_OBSTACLE):
+            if (node.status == SAVED_OBSTACLE):
                 node.confidence -= 0.01
             if (distance > CAMERA_MAX_DEPTH):
                 node.save_obstacle()
@@ -132,9 +133,9 @@ class Map:
             if math.degrees(delta_yaw) > (Lidar.ANGLE_RANGE / 2):
                 node.save_obstacle()
                 continue
-            if (node.status == Node.SAVED_OBSTACLE):
+            if (node.status == SAVED_OBSTACLE):
                 node.confidence -= 0.02 * max((0.5 / rotational_movement),1)
-            elif(node.status == Node.OBSTACLE):
+            elif(node.status == OBSTACLE):
                 node.save_obstacle()
         for key,node in delete_list.items():
             del Map.nodes[key]

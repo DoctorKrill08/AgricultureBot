@@ -53,12 +53,15 @@ class Drivetrain:
         Drivetrain.right_motor.set((drive - turn))
 
         Drivetrain.timer.reset()
+
+    def calculate_turn(delta_yaw):
+        return Drivetrain.TURN_P * delta_yaw
     
     def vector_to_drive(vector_x,vector_y,yaw):
         distance = math.sqrt((vector_x ** 2) + (vector_y  ** 2))
         target_yaw = math.atan2(vector_y,vector_x)
         delta_yaw = shortest_angular_distance(yaw,target_yaw)
-        target_turn = Drivetrain.TURN_P * delta_yaw
+        target_turn = Drivetrain.calculate_turn(delta_yaw)
         target_drive = Drivetrain.DRIVE_P * distance * math.cos(delta_yaw)
         if (target_drive < 0):
             target_drive = 0

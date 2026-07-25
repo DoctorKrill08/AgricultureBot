@@ -41,10 +41,8 @@ async def command_task(websocket: WebSocket):
             Robot.initiate()
         elif data[COMMAND] == Command.JOYSTICK.value:
             Robot.set_joystick(data[VALUES])
-        elif data[COMMAND] == Command.SET_TARGET_POSE.value:
-            Robot.set_position(data[VALUES])
-        elif data[COMMAND] == Command.SET_TARGET_YAW.value:
-            Localizer.target_yaw = float(data[VALUES])
+        elif data[COMMAND] == Command.ADD_PATH.value or data[COMMAND] == Command.DELETE_PATH.value or data[COMMAND] == Command.DELETE_ALL_PATHS.value:
+            Robot.modify_path(data[COMMAND],data[VALUES])
         elif data[COMMAND] == Command.SET_CLEARANCE.value:
             DynamicWindow.CLEARANCE_SCORE = float(data[VALUES])
         elif data[COMMAND] == Command.SET_ANGLE_PENALTY.value:

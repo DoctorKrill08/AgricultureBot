@@ -3,27 +3,25 @@ import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
 import Compass from './Compass'
-import Map from './Map'
+import Mapping, { DELETE_ALL_PATHS, DELETE_PATH } from './Mapping'
 import './interface_map'
 import { COMMAND,VALUES, Command, RobotState ,Telemetry} from "./interface_map";
+import { ADD_PATH } from "./Mapping";
 
 
 
 export default function RobotControlPanel() {
   const [telemetry, setTelemetry] = useState<Telemetry>({
     mode: "RESTING",
-    battery: 0,
     x: 0,
     y: 0,
-    tx: 0,
-    ty: 0,
     vector_x: 0,
     vector_y: 0,
-    target_yaw: 0,
     heading: 0,
     arduino_connected: false,
     gps_connected: false,
-    map: "N/A",
+    obstacles: "N/A",
+    paths: "N/A",
     status: "Disconnected",
   });
 
@@ -47,7 +45,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.54.132.23:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.53:8000/ws");
 
     socketRef.current = socket;
 
@@ -70,18 +68,15 @@ export default function RobotControlPanel() {
       if (data[COMMAND] === Command.TELEMETRY) {
         setTelemetry({
           mode: data.mode,
-          battery: data.battery,
           x: data.x,
           y: data.y,
-          tx: data.tx,
-          ty: data.ty,
           vector_x: data.vector_x,
           vector_y: data.vector_y,
-          target_yaw: data.target_yaw,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
           gps_connected: data.gps_connected,
-          map: data.map,
+          obstacles: data.obstacles,
+          paths : data.paths,
           status: data.status,
         });
       }
@@ -111,9 +106,18 @@ export default function RobotControlPanel() {
     sendCommand(Command.JOYSTICK,`${x},${y}`)
   };
 
-  const handleMapCommand = (x: number, y: number) => {
-    console.log("MAP:", x, y);
-    sendCommand(Command.SET_TARGET_POSE,`${x},${y}`)
+  const handleMapCommand = (e : any,x: number, y: number, yaw : number = 0, command: string, isButton : boolean = false) => {
+    if (e.target != e.currentTarget && !isButton){
+      return
+    }
+    console.log("MAP:", x, y,yaw);
+    if (command == ADD_PATH){
+      sendCommand(command,`${x},${y},${yaw}`)
+    }else if (command == DELETE_ALL_PATHS){
+      sendCommand(command,'N/A')
+    }else if (command == DELETE_PATH){
+      sendCommand(command,String(x))
+    }
   };
 
 
@@ -149,9 +153,6 @@ export default function RobotControlPanel() {
               <br/> 
               ------ROBOT-------
               <br/>
-              TARGET_YAW:
-              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_TARGET_YAW)}/>  
-              <br/>
               -----Dynamic Window Approach------
               <br/>
               Clearance Score:
@@ -168,9 +169,10 @@ export default function RobotControlPanel() {
 
             <Joystick onMove={handleJoystickUpdate}/>
             <Compass  yaw= {telemetry.heading}/>
-            <Map bx = {telemetry.x} by = {telemetry.y} tx = {telemetry.tx} ty = {telemetry.ty}  bYaw = {telemetry.heading} tYaw = {telemetry.target_yaw} 
+            <Mapping bx = {telemetry.x} by = {telemetry.y} bYaw = {telemetry.heading}
             vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
-            map_data = {telemetry.map} onMove = {handleMapCommand}/>
+            mapData = {telemetry.obstacles} mapCommand = {handleMapCommand}
+            pathData = {telemetry.paths}/>
 
           </div>
           {/* Telemetry Section */}
@@ -197,10 +199,6 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>Battery:</strong> {telemetry.battery}
-            </div>
-
-            <div>
               <strong>X:</strong> {telemetry.x}
             </div>
 
@@ -213,19 +211,6 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>TX:</strong> {telemetry.tx}
-            </div>
-
-            <div>
-              <strong>TY:</strong> {telemetry.ty}
-            </div>
-            
-            <div>
-              <strong>Target Yaw:</strong> {telemetry.target_yaw}
-            </div>
-
-
-            <div>
               <strong>Net Vector X:</strong> {telemetry.vector_x}
             </div>
 
@@ -234,11 +219,17 @@ export default function RobotControlPanel() {
             </div>
 
             <div>
-              <strong>MAP DATA:</strong> {telemetry.map}
+              <strong>OBSTACLES:</strong> {telemetry.obstacles}
             </div>
+
+            <div>
+              <strong>PATHS:</strong> {telemetry.paths}
+            </div>
+
             <div>
               <strong>Status: </strong> {telemetry.status}
             </div>
+
           </div>
         </div>
       </body>

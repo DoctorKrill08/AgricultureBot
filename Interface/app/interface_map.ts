@@ -1,13 +1,14 @@
 export const Command = Object.freeze({
-  OFF : "-1",
-  TELEMETRY : "0",
-  ON : "1",
-  SET_STATE : "2",
-  JOYSTICK : "3",
-  SET_TARGET_POSE : "10",
-  SET_TARGET_YAW : "11",
-  SET_CLEARANCE : "12",
-  SET_ANGLE_PENALTY : "13",
+  OFF : "OFF",
+  TELEMETRY : "TELEMETRY",
+  ON : "ON",
+  SET_STATE : "SET_STATE",
+  JOYSTICK : "JOYSTICK",
+  DELETE_ALL_PATHS : "DELETE_ALL_PATHS",
+  DELETE_PATH : "DELETE_PATH",
+  ADD_PATH : "ADD_PATH",
+  SET_CLEARANCE : "SET_CLEARANCE",
+  SET_ANGLE_PENALTY : "SET_ANGLE_PENALTY",
 
 });
 export const RobotState = Object.freeze({
@@ -17,20 +18,25 @@ export const RobotState = Object.freeze({
   MAP_CONTROL : "MAP_CONTROL",
 
 });
+export const MapKey = Object.freeze({
+  OBSTACLE : "O",
+  SAVED_OBSTACLE : "S",
+  EMPTY : "E",
+  CURRENT_PATH : "G",
+  PATH_IN_QUE : "Q",
+
+});
 export type Telemetry ={
   mode : string;
-  battery : number;
   x : number;
   y : number;
-  tx : number;
-  ty : number;
   vector_x : number;
   vector_y : number;
   heading : number;
-  target_yaw : number;
   arduino_connected : boolean;
   gps_connected : boolean;
-  map : string;
+  paths : string;
+  obstacles : string;
   status : string;
 
 };

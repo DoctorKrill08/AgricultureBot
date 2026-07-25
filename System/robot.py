@@ -1,11 +1,11 @@
 from enum import Enum
-from System.subsystems import*
+from System.Drivetrain import*
 from System.GPS import *
 from timer import *
 from System.Localizer import Localizer,Camera,Lidar
 from System.mapping import Map
 from System.interface_map import *
-from System.Pathing import Pathing
+from System.Pathing import Pathing, Path
 
 
 
@@ -24,20 +24,17 @@ class Robot:
 
 
     telemetry = Telemetry(
-        mode=state.value,
-        battery=12.4,
+        mode="",
         x=10,
         y=0,
-        tx = 0,
-        ty = 0,
-        target_yaw=0,
         heading=0,
         vector_x = Pathing.vector_x,
         vector_y = Pathing.vector_y,
         arduino_connected=False,
         gps_connected=False,
-        map = "",
-        status="",
+        paths="",
+        obstacles = "",
+        status=""
     )
     
     def set_joystick(values : str):
@@ -46,13 +43,22 @@ class Robot:
         x,y = values.split(",")
         Robot.joy_x = float(x)
         Robot.joy_y = float(y)
-    def set_position(values : str):
-        if (not Robot.state == RobotState.MAP_CONTROL):
-            return
-        x,y = values.split(",")
-        Localizer.target_x = float(x)
-        Localizer.target_y= float(y)
-        print(x,y)
+    def modify_path(command : str,values : str):
+        if (command == Command.ADD_PATH.value):
+            x,y,yaw = values.split(",")
+            x = float(x)
+            y = float(y)
+            yaw = float(yaw)
+            Pathing.paths.append(Path(x,y,yaw))
+            print("path added: ",x,y,yaw)
+        elif (command == Command.DELETE_ALL_PATHS.value):
+            print("paths cleared")
+            Pathing.paths.clear()
+        elif (command == Command.DELETE_PATH.value):
+            i = int(values)
+            if i >= 0 and i < len(Pathing.paths):
+                print("Deleted path: ",i)
+                Pathing.paths.pop(i)
     def set_state(state):
         Robot.joy_x = 0
         Robot.joy_y = 0
@@ -76,26 +82,22 @@ class Robot:
         Robot.ping_stopwatch.go()
         Drivetrain.initiate()
         Localizer.start()
-        #GPS.connect_gps()
         Arduino.connect_arduino()
     def status():
-        return f"\n---ROBOT---\n"
+        return f"\nOn: {Robot.on}\nState: {Robot.state.value}"
     def update():
         Robot.telemetry = Telemetry(
             mode=Robot.state.value,
-            battery=12.4,
             x=Localizer.x,
             y=Localizer.y,
             heading=Localizer.yaw,
-            tx=Localizer.target_x,
-            ty = Localizer.target_y,
-            target_yaw=Localizer.target_yaw,
             vector_x = Pathing.vector_x,
             vector_y = Pathing.vector_y,
             gps_connected=GPS.rover.connected,
             arduino_connected=Arduino.connected,
-            map = Map.print_nodes(Map.nodes),
-            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
+            obstacles = Map.print_nodes(Map.nodes),
+            paths=Pathing.paths_to_string(),
+            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status()
         )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):

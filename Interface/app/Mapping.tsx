@@ -1,33 +1,35 @@
 'use client';
+import { stat } from 'fs';
 import './globals.css'
 import './interface_map'
-import { INCHES_PER_NODE } from './interface_map';
+import { INCHES_PER_NODE, MapKey, Command } from './interface_map';
 import React, { useRef, useState } from 'react';
-
-/*const [xOffset, setXOffset] = useState(0);
-const [yOffset, setYOffset] = useState(0);
-const [zoom, setZoom] = useState(1);*/
+import path from 'path';
 
 
-const PIXELS_PER_INCH = 3
-const WIDTH = 400
-const HEIGHT = 400
+const PIXELS_PER_INCH = 4
+const WIDTH = 300
+const HEIGHT = 300
 const POINT_RADIUS = PIXELS_PER_INCH * 10
 const OBSTACLE_RADIUS = PIXELS_PER_INCH * Number(INCHES_PER_NODE)
 
 const MAX_ZOOM_OUT = 0.125
-const MAX_ZOOM_IN = 4
+const MAX_ZOOM_IN = 2
 
 const WEST = "W"
 const EAST = "E"
 const NORTH = "N"
 const SOUTH = "S"
 
+export const DELETE_PATH = Command.DELETE_PATH
+export const DELETE_ALL_PATHS = Command.DELETE_ALL_PATHS
+export const ADD_PATH = Command.ADD_PATH
+
 const MAP_OFFSET_INCREMENT = 0.1 //Proportion of map size
 
 var pixelsPerInch = PIXELS_PER_INCH
 
-export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_data, onMove}: any) { 
+export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, mapCommand}: any) { 
   let botXInches = bx
   let botYInches = by
   const [xOffset, setXOffset] = useState(0);
@@ -35,6 +37,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
   const [zoom, setZoom] = useState(1);
   const [hoverX, setHoverX] = useState(0);
   const [hoverY, setHoverY] = useState(0);
+
   const handeZoom = (direction : number) => {
     if (direction == -1){
       if (zoom / 2 >= MAX_ZOOM_OUT){
@@ -71,9 +74,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
     setXOffset(X)
     setYOffset(Y)
   }
-
-
-  function realToMap(x : number,y : number,yaw : number, radius : number){
+  function realToMap(x : number,y : number,yaw : number){
     x -= xOffset
     y -= yOffset
 
@@ -101,33 +102,41 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
     }
     return [x,y]
   }
-  var obstacles : any[][] = []
 
-  function parseMap(map_data: string){
+  var obstacles : any[][] = []
+  var pathPoints : any[][] = []
+
+  function parseMap(mapData: string){
     obstacles = []
-    if (map_data == null || map_data == ""){
+    if (mapData == null || mapData == ""){
       console.log("No map data")
       return
     }
-    var points = map_data.split('/'); //Array of Strings
+    var points = mapData.split('/'); //Array of Strings
     for (let i = 0; i < points.length; i++){
       let point = points[i].split(","); //Array of strings, x and y
       let x = Number(point[0])
       let y = Number(point[1])
       let status = String(point[2])
-      let translated = realToMap(x,y,0,POINT_RADIUS);
+      let translated = realToMap(x,y,0);
       x = translated[0]
       y = translated[1]
       obstacles[i] = [x,y,status]
     }
-    
   }
+  
   function statusToColor(status: any){
-    if (status == "O"){
+    if (status == MapKey.OBSTACLE){
       return 'maroon'
     }
-    if (status == 'S'){
+    if (status == MapKey.SAVED_OBSTACLE){
       return 'orange'
+    }
+    if (status == MapKey.CURRENT_PATH){
+      return 'lime'
+    }
+    if (status == MapKey.PATH_IN_QUE){
+      return 'yellow'
     }
     return 'white'
   }
@@ -144,6 +153,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
               height : String(obstacleRadius) + 'px',
               left : String(item[0]) + 'px',
               top: String(item[1]) + 'px',
+              pointerEvents: 'none',
               backgroundColor: statusToColor(item[2]),
               borderWidth: 0
           }}/>
@@ -153,7 +163,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
       
     }
 
-    function vector_to_div(bx: number, by: number, vx : number,vy : number, color : string){
+  function vector_to_div(bx: number, by: number, vx : number,vy : number, color : string){
     let delta_x = vx - bx
     let delta_y = vy - by
     let thickness = 5 * pixelsPerInch
@@ -177,6 +187,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
           transformOrigin: 'top left',
           zIndex: 101,
           top: TOP,
+          pointerEvents: 'none',
           left: LEFT,
           width: String(distance) + 'px',
           height: String(thickness) + 'px',
@@ -195,21 +206,55 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
   
   vx += bx
   vy += by
-  var netPose = realToMap(vx,vy,0,obstacleRadius)
+  var netPose = realToMap(vx,vy,0)
   vx = netPose[0]
   vy = netPose[1]
 
-  var botPose = realToMap(bx,by,bYaw,pointRadius)
+  var botPose = realToMap(bx,by,bYaw)
   bx = botPose[0]
   by = botPose[1]
   bYaw = botPose[2]
 
-  var tarPose = realToMap(tx,ty,tYaw,pointRadius)
-  tx = tarPose[0]
-  ty = tarPose[1]
-  tYaw = tarPose[2]
+  function generatePaths(){
+    pathPoints = []
+    if (pathData == null || pathData == ""){
+      console.log("no path data")
+      return
+    }
+    var points = pathData.split('/'); //Array of Strings
+    for (let i = 0; i < points.length; i++){
+      if (points[i].length < 2){
+        continue
+      }
+      let point = points[i].split(',')
+      let tx = point[0]
+      let ty = point[1]
+      let tYaw = point[3]
+      let status = point[2]
+      var tarPose = realToMap(tx,ty,tYaw)
+      pathPoints[i] = [tarPose[0],tarPose[1],status,tarPose[2]]
+    }
+    if (pathPoints.length == 0){
+      return
+    }
+     return (
+      <div id="container">
+        {pathPoints.map((item, index) => (
+          <div key={index} className="map-point" style={{
+              width : String(pointRadius) + 'px',
+              height : String(pointRadius) + 'px',
+              left : String(item[0]) + 'px',
+              top: String(item[1]) + 'px',
+              backgroundColor: statusToColor(item[2]),
+              borderWidth: 0
+          }} onClick={(e) => mapCommand(e,index,0,0,DELETE_PATH)}/>
+        ))}
+      </div>
+    );
+    
+  }
 
-  parseMap(map_data)
+  parseMap(mapData)
 
   function calculateGridSize(inches : number){
     let size = pixelsPerInch * inches
@@ -226,7 +271,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
         <div className='map-box-overlay'
         style={{
           position: 'absolute',
-          
+          pointerEvents: 'none',
           width : '100%',
           height: '100%',
           backgroundColor: '#ff000000',
@@ -235,7 +280,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
         }}/>
       )
   }
-  const handleMouseDown = (event: React.MouseEvent) => {
+  const handleMapClicked = (event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
 
     var x = event.clientX - rect.left
@@ -244,11 +289,12 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
     let translated = mapToReal(x,y)
     x = translated[0]
     y = translated[1]
+    let yaw = 0
     console.log("translated x: ", x, " translated y: ",y)
-    onMove(x, y);
+    mapCommand(event,x, y,yaw,ADD_PATH);
   };
 
-  const handleMouseHover = (event : React.MouseEvent) => {
+  const handleMapHover = (event : React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
 
     var x = event.clientX - rect.left
@@ -269,9 +315,17 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
       }}>
         MAP
       </h1>
+
+      <button className='button' 
+      onClick={(e) => mapCommand(e,0,0,0,DELETE_ALL_PATHS,true)}>
+        <h2 style={{color : 'red'}}>DELETE ALL PATHS</h2>
+      </button>
+      <br/>
+      <br/>
+
       <div className='map-box'
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseHover}
+      onMouseDown={handleMapClicked}
+      onMouseMove={handleMapHover}
       style={{
         width : String(WIDTH) + 'px',
         height: String(HEIGHT) + 'px',
@@ -289,18 +343,11 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
             backgroundColor: 'blue',
             borderRightColor: 'purple',
             borderRightWidth: '4px',
+            pointerEvents: 'none',
             rotate: String(bYaw) + 'rad'
         }}/>
 
-        <div className='map-point' style={{
-            width : String(pointRadius) + 'px',
-            height : String(pointRadius) + 'px',
-            left : String(tx) + 'px',
-            top: String(ty) + 'px',
-            backgroundColor: 'yellow',
-            rotate: String(tYaw) + 'rad',
-            borderWidth: 0
-        }}/>
+        {generatePaths()}
 
         <div className='map-point' style={{
             width : String(obstacleRadius) + 'px',
@@ -308,6 +355,7 @@ export default function Map({bx=0,by=0,tx=0,ty=0,bYaw=0,tYaw=0,vx=0,vy=0, map_da
             left : String(vx) + 'px',
             top: String(vy) + 'px',
             backgroundColor: 'purple',
+            pointerEvents: 'none',
             zIndex: 100,
             rotate: String(0) + 'rad'
         }}/>

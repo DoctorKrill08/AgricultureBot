@@ -1,7 +1,9 @@
 import math
 from System.mapping import Node
-from System.subsystems import Drivetrain
+from System.Drivetrain import Drivetrain
 from System.Constants import *
+from System.interface_map import MapKey
+from timer import Timer
 from enum import Enum
 
 def vector_clamp(vx,vy,max):
@@ -143,31 +145,96 @@ class DynamicWindow:
                 DynamicWindow.current_angle = degree_offset
         return vector_clamp(goal_vector_x,goal_vector_y,best_path_clearance)
 
-class PathingStatus():
-    GOAL_REACHED = "GOAL_REACHED"
+class PathState():
+    #States
+    TURNING = "TURNING"
+    WAITING = "WAITING"
     DRIVING = "DRIVING"
     STUCK = "STUCK"
     IDLE = "IDLE"
 
+    #Checkpoints
+    GOAL_REACHED = "GOAL_REACHED"
+    DONE_WAITING = "DONE_WAITING"
+    DONE_TURNING = "DONE_TURNING"
+
+class Path:
+    def __init__(self,x,y,yaw = 0):
+        self.x = x
+        self.y = y
+        self.yaw = yaw
+    def to_string(self,index):
+        return f"{self.x},{self.y},{Path.index_to_status(index)},{self.yaw}"
+    def index_to_status(index):
+        if (index == 0):
+            return MapKey.CURRENT_PATH.value
+        return MapKey.PATH_IN_QUE.value
 
 class Pathing:
-    GOAL_DISTANCE_THRESHOLD = 10
+    paths = []
+    state = PathState.IDLE
+    GOAL_DISTANCE_THRESHOLD = 10 #inches
     vector_x = 0
     vector_y = 0
+    WAIT_TIME = 2
+
+    timer = Timer()
+    
+
+    def paths_to_string():
+        output = ""
+        if (len(Pathing.paths) == 0):
+            return output
+        for i in range(len(Pathing.paths)):
+            path = Pathing.paths[i]
+            if (not isinstance(path,Path)):
+                continue
+            output += path.to_string(i) + "/"
+        return output
 
     def status():
-        return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}'
+        return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}\nState: {Pathing.state}'
     
-    def calculate(x,y,yaw,tx,ty,obstacles):
+    def calculate(x,y,yaw,obstacles):
+        #No paths -> Dont go
+        if (len(Pathing.paths) == 0):
+            Pathing.vector_x = 0
+            Pathing.vector_y = 0
+            Pathing.state = PathState.IDLE
+            return 0,0,PathState.IDLE
+        #Done waiting -> next path
+        if Pathing.state == PathState.WAITING and Pathing.timer.time_passed() > Pathing.WAIT_TIME:
+            Pathing.paths[0].pop()
+            Pathing.state = PathState.IDLE
+            return 0,0,PathState.DONE_WAITING
+            
+        
+        target = Pathing.paths[0]
+        tx = target[0]
+        ty = target[1]
+        target_yaw = target[3]
+
         distance = math.sqrt(((tx - x) ** 2) + ((ty - y) ** 2))
+        #Near goal -> Turn to target yaw
         if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
-            return 0,0,PathingStatus.GOAL_REACHED
+            Pathing.timer.reset()
+            Pathing.state = PathState.TURNING
+            return 0,0,PathState.GOAL_REACHED
+        
+        if Pathing.state == PathState.TURNING:
+            delta_yaw = shortest_angular_distance(yaw,target_yaw)
+            turn = Drivetrain.calculate_turn(delta_yaw)
+            #Near target yaw -> Wait
+            if (turn < Drivetrain.MIN_TURN):
+                Pathing.state = PathState.WAITING
+                return 0,0,PathState.DONE_TURNING
+            return turn,0,PathState.TURNING
         
         Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
         print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
 
         if (abs(Pathing.vector_x) < 1 and abs(Pathing.vector_y) < 1):
-            return 0,0,PathingStatus.STUCK
+            return 0,0,PathState.STUCK
         
         turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
-        return turn,drive,PathingStatus.DRIVING
+        return turn,drive,PathState.DRIVING

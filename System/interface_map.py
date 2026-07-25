@@ -3,17 +3,18 @@ from enum import Enum
 from pydantic import BaseModel
 
 class Command(Enum):
-    OFF = "-1"
-    TELEMETRY = "0"
-    ON = "1"
-    SET_STATE = "2"
-    JOYSTICK = "3"
+    OFF = "OFF"
+    TELEMETRY = "TELEMETRY"
+    ON = "ON"
+    SET_STATE = "SET_STATE"
+    JOYSTICK = "JOYSTICK"
 
-    SET_TARGET_POSE = "10"
-
-    SET_TARGET_YAW = "11"
-    SET_CLEARANCE = "12"
-    SET_ANGLE_PENALTY = "13"
+    DELETE_ALL_PATHS = "DELETE_ALL_PATHS"
+    DELETE_PATH = "DELETE_PATH"
+    ADD_PATH = "ADD_PATH"
+    
+    SET_CLEARANCE = "SET_CLEARANCE"
+    SET_ANGLE_PENALTY = "SET_ANGLE_PENALTY"
         
 
 class RobotState(Enum):
@@ -24,18 +25,15 @@ class RobotState(Enum):
 
 class Telemetry(BaseModel):
     mode: str
-    battery: float
     x: float
     y: float
-    tx: float
-    ty: float
     vector_x : float
     vector_y : float
     heading: float
-    target_yaw: float
     arduino_connected: bool
     gps_connected: bool
-    map: str
+    paths : str
+    obstacles: str
     status: str
 
 class ClientInputs(BaseModel):
@@ -47,8 +45,14 @@ class ClientInputs(BaseModel):
 COMMAND = '0'
 VALUES = '1'
 
-
+class MapKey(Enum):
+    OBSTACLE = "O"
+    SAVED_OBSTACLE = "S"
+    EMPTY = "E"
+    CURRENT_PATH = "G"
+    PATH_IN_QUE = "Q"
 INCHES_PER_NODE = 2
+
 
 def python_type_to_typescript(type:str):
     print(type)
@@ -77,6 +81,12 @@ if __name__ == "__main__":
     output += f"export const {RobotState.__name__} = Object.freeze("
     output += "{\n"
     for member in RobotState:
+        output += f'  {member.name} : "{member.value}",\n'
+    output += "\n});\n"
+
+    output += f"export const {MapKey.__name__} = Object.freeze("
+    output += "{\n"
+    for member in MapKey:
         output += f'  {member.name} : "{member.value}",\n'
     output += "\n});\n"
 
