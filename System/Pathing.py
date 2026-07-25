@@ -90,7 +90,7 @@ class DynamicWindow:
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
 
         DynamicWindow.obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,tx,ty,obstacles)
-        force = max(distance,DynamicWindow.VECTOR_STRENGTH)
+        force = min(distance,DynamicWindow.VECTOR_STRENGTH)
         if (not DynamicWindow.obstructed):
             best_path_clearance =  -10000
             DynamicWindow.current_angle = 0
@@ -139,7 +139,7 @@ class DynamicWindow:
                 greatest_score = score
                 goal_vector_x = vector_x
                 goal_vector_y = vector_y
-                best_path_clearance = max(min(clearance,0),DynamicWindow.VECTOR_STRENGTH)
+                best_path_clearance = min(max(clearance,0),DynamicWindow.VECTOR_STRENGTH)
                 DynamicWindow.current_angle = degree_offset
         return vector_clamp(goal_vector_x,goal_vector_y,best_path_clearance)
 
