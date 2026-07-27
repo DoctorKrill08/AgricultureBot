@@ -11,14 +11,11 @@ class Drivetrain:
     telemetry = ""
 
 
-    MAX_POWER = 0.4
-    TURN_SENSITIVITY = 0.5
+    MAX_POWER = 0.5
     MIN_TURN = 0.05
 
-    TURN_P = -1.1
+    TURN_P = -0.38
     DRIVE_P = 0.015
-
-    MIN_DISTANCE = 2
 
     timer = Timer()
 
@@ -33,11 +30,6 @@ class Drivetrain:
         telemetry += f'\nDRIVE_P: {Drivetrain.DRIVE_P}\nTURN_P: {Drivetrain.TURN_P}'
         return telemetry
     def to_scale(drive,turn,gamepad = True):
-        if (abs(turn) < Drivetrain.MIN_TURN and gamepad):
-            turn = 0
-        elif (not turn == 0):
-            turn = turn - (turn/abs(turn)) * Drivetrain.MIN_TURN
-        turn = turn * Drivetrain.TURN_SENSITIVITY
         if (abs(drive) + abs(turn) < Drivetrain.MAX_POWER):
             return drive,turn
         sum = abs(drive) + abs(turn)

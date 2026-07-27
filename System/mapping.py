@@ -134,7 +134,10 @@ class Map:
                 node.save_obstacle()
                 continue
             if (node.status == SAVED_OBSTACLE):
-                node.confidence -= 0.02 * max((0.5 / rotational_movement),1)
+                weight = 1
+                if (not rotational_movement == 0):
+                    weight = max((0.5 / rotational_movement),1)
+                node.confidence -= 0.02 * weight
             elif(node.status == OBSTACLE):
                 node.save_obstacle()
         for key,node in delete_list.items():

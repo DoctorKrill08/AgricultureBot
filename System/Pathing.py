@@ -173,10 +173,11 @@ class Path:
 class Pathing:
     paths = []
     state = PathState.IDLE
-    GOAL_DISTANCE_THRESHOLD = 10 #inches
+    GOAL_DISTANCE_THRESHOLD = 5 #inches
     vector_x = 0
     vector_y = 0
-    WAIT_TIME = 2
+    WAIT_TIME = 1
+    TURN_TIME = 1.5
 
     timer = Timer()
     
@@ -227,8 +228,9 @@ class Pathing:
             turn = Drivetrain.calculate_turn(delta_yaw)
             #Near target yaw -> Wait
             if (abs(turn) < Drivetrain.MIN_TURN):
-                Pathing.state = PathState.WAITING
-                return 0,0,PathState.DONE_TURNING
+                if (Pathing.timer.time_passed() > Pathing.TURN_TIME):
+                    Pathing.state = PathState.WAITING
+                    return 0,0,PathState.DONE_TURNING
             return turn,0,PathState.TURNING
         
         if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
