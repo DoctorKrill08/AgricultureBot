@@ -114,7 +114,7 @@ class Localizer():
 
     def status():
         return f"\n---LOCALIZER--\nYaw: {Localizer.yaw}\nTargetX: {Localizer.target_x}\nTargetY: {Localizer.target_y}\nTargetYaw: {Localizer.target_yaw} \
-\n{Camera.status()}\n{GPS.status()}\n{Map.status()}\n{Pathing.status()} "
+\n{Camera.status()}\n{GPS.status()}\n{Lidar.status()}\n{Map.status()}\n{Pathing.status()} "
     def show():
         plt.show()
 

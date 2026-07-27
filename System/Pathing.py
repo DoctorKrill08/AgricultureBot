@@ -202,25 +202,25 @@ class Pathing:
             Pathing.vector_y = 0
             Pathing.state = PathState.IDLE
             return 0,0,PathState.IDLE
+        if Pathing.state == PathState.WAITING:
         #Done waiting -> next path
-        if Pathing.state == PathState.WAITING and Pathing.timer.time_passed() > Pathing.WAIT_TIME:
-            Pathing.paths[0].pop()
-            Pathing.state = PathState.IDLE
-            return 0,0,PathState.DONE_WAITING
+            if Pathing.timer.time_passed() > Pathing.WAIT_TIME:
+                Pathing.paths.pop(0)
+                Pathing.state = PathState.IDLE
+                return 0,0,PathState.DONE_WAITING
+            else:
+                return 0,0,PathState.WAITING
             
         
         target = Pathing.paths[0]
-        tx = target[0]
-        ty = target[1]
-        target_yaw = target[3]
+        if (not isinstance(target,Path)):
+            return 0,0,PathState.IDLE
+        tx = target.x
+        ty = target.y
+        target_yaw = target.yaw
 
         distance = math.sqrt(((tx - x) ** 2) + ((ty - y) ** 2))
         #Near goal -> Turn to target yaw
-        if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
-            Pathing.timer.reset()
-            Pathing.state = PathState.TURNING
-            return 0,0,PathState.GOAL_REACHED
-        
         if Pathing.state == PathState.TURNING:
             delta_yaw = shortest_angular_distance(yaw,target_yaw)
             turn = Drivetrain.calculate_turn(delta_yaw)
@@ -229,6 +229,12 @@ class Pathing:
                 Pathing.state = PathState.WAITING
                 return 0,0,PathState.DONE_TURNING
             return turn,0,PathState.TURNING
+        
+        if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
+            Pathing.timer.reset()
+            Pathing.state = PathState.TURNING
+            return 0,0,PathState.GOAL_REACHED
+        
         
         Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
         print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)

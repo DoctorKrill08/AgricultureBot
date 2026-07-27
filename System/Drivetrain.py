@@ -15,7 +15,7 @@ class Drivetrain:
     TURN_SENSITIVITY = 0.5
     MIN_TURN = 0.1
 
-    TURN_P = -1.3
+    TURN_P = -0.8
     DRIVE_P = 0.015
 
     MIN_DISTANCE = 2

@@ -109,7 +109,7 @@ class Map:
             if (node.confidence < 0):
                 delete_list[key] = node
                 continue
-            if node.status == Node.EMPTY:
+            if node.status == MapKey.EMPTY:
                 delete_list[key] = node
                 continue
             x,y = node.raw_x,node.raw_y

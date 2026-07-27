@@ -136,7 +136,7 @@ class Robot:
         elif (Robot.state == RobotState.AUTONOMOUS):
             pass
         elif (Robot.state == RobotState.MAP_CONTROL):
-            turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Localizer.target_x,Localizer.target_y,Map.nodes)
+            turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Map.nodes)
             Robot.joy_y = drive
             Robot.joy_x = turn
             print(turn,drive,status)
