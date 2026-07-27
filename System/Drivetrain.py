@@ -59,6 +59,7 @@ class Drivetrain:
             target_drive = 0
         if (abs(target_turn) > 0.8):
             target_turn = 0.8 * (target_turn / abs(target_turn))
+        if (abs(target_turn) > 0.5):
             target_drive = 0
         if (target_drive > 0.5):
             target_drive = 0.5

@@ -150,6 +150,21 @@ export default function RobotControlPanel() {
               Angle Penalty:
               <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_ANGLE_PENALTY)}/>
               <br/>
+              ---------
+               <br/>
+              Change Penalty:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_CHANGE_PENALTY)}/>
+              <br/>
+              -----------
+              <br/>
+              MAX Clearance:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MAX_CLEARANCE)}/>
+              <br/>
+               -----------
+              <br/>
+              Angle Increment:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_ANGLE_INCREMENT)}/>
+              <br/>
               
                        
             </div>

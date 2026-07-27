@@ -1,5 +1,5 @@
 import math
-ROBOT_WIDTH = 20 #inches
+ROBOT_WIDTH = 17 #inches
 ROBOT_HEIGHT = 8
 CAMERA_Y = 5
 CAMERA_DISTANCE_FROM_ROBOT = 7

@@ -47,6 +47,13 @@ async def command_task(websocket: WebSocket):
             DynamicWindow.CLEARANCE_SCORE = float(data[VALUES])
         elif data[COMMAND] == Command.SET_ANGLE_PENALTY.value:
             DynamicWindow.ANGLE_PENALTY = float(data[VALUES])
+        elif data[COMMAND] == Command.SET_ANGLE_INCREMENT.value:
+            DynamicWindow.ANGLE_INCREMENT = int(data[VALUES])
+        elif data[COMMAND] == Command.SET_CHANGE_PENALTY.value:
+            DynamicWindow.CHANGE_PENALTY = float(data[VALUES])
+        elif data[COMMAND] == Command.SET_MAX_CLEARANCE.value:
+            DynamicWindow.MAX_CLEARANCE = float(data[VALUES])
+        
         
 
 @app.websocket("/ws")

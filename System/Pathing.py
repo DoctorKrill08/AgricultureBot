@@ -23,12 +23,12 @@ class DynamicWindow:
     
     UPDATE_RATE = 2
 
-    ANGLE_INCREMENT = 15 #Degrees
+    ANGLE_INCREMENT = 10 #Degrees
     ANGLE_RANGE = 180 #Degrees
 
-    ANGLE_PENALTY = 1
+    ANGLE_PENALTY = 0.1
     CLEARANCE_SCORE = 1
-    CHANGE_PENALTY = 10
+    CHANGE_PENALTY = 2
     MIN_CHANGE_PENALTY = 5
 
 
@@ -44,42 +44,50 @@ class DynamicWindow:
         obstructed = False
         clearance = 1000000
         for id,obstacle in obstacles.items():
+            if (not isinstance(obstacle,Node)):
+                continue
+            if (not obstacle.is_obstacle()):
+                continue
             delta_x = obstacle.x - x
             delta_y = obstacle.y - y
             distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
             if (distance < clearance):
                 clearance = distance
-            if (distance < DynamicWindow.MIN_CLEARANCE + 5):
+            if (distance < DynamicWindow.MIN_CLEARANCE):
                 obstructed = True
             continue
         return obstructed,clearance
 
-    def calculate_obstruction(bot_x,bot_y,target_x,target_y,obstacles):
-        delta_x = target_x - bot_x
-        delta_y = target_y - bot_y
-        
-        angle = math.atan2(delta_y,delta_x)
-
-        check_distance = 40
+    def calculate_obstruction(bot_x,bot_y,angle,check_distance,obstacles,tx = None,ty = None):
+        if (check_distance > 40):
+            check_distance = 40
+        check_distance -= (ROBOT_WIDTH / 2)
         furthest = 0
-        increment = DynamicWindow.MIN_CLEARANCE / 2
+        increment = DynamicWindow.MIN_CLEARANCE / 4
         i = 0
         clearance = 100000
-        obstructed = False
-
+        obstructed = False        
         complete = False
+        if (check_distance < increment):
+            return obstructed,clearance
         while not complete and not obstructed:
             furthest = i * increment
             i += 1
             if (furthest > check_distance):
                 furthest = check_distance
-            x = furthest * math.cos(angle)
-            y = furthest * math.sin(angle)
+            x = bot_x + (furthest * math.cos(angle))
+            y = bot_y + (furthest * math.sin(angle))
+            if (not tx == None and not ty == None):
+                target_distance = math.sqrt(((x - tx) ** 2)+ ((y - ty) ** 2))
+                if (target_distance < Pathing.GOAL_DISTANCE_THRESHOLD):
+                    complete = True
+                    break
+
             obstructed,this_clearance = DynamicWindow.calculate_clearance(x,y,obstacles)
             if (this_clearance < clearance):
                 clearance = this_clearance
             if (obstructed):
-                break
+                complete = True
             if furthest == check_distance:
                 complete = True
         return obstructed,clearance
@@ -90,8 +98,9 @@ class DynamicWindow:
         delta_y = ty - y
         target_yaw = math.atan2(delta_y,delta_x)
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
+        print("distance: ",distance, " target_yaw: ", target_yaw)
 
-        DynamicWindow.obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,tx,ty,obstacles)
+        DynamicWindow.obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_yaw,distance,obstacles,tx = tx,ty = ty)
         force = min(distance,DynamicWindow.VECTOR_STRENGTH)
         if (not DynamicWindow.obstructed):
             best_path_clearance =  -10000
@@ -103,18 +112,16 @@ class DynamicWindow:
         goal_vector_x = 0
         goal_vector_y = 0
 
-        greatest_score = -10000
+        greatest_score = -100000000
         best_path_clearance = 0
+        best_path_degree_offset = 0
 
-        for degree_offset in range(-int(DynamicWindow.ANGLE_RANGE / 2),int(DynamicWindow.ANGLE_RANGE / 2),DynamicWindow.ANGLE_INCREMENT):
-            angle = add_angle(math.radians(degree_offset),target_yaw)
+        for degree_offset in range(-int(DynamicWindow.ANGLE_RANGE / 2),int(DynamicWindow.ANGLE_RANGE / 2) + DynamicWindow.ANGLE_INCREMENT,DynamicWindow.ANGLE_INCREMENT):
+            angle = math.radians(degree_offset) + target_yaw
             vector_x = force * math.cos(angle)
             vector_y = force * math.sin(angle)
 
-            target_x = vector_x + x
-            target_y = vector_y + y
-
-            obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_x,target_y,obstacles)
+            obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,angle,distance,obstacles)
             score = 0
             #obstructed penalty
             if (obstructed):
@@ -136,13 +143,15 @@ class DynamicWindow:
                 score -= DynamicWindow.MIN_CHANGE_PENALTY
                 number_of_changes = abs(DynamicWindow.current_angle - degree_offset)
                 score -= DynamicWindow.CHANGE_PENALTY * number_of_changes
-
+            print("angle: ",angle," degree offset: ", degree_offset, "score: ",score)
             if (score > greatest_score):
                 greatest_score = score
                 goal_vector_x = vector_x
                 goal_vector_y = vector_y
                 best_path_clearance = min(max(clearance,0),DynamicWindow.VECTOR_STRENGTH)
-                DynamicWindow.current_angle = degree_offset
+                best_path_degree_offset = degree_offset
+        print("---greatest  score---: ", greatest_score)
+        DynamicWindow.current_angle = best_path_degree_offset
         return vector_clamp(goal_vector_x,goal_vector_y,best_path_clearance)
 
 class PathState():
@@ -194,7 +203,7 @@ class Pathing:
         return output
 
     def status():
-        return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}\nState: {Pathing.state}'
+        return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}\nState: {Pathing.state}\nANGLE_INCREMENT:{DynamicWindow.ANGLE_INCREMENT}\nANGLE_PENALTY:{DynamicWindow.ANGLE_PENALTY}\nCLEARANCE_SCORE:{DynamicWindow.CLEARANCE_SCORE}\nCHANGE_PENALTY:{DynamicWindow.CHANGE_PENALTY}\nMAX_CLEARANCE:{DynamicWindow.MAX_CLEARANCE}'
     
     def calculate(x,y,yaw,obstacles):
         #No paths -> Dont go

@@ -185,7 +185,7 @@ void loop() {
       return;
     }
     if (connected == false){
-      stop();
+      stop(); 
       return;
     }
     if (cmd.id == Odometry){
