@@ -21,15 +21,31 @@ const EAST = "E"
 const NORTH = "N"
 const SOUTH = "S"
 
-export const DELETE_PATH = Command.DELETE_PATH
-export const DELETE_ALL_PATHS = Command.DELETE_ALL_PATHS
-export const ADD_PATH = Command.ADD_PATH
-
 const MAP_OFFSET_INCREMENT = 0.1 //Proportion of map size
 
 var pixelsPerInch = PIXELS_PER_INCH
 
-export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, mapCommand}: any) { 
+export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, sendCommand}: any) { 
+  function handleMouseMapCommands(event : any, command : string, value : string, bypass : boolean = false){
+     if (event.target != event.currentTarget && ! bypass){
+      console.log(command," failed")
+      return
+    }
+    sendCommand(command,value)
+  }
+  const handleInputMapCommands = (command : string, value : string) => (event : React.KeyboardEvent<HTMLInputElement>) => {
+     if (event.key === 'Enter') {
+      event.preventDefault(); 
+      var input = parseFloat((event.target as HTMLInputElement).value);
+      if (Number.isNaN(input)){
+        return
+      }
+      value += (',' + String(input))
+      sendCommand(command,value)
+    }
+  }
+
+
   let botXInches = bx
   let botYInches = by
   const [xOffset, setXOffset] = useState(0);
@@ -37,6 +53,7 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
   const [zoom, setZoom] = useState(1);
   const [hoverX, setHoverX] = useState(0);
   const [hoverY, setHoverY] = useState(0);
+  const [selectedPoint, setSelectedPoint] = useState(0);
 
   const handeZoom = (direction : number) => {
     if (direction == -1){
@@ -81,6 +98,7 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
     yaw *= -1
     x *= pixelsPerInch
     y *= -pixelsPerInch
+    
 
     x = (WIDTH / 2) + x
     y = (HEIGHT / 2) + y
@@ -109,7 +127,6 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
   function parseMap(mapData: string){
     obstacles = []
     if (mapData == null || mapData == ""){
-      console.log("No map data")
       return
     }
     var points = mapData.split('/'); //Array of Strings
@@ -215,10 +232,9 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
   by = botPose[1]
   bYaw = botPose[2]
 
-  function generatePaths(){
-    pathPoints = []
+  //Parse Paths:
+  function parsePaths(){
     if (pathData == null || pathData == ""){
-      console.log("no path data")
       return
     }
     var points = pathData.split('/'); //Array of Strings
@@ -227,13 +243,19 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
         continue
       }
       let point = points[i].split(',')
-      let tx = point[0]
-      let ty = point[1]
-      let tYaw = point[3]
+      let xInches = point[0]
+      let yInches = point[1]
+      let yaw = point[3]
       let status = point[2]
-      var tarPose = realToMap(tx,ty,tYaw)
-      pathPoints[i] = [tarPose[0],tarPose[1],status,tarPose[2]]
+      var tarPose = realToMap(xInches,yInches,yaw)
+      let xPixels = tarPose[0]
+      let yPixels = tarPose[1]
+      let angle = tarPose[2]
+      pathPoints[i] = [xPixels,yPixels,status,angle,xInches,yInches,yaw]
     }
+  }
+  parsePaths()
+  function visualizePaths(){
     if (pathPoints.length == 0){
       return
     }
@@ -246,8 +268,18 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
               left : String(item[0]) + 'px',
               top: String(item[1]) + 'px',
               backgroundColor: statusToColor(item[2]),
-              borderWidth: 0
-          }} onClick={(e) => mapCommand(e,index,0,0,DELETE_PATH)}/>
+              borderWidth: 0,
+              fontWeight: 'bold',
+              fontSize: '24px',
+              justifyContent: 'center',
+              alignItems: 'center',
+              display: 'flex',
+              WebkitTextStroke: '1.3px black',
+              rotate : (item[3]) + 'rad',
+              color: 'white'
+          }} onClick={(e) => setSelectedPoint(index)}>
+            {index}
+            </div>
         ))}
       </div>
     );
@@ -282,16 +314,15 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
   }
   const handleMapClicked = (event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
-
     var x = event.clientX - rect.left
     var y = event.clientY - rect.top
     console.log("x: ", x, " y: ",y)
     let translated = mapToReal(x,y)
     x = translated[0]
     y = translated[1]
-    let yaw = 0
     console.log("translated x: ", x, " translated y: ",y)
-    mapCommand(event,x, y,yaw,ADD_PATH);
+    setSelectedPoint(pathPoints.length)
+    handleMouseMapCommands(event,Command.ADD_PATH,`${x},${y}`);
   };
 
   const handleMapHover = (event : React.MouseEvent) => {
@@ -307,6 +338,50 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
     setHoverY(y)
   }
 
+  function displaySelectedPoint(){
+    let HEIGHT = '150px'
+    let containerTemplate = <div style={{width: '100px',height: HEIGHT}}/>
+    if (selectedPoint < 0){
+      return containerTemplate
+    }
+    if (pathPoints.length < 0){
+      return containerTemplate
+    }
+    let path = pathPoints[selectedPoint]
+    if (path == null){
+      return containerTemplate
+    }
+    if (path.length == 0){
+      return containerTemplate
+    }
+
+    let xPixels = path[0]
+    let yPixels = path[1]
+    let status = path[2]
+    let angle = path[3]
+    let xInches = path[4]
+    let yInches = path[5]
+    let yaw = path[6]
+    return(
+      <div style={{color: 'white', width: '100%', height: HEIGHT}}>
+          Selected Point: {selectedPoint} <br/>
+          X: {path[0]} pixels, {xInches} inches <br/>
+          Y: {path[1]} pixels, {yInches} inches <br/>
+          Angle (client): {angle * (180 / Math.PI)} degrees, Yaw (robot): {yaw * (180 / Math.PI)} degrees <br/>
+          <br/>
+          <button className='button' onMouseUp={(e) => handleMouseMapCommands(e,Command.DELETE_PATH,String(selectedPoint))} style={{
+            color: 'red'
+          }}>
+            DELETE POINT
+          </button>
+          SET YAW: 
+          <input enterKeyHint="done" type = "number" className="button" defaultValue={yaw} placeholder='...' onKeyDown={handleInputMapCommands(Command.SET_PATH_YAW,String(selectedPoint))}/> 
+          SET INDEX: 
+          <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder='...' onKeyDown={handleInputMapCommands(Command.SET_PATH_INDEX,String(selectedPoint))}/> 
+      </div>
+    )
+  }
+
   return (
     
     <div>
@@ -315,14 +390,17 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
       }}>
         MAP
       </h1>
-
+      Click on map to add a point
+      <br/>
+      Click on a point to get options to edit or delete
+      <br/><br/>
       <button className='button' 
-      onClick={(e) => mapCommand(e,0,0,0,DELETE_ALL_PATHS,true)}>
-        <h2 style={{color : 'red'}}>DELETE ALL PATHS</h2>
+      onClick={(e) => handleMouseMapCommands(e,Command.DELETE_ALL_PATHS,'0')}>
+        <p style={{color : 'red'}}>DELETE ALL PATHS</p>
       </button>
-      <br/>
-      <br/>
-
+      <br/><br/>
+      {displaySelectedPoint()}
+      <br/><br/>
       <div className='map-box'
       onMouseDown={handleMapClicked}
       onMouseMove={handleMapHover}
@@ -347,7 +425,7 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
             rotate: String(bYaw) + 'rad'
         }}/>
 
-        {generatePaths()}
+        {visualizePaths()}
 
         <div className='map-point' style={{
             width : String(obstacleRadius) + 'px',
@@ -364,49 +442,49 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
 
         {obstaclesToDiv()}
       </div>
-      <p style={{fontSize : 20}}>
+      <p>
       Zoom: <b>%{zoom * 100}</b>, X-Offset: {xOffset} inches, Y-Offset: {yOffset} inches, Mouse World Pos: {hoverX},{hoverY}
       </p>
       <button className='button' 
       onClick={() => handeZoom(-1)}>
-        <h2 style={{color : 'red'}}>
+        <p style={{color : 'red'}}>
           Zoom  Out
-        </h2>
+        </p>
       </button>
       <button className='button'
         onClick={() => handeZoom(1)}>
-        <h2 style={{color : 'lime'}}>
+        <p style={{color : 'lime'}}>
           Zoom  In
-        </h2>
+        </p>
       </button>
       {/* DIRECTIONS!!!!! */}
       <button className='button'
         onClick={() => handleMapMove(WEST)}>
-        <h2>← WEST</h2>
+        <p>← WEST</p>
       </button>
       <button className='button'
         onClick={() => handleMapMove(EAST)}>
-        <h2>→ EAST</h2>
+        <p>→ EAST</p>
       </button>
       <button className='button'
         onClick={() => handleMapMove(NORTH)}>
-        <h2>↑ NORTH</h2>
+        <p>↑ NORTH</p>
       </button>
       <button className='button'
         onClick={() => handleMapMove(SOUTH)}>
-        <h2>↓ SOUTH</h2>
+        <p>↓ SOUTH</p>
       </button>
       <button className='button'
         onClick={() => zoomToPoint()}>
-        <h2>TO HOME</h2>
+        <p>TO HOME</p>
       </button>
       <button className='button'
         onClick={() => zoomToPoint(1,botXInches,botYInches)}>
-        <h2>TO ROBOT</h2>
+        <p>TO ROBOT</p>
       </button>
-      <p style={{fontSize: 20, color : 'blue'}}>Blue = Yard</p>
-      <p style={{fontSize: 20, color : 'green'}}>Green = Foot</p>
-      <p style={{fontSize: 20, color : 'white'}}>White = Inch</p>
+      <p style={{color : 'blue'}}>Blue = Yard</p>
+      <p style={{color : 'green'}}>Green = Foot</p>
+      <p style={{color : 'white'}}>White = Inch</p>
       <br/>
     </div>
   );

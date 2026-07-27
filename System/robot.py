@@ -31,7 +31,7 @@ class Robot:
         vector_x = Pathing.vector_x,
         vector_y = Pathing.vector_y,
         arduino_connected=False,
-        gps_connected=False,
+        gps_data="",
         paths="",
         obstacles = "",
         status=""
@@ -45,12 +45,11 @@ class Robot:
         Robot.joy_y = float(y)
     def modify_path(command : str,values : str):
         if (command == Command.ADD_PATH.value):
-            x,y,yaw = values.split(",")
+            x,y = values.split(",")
             x = float(x)
             y = float(y)
-            yaw = float(yaw)
-            Pathing.paths.append(Path(x,y,yaw))
-            print("path added: ",x,y,yaw)
+            Pathing.paths.append(Path(x,y,0))
+            print("path added: ",x,y,0)
         elif (command == Command.DELETE_ALL_PATHS.value):
             print("paths cleared")
             Pathing.paths.clear()
@@ -59,6 +58,29 @@ class Robot:
             if i >= 0 and i < len(Pathing.paths):
                 print("Deleted path: ",i)
                 Pathing.paths.pop(i)
+        elif (command == Command.SET_PATH_YAW.value):
+            i,yaw = values.split(",")
+            i = int(i)
+            yaw = float(yaw)
+            yaw = math.radians(yaw)
+            if i >= 0 and i < len(Pathing.paths):
+                path = Pathing.paths[i]
+                if (isinstance(path,Path)):
+                    path.yaw = yaw
+        elif (command == Command.SET_PATH_INDEX.value):
+            i,new_index = values.split(",")
+            i = int(i)
+            new_index = int(new_index)
+            print(i,new_index)
+            if i >= 0 and i < len(Pathing.paths):
+                if (not isinstance(Pathing.paths[i],Path)):
+                    return
+                if new_index > len(Pathing.paths) - 1:
+                    new_index = len(Pathing.paths) - 1
+                if new_index < 0:
+                    new_index = 0
+                Pathing.paths.insert(new_index,Pathing.paths.pop(i))
+
     def set_state(state):
         Robot.joy_x = 0
         Robot.joy_y = 0
@@ -93,7 +115,7 @@ class Robot:
             heading=Localizer.yaw,
             vector_x = Pathing.vector_x,
             vector_y = Pathing.vector_y,
-            gps_connected=GPS.rover.connected,
+            gps_data=GPS.get_data(),
             arduino_connected=Arduino.connected,
             obstacles = Map.print_nodes(Map.nodes),
             paths=Pathing.paths_to_string(),

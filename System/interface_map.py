@@ -12,6 +12,8 @@ class Command(Enum):
     DELETE_ALL_PATHS = "DELETE_ALL_PATHS"
     DELETE_PATH = "DELETE_PATH"
     ADD_PATH = "ADD_PATH"
+    SET_PATH_YAW = "SET_PATH_YAW"
+    SET_PATH_INDEX = "SET_PATH_INDEX"
     
     SET_CLEARANCE = "SET_CLEARANCE"
     SET_ANGLE_PENALTY = "SET_ANGLE_PENALTY"
@@ -31,7 +33,7 @@ class Telemetry(BaseModel):
     vector_y : float
     heading: float
     arduino_connected: bool
-    gps_connected: bool
+    gps_data: str
     paths : str
     obstacles: str
     status: str
@@ -51,6 +53,10 @@ class MapKey(Enum):
     EMPTY = "E"
     CURRENT_PATH = "G"
     PATH_IN_QUE = "Q"
+
+class GPSKey(Enum):
+    LATITUDE = "LATITUDE"
+    LONGITUDE = "LONGITUDE"
 INCHES_PER_NODE = 2
 
 
@@ -87,6 +93,12 @@ if __name__ == "__main__":
     output += f"export const {MapKey.__name__} = Object.freeze("
     output += "{\n"
     for member in MapKey:
+        output += f'  {member.name} : "{member.value}",\n'
+    output += "\n});\n"
+
+    output += f"export const {GPSKey.__name__} = Object.freeze("
+    output += "{\n"
+    for member in GPSKey:
         output += f'  {member.name} : "{member.value}",\n'
     output += "\n});\n"
 

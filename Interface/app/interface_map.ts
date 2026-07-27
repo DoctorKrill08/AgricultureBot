@@ -7,6 +7,8 @@ export const Command = Object.freeze({
   DELETE_ALL_PATHS : "DELETE_ALL_PATHS",
   DELETE_PATH : "DELETE_PATH",
   ADD_PATH : "ADD_PATH",
+  SET_PATH_YAW : "SET_PATH_YAW",
+  SET_PATH_INDEX : "SET_PATH_INDEX",
   SET_CLEARANCE : "SET_CLEARANCE",
   SET_ANGLE_PENALTY : "SET_ANGLE_PENALTY",
 
@@ -26,6 +28,11 @@ export const MapKey = Object.freeze({
   PATH_IN_QUE : "Q",
 
 });
+export const GPSKey = Object.freeze({
+  LATITUDE : "LATITUDE",
+  LONGITUDE : "LONGITUDE",
+
+});
 export type Telemetry ={
   mode : string;
   x : number;
@@ -34,7 +41,7 @@ export type Telemetry ={
   vector_y : number;
   heading : number;
   arduino_connected : boolean;
-  gps_connected : boolean;
+  gps_data : string;
   paths : string;
   obstacles : string;
   status : string;

@@ -317,6 +317,9 @@ class GPS:
 
     speed_threshold = 4
 
+    def get_data():
+        return ""
+
     def global_to_local():
         return
     def local_to_global():

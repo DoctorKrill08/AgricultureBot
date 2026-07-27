@@ -3,10 +3,10 @@ import React, { useEffect, useRef, useState } from "react";
 import './globals.css'
 import Joystick from './joystick'
 import Compass from './Compass'
-import Mapping, { DELETE_ALL_PATHS, DELETE_PATH } from './Mapping'
+import Mapping from './Mapping'
+import GPS from './GPS'
 import './interface_map'
 import { COMMAND,VALUES, Command, RobotState ,Telemetry} from "./interface_map";
-import { ADD_PATH } from "./Mapping";
 
 
 
@@ -19,7 +19,7 @@ export default function RobotControlPanel() {
     vector_y: 0,
     heading: 0,
     arduino_connected: false,
-    gps_connected: false,
+    gps_data: "",
     obstacles: "N/A",
     paths: "N/A",
     status: "Disconnected",
@@ -74,7 +74,7 @@ export default function RobotControlPanel() {
           vector_y: data.vector_y,
           heading: data.heading,
           arduino_connected: data.arduino_connected,
-          gps_connected: data.gps_connected,
+          gps_data: data.gps_data,
           obstacles: data.obstacles,
           paths : data.paths,
           status: data.status,
@@ -106,19 +106,6 @@ export default function RobotControlPanel() {
     sendCommand(Command.JOYSTICK,`${x},${y}`)
   };
 
-  const handleMapCommand = (e : any,x: number, y: number, yaw : number = 0, command: string, isButton : boolean = false) => {
-    if (e.target != e.currentTarget && !isButton){
-      return
-    }
-    console.log("MAP:", x, y,yaw);
-    if (command == ADD_PATH){
-      sendCommand(command,`${x},${y},${yaw}`)
-    }else if (command == DELETE_ALL_PATHS){
-      sendCommand(command,'N/A')
-    }else if (command == DELETE_PATH){
-      sendCommand(command,String(x))
-    }
-  };
 
 
   return (
@@ -171,8 +158,9 @@ export default function RobotControlPanel() {
             <Compass  yaw= {telemetry.heading}/>
             <Mapping bx = {telemetry.x} by = {telemetry.y} bYaw = {telemetry.heading}
             vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
-            mapData = {telemetry.obstacles} mapCommand = {handleMapCommand}
+            mapData = {telemetry.obstacles} sendCommand = {sendCommand}
             pathData = {telemetry.paths}/>
+            <GPS gpsData = {telemetry.gps_data}/>
 
           </div>
           {/* Telemetry Section */}
@@ -187,11 +175,6 @@ export default function RobotControlPanel() {
              <div>
               <strong>Arduino Connected:</strong> {" "}
               {telemetry.arduino_connected ? "True" : "False"}
-            </div>
-
-             <div>
-              <strong>GPS Connected:</strong> {" "}
-              {telemetry.gps_connected ? "True" : "False"}
             </div>
 
             <div>
