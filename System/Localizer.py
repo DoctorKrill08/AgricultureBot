@@ -55,7 +55,7 @@ class LocalizationKalman():
         LocalizationKalman.timer.reset()
     def gyro_odo_fusion(odo_delta_yaw,gyro_delta_yaw):
         K = (LocalizationKalman.odo_variance) / (LocalizationKalman.odo_variance + LocalizationKalman.GYRO_VARIANCE)
-        odo_delta_yaw +=(K * (odo_delta_yaw - gyro_delta_yaw))
+        odo_delta_yaw +=(K * (gyro_delta_yaw - odo_delta_yaw))
         LocalizationKalman.odo_variance = (1 - K) * LocalizationKalman.odo_variance
         return odo_delta_yaw
 class Localizer():

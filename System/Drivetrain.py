@@ -13,9 +13,9 @@ class Drivetrain:
 
     MAX_POWER = 0.4
     TURN_SENSITIVITY = 0.5
-    MIN_TURN = 0.1
+    MIN_TURN = 0.05
 
-    TURN_P = -0.8
+    TURN_P = -1.1
     DRIVE_P = 0.015
 
     MIN_DISTANCE = 2

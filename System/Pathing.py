@@ -218,6 +218,7 @@ class Pathing:
         tx = target.x
         ty = target.y
         target_yaw = target.yaw
+        print("tx: ",tx," ty: ",ty, " tyaw: ",target_yaw)
 
         distance = math.sqrt(((tx - x) ** 2) + ((ty - y) ** 2))
         #Near goal -> Turn to target yaw
@@ -225,7 +226,7 @@ class Pathing:
             delta_yaw = shortest_angular_distance(yaw,target_yaw)
             turn = Drivetrain.calculate_turn(delta_yaw)
             #Near target yaw -> Wait
-            if (turn < Drivetrain.MIN_TURN):
+            if (abs(turn) < Drivetrain.MIN_TURN):
                 Pathing.state = PathState.WAITING
                 return 0,0,PathState.DONE_TURNING
             return turn,0,PathState.TURNING

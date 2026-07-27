@@ -139,7 +139,19 @@ void loop() {
   if (elapsedTime > ELAPSED_TIME_SINCE_SIGNAL_THRESHOLD_MILLIS && connected == true){
     stop();
   }
-  calculateOdometry(DriveRightEncoderPos,DriveLeftEncoderPos);
+
+  long rightTicks;
+  long leftTicks;
+
+  noInterrupts();
+
+  rightTicks = DriveRightEncoderPos;
+  leftTicks = DriveLeftEncoderPos;
+
+  interrupts();
+
+  calculateOdometry(rightTicks, leftTicks);
+  
   ledUpdate();
   if (Serial.available() > 0) {
     // Read the incoming byte
@@ -154,7 +166,9 @@ void loop() {
     if (cmd.id >= 0){
       startTime = millis();
       if (!connected){
-        odometryClear();
+        deltaYaw = 0;
+        x = 0;
+        y = 0;
         startTime = millis() + 5000;
         ledStayOn();
         connected = true;
