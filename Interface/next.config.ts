@@ -6,6 +6,6 @@ const nextConfig: NextConfig = {
 //Jetson -> '10.42.0.124, 10.42.0.1'
 //rokoko -> 10.54.132.8,10.54.132.13,10.42.0.122
 module.exports = {
-    allowedDevOrigins: ['10.42.0.1','10.42.0.124','10.54.132.27']
+    allowedDevOrigins: ['10.42.0.1','10.42.0.124','10.54.132.28']
 }
 export default nextConfig;

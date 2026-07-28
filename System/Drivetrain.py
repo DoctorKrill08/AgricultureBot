@@ -11,7 +11,7 @@ class Drivetrain:
     telemetry = ""
 
 
-    MAX_POWER = 0.5
+    MAX_POWER = 0.3
     MIN_TURN = 0.05
 
     TURN_P = -0.38

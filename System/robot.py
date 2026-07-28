@@ -6,6 +6,7 @@ from System.Localizer import Localizer,Camera,Lidar
 from System.mapping import Map
 from System.interface_map import *
 from System.Pathing import Pathing, Path
+import asyncio
 
 
 
@@ -34,7 +35,8 @@ class Robot:
         gps_data="",
         paths="",
         obstacles = "",
-        status=""
+        status="",
+        camera_stream = ""
     )
     
     def set_joystick(values : str):
@@ -119,7 +121,8 @@ class Robot:
             arduino_connected=Arduino.connected,
             obstacles = Map.print_nodes(Map.nodes),
             paths=Pathing.paths_to_string(),
-            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status()
+            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
+            camera_stream=Camera.base64_frame
         )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):
@@ -128,7 +131,7 @@ class Robot:
         if (not Robot.on):
             return
         if (Robot.update_timer.time_passed() < UPDATE_TIME):
-            time.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
+            asyncio.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
         Robot.update_timer.reset()
         if (Robot.ping_stopwatch.time_passed() > PING_TIME):
             ping()

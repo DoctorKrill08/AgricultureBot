@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, {useEffect,useRef, useState } from 'react';
 import './globals.css'
 
 type JoystickProps = {
@@ -8,15 +8,82 @@ type JoystickProps = {
 };
 
 export default function Joystick({ onMove }: JoystickProps) {
+  const requestRef = useRef<number | null>(null);
+  const [gamepadConnected,setGamepadConnected] = useState(false)
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [prev_position, setPrevPosition] = useState({ x: 0, y: 0 });
+
+   useEffect(() => {    
+    // 1. If not connected yet, stop here. 
+    // When gamepadConnected changes to true, this entire effect will re-run!
+    if (!gamepadConnected) {
+      return; 
+    }
+
+    const DEADZONE = 0.15;
+
+    const pollGamepad = () => {
+      const gamepads = navigator.getGamepads();
+      const activeGamepad = Array.from(gamepads).find(gp => gp !== null);
+      
+      if (activeGamepad && activeGamepad.axes.length >= 2) {
+        let x = activeGamepad.axes[2];
+        let y = activeGamepad.axes[1];
+
+        if (Math.abs(x) < DEADZONE) x = 0;
+        if (Math.abs(y) < DEADZONE) y = 0;
+        
+        // Note: Make sure updatePosition is defined or changed to onMove
+        
+        updatePosition(
+          x,
+          y
+        );
+      }
+      
+      requestRef.current = requestAnimationFrame(pollGamepad);
+    };
+
+    requestRef.current = requestAnimationFrame(pollGamepad);
+
+    return () => {
+      if (requestRef.current) {
+        console.log("Cleaning up animation frame");
+        cancelAnimationFrame(requestRef.current);
+      }
+    };
+    
+  // 2. CRITICAL FIX: Add gamepadConnected here
+  }, [gamepadConnected]); 
+
+
   const joystickRef = useRef<HTMLDivElement>(null);
 
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
 
   const radius = 100;      // Outer joystick radius
   const knobRadius = 30;   // Inner knob radius
 
   const updatePosition = (clientX: number, clientY: number) => {
+    if (gamepadConnected){
+      let x = clientX
+      let y = clientY
+      onMove(x,y)
+      const maxDistance = radius - knobRadius;
+      let distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) * maxDistance
+      if (distance <= 0){
+        x = 0
+        y = 0
+        setPosition({ x, y })
+      }
+
+      const angle = Math.atan2(y, x);
+
+      x = Math.cos(angle) * distance;
+      y = Math.sin(angle) * distance;
+      setPosition({ x, y })
+      return
+    }
     if (!joystickRef.current) return;
 
     const rect = joystickRef.current.getBoundingClientRect();
@@ -54,17 +121,26 @@ export default function Joystick({ onMove }: JoystickProps) {
   };
 
   const handleMouseDown = (event: React.MouseEvent) => {
+    if (gamepadConnected){
+      return
+    }
     setDragging(true);
     updatePosition(event.clientX, event.clientY);
   };
 
   const handleMouseMove = (event: React.MouseEvent) => {
+    if (gamepadConnected){
+      return
+    }
     if (!dragging) return;
 
     updatePosition(event.clientX, event.clientY);
   };
 
   const handleMouseUp = () => {
+    if (gamepadConnected){
+      return
+    }
     setDragging(false);
 
     // Return to center
@@ -73,6 +149,9 @@ export default function Joystick({ onMove }: JoystickProps) {
   };
 
   const handleTouchStart = (event: React.TouchEvent) => {
+    if (gamepadConnected){
+      return
+    }
     setDragging(true);
 
     const touch = event.touches[0];
@@ -80,6 +159,9 @@ export default function Joystick({ onMove }: JoystickProps) {
   };
 
   const handleTouchMove = (event: React.TouchEvent) => {
+    if (gamepadConnected){
+      return
+    }
     if (!dragging) return;
 
     const touch = event.touches[0];
@@ -87,6 +169,9 @@ export default function Joystick({ onMove }: JoystickProps) {
   };
 
   const handleTouchEnd = () => {
+    if (gamepadConnected){
+      return
+    }
     setDragging(false);
     setPosition({ x: 0, y: 0 });
     onMove(0, 0);
@@ -100,17 +185,17 @@ export default function Joystick({ onMove }: JoystickProps) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{
-        width: '100vw',
-        height: '90vh',
+        width: '400px',
+        height: '700px',
       }}
+      
     >
       <h1 className='big-text'>
         JOYSTICK
       </h1>
-      <br/>
-      <br/>
-      <br/>
-      <br/>
+      <button className='button' onClick={() => setGamepadConnected(!gamepadConnected)}>
+        Controller Mode: {String(gamepadConnected)}
+      </button>
       <br/>
       <br/>
       <div

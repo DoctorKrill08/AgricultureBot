@@ -5,6 +5,7 @@ from enum import Enum
 import math
 import re
 import matplotlib.pyplot as plt
+import asyncio
 
 def recursive_average(prev,current,quantity):
         if (quantity <= 0):
@@ -373,7 +374,7 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
                 print("MOVING!")
                # plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
         if (GPS.timer.time_passed() < GPS.PERIOD):
-            time.sleep(GPS.PERIOD - GPS.timer.time_passed())
+            asyncio.sleep(GPS.PERIOD - GPS.timer.time_passed())
         GPS.timer.reset()
         
 

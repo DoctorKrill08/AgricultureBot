@@ -43,22 +43,13 @@ void calculateOdometry(long right, long left){
     leftInches = ticksToInches(deltaLeft);
     rightInches = ticksToInches(deltaRight);
 
-    wheelDifference = (double)(rightInches - leftInches); 
-
     averageDisplacement = (rightInches + leftInches) / 2.000;
 
-    deltaYaw = (double)(wheelDifference / DISTANCE_BETWEEN_WHEELS);
+    deltaYaw = (double)((rightInches - leftInches) / DISTANCE_BETWEEN_WHEELS);
     
     x += averageDisplacement * cos((yaw + (deltaYaw / 2.0000)));
     y += averageDisplacement * sin((yaw) + (deltaYaw / 2.0000));
 
     yaw += deltaYaw;
-
-    if (yaw > PI){
-        yaw -= 2 * PI;
-    }
-    if (yaw < -PI){
-        yaw += 2 * PI;
-    }
 }
 #endif

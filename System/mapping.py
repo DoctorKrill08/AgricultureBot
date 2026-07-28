@@ -11,7 +11,7 @@ OBSTACLE = MapKey.OBSTACLE.value
 SAVED_OBSTACLE = MapKey.SAVED_OBSTACLE.value
 
 class Node():
-    DEFAULT_CONFIDENCE = 300
+    DEFAULT_CONFIDENCE = 200
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
         self.y = y
@@ -35,6 +35,8 @@ class Node():
 
 class Map:
     MAX_DISTANCE = 40 #Inches
+    NON_VISIBLE_CONFIDENCE_DECAY= 1
+    VISIBLE_CONFIDENCE_DECAY = 50
     nodes =  {}
     def print_nodes(nodes):
         telemetry = ""
@@ -121,7 +123,7 @@ class Map:
             distance = math.sqrt((deltaX ** 2) + (deltaY ** 2))
             #passive confidence decay
             if (node.status == SAVED_OBSTACLE):
-                node.confidence -= 0.01
+                node.confidence -= Map.NON_VISIBLE_CONFIDENCE_DECAY
             if (distance > CAMERA_MAX_DEPTH):
                 node.save_obstacle()
                 continue
@@ -136,8 +138,8 @@ class Map:
             if (node.status == SAVED_OBSTACLE):
                 weight = 1
                 if (not rotational_movement == 0):
-                    weight = max((0.5 / rotational_movement),1)
-                node.confidence -= 0.02 * weight
+                    weight = max(min((0.5 / rotational_movement),1),0.2)
+                node.confidence -= Map.VISIBLE_CONFIDENCE_DECAY * weight
             elif(node.status == OBSTACLE):
                 node.save_obstacle()
         for key,node in delete_list.items():

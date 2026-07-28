@@ -19,26 +19,37 @@ class DynamicWindow:
     MAX_DISTANCE = 20
     MIN_DISTANCE = 1.5
 
-    VECTOR_STRENGTH = 30
+    MAX_VECTOR_STRENGTH = 30
+    MIN_VECTOR_STRENGTH = 5
     
-    UPDATE_RATE = 2
-
     ANGLE_INCREMENT = 10 #Degrees
-    ANGLE_RANGE = 180 #Degrees
+    ANGLE_RANGE = 270 #Degrees
 
     ANGLE_PENALTY = 0.1
-    CLEARANCE_SCORE = 1
-    CHANGE_PENALTY = 2
+    CLEARANCE_SCORE = 3
+    CHANGE_PENALTY = 1.5
     MIN_CHANGE_PENALTY = 5
 
 
     OBSTRUCTION_PENALTY = 100000
 
-    MIN_CLEARANCE = ROBOT_WIDTH
-    MAX_CLEARANCE = 8
+    MIN_CLEARANCE = ROBOT_WIDTH / 2
+    MAX_CLEARANCE = 20
 
     obstructed = False
     current_angle = 0
+
+    DEFAULT_SCORE = 500
+    SCORE_TO_STRENGTH_RATIO = 0.5
+
+    REMAP_TIME = 0.3
+    DRIVE_TIME = 1.5
+
+    timer = Timer()
+    remapping = False
+
+    def score_to_strength(score):
+        return max(min((DynamicWindow.DEFAULT_SCORE + score) * DynamicWindow.SCORE_TO_STRENGTH_RATIO,DynamicWindow.MAX_VECTOR_STRENGTH),DynamicWindow.MIN_VECTOR_STRENGTH)
 
     def calculate_clearance(x,y,obstacles):
         obstructed = False
@@ -58,12 +69,12 @@ class DynamicWindow:
             continue
         return obstructed,clearance
 
-    def calculate_obstruction(bot_x,bot_y,angle,check_distance,obstacles,tx = None,ty = None):
+    def calculate_obstruction(bot_x,bot_y,angle,check_distance,obstacles):
         if (check_distance > 40):
             check_distance = 40
         check_distance -= (ROBOT_WIDTH / 2)
         furthest = 0
-        increment = DynamicWindow.MIN_CLEARANCE / 4
+        increment = DynamicWindow.MIN_CLEARANCE / 2
         i = 0
         clearance = 100000
         obstructed = False        
@@ -77,11 +88,6 @@ class DynamicWindow:
                 furthest = check_distance
             x = bot_x + (furthest * math.cos(angle))
             y = bot_y + (furthest * math.sin(angle))
-            if (not tx == None and not ty == None):
-                target_distance = math.sqrt(((x - tx) ** 2)+ ((y - ty) ** 2))
-                if (target_distance < Pathing.GOAL_DISTANCE_THRESHOLD):
-                    complete = True
-                    break
 
             obstructed,this_clearance = DynamicWindow.calculate_clearance(x,y,obstacles)
             if (this_clearance < clearance):
@@ -100,15 +106,27 @@ class DynamicWindow:
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
         print("distance: ",distance, " target_yaw: ", target_yaw)
 
-        DynamicWindow.obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_yaw,distance,obstacles,tx = tx,ty = ty)
-        force = min(distance,DynamicWindow.VECTOR_STRENGTH)
+        obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_yaw,distance,obstacles)
+        force = min(distance,DynamicWindow.MAX_VECTOR_STRENGTH)
+        if (obstructed and not DynamicWindow.obstructed):
+            DynamicWindow.timer.reset()
+        
+        DynamicWindow.obstructed = obstructed
         if (not DynamicWindow.obstructed):
             best_path_clearance =  -10000
             DynamicWindow.current_angle = 0
             goal_vector_x = force * math.cos(target_yaw)
             goal_vector_y = force * math.sin(target_yaw)
             return goal_vector_x,goal_vector_y
-
+        if (not DynamicWindow.remapping and DynamicWindow.timer.time_passed() > DynamicWindow.DRIVE_TIME):
+            DynamicWindow.remapping = True
+            DynamicWindow.timer.reset()
+            return 0,0
+        if (DynamicWindow.remapping and not DynamicWindow.timer.time_passed() > DynamicWindow.REMAP_TIME):
+            return 0,0
+        if (DynamicWindow.remapping and DynamicWindow.timer.time_passed() > DynamicWindow.REMAP_TIME):
+            DynamicWindow.remapping = False
+            DynamicWindow.timer.reset()
         goal_vector_x = 0
         goal_vector_y = 0
 
@@ -148,7 +166,7 @@ class DynamicWindow:
                 greatest_score = score
                 goal_vector_x = vector_x
                 goal_vector_y = vector_y
-                best_path_clearance = min(max(clearance,0),DynamicWindow.VECTOR_STRENGTH)
+                best_path_clearance = min(max(clearance,0),DynamicWindow.MAX_VECTOR_STRENGTH)
                 best_path_degree_offset = degree_offset
         print("---greatest  score---: ", greatest_score)
         DynamicWindow.current_angle = best_path_degree_offset

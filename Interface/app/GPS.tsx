@@ -13,7 +13,10 @@ export default function GPS({gpsData}: any) {
   const [s3rw, wwwa] = useState(0);
   return (
     
-    <div>
+    <div style={{
+        width: '300px',
+        height: '300px'
+      }}>
       <h1 className='big-text' style={{
         marginTop: 100
       }}>

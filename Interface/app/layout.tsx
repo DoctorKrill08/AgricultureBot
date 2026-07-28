@@ -23,6 +23,7 @@ export default function RobotControlPanel() {
     obstacles: "N/A",
     paths: "N/A",
     status: "Disconnected",
+    camera_stream: "",
   });
 
   const [connected, setConnected] = useState(false);
@@ -45,7 +46,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.54.132.27:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.28:8000/ws");
 
     socketRef.current = socket;
 
@@ -78,6 +79,7 @@ export default function RobotControlPanel() {
           obstacles: data.obstacles,
           paths : data.paths,
           status: data.status,
+          camera_stream: data.camera_stream
         });
       }
     };
@@ -111,9 +113,13 @@ export default function RobotControlPanel() {
   return (
     <html>
       <body className="background">
-        <div>
-          {/* Command Section */}
-          <div>
+        <div style={{display:"flex", 
+          width: '100vw',
+          flexDirection: 'row',
+          flexWrap: 'wrap'}}>
+          <img src = {`data:image/jpeg;base64,${telemetry.camera_stream}`} style={{width: '640px', height: '480px', transform: "scaleY(-1)"}}/>          {/* Command Section */}
+          <Joystick onMove={handleJoystickUpdate}/>
+          <div style={{width : '400px',}}>
             <h2>Command</h2>
 
             <div>
@@ -168,8 +174,7 @@ export default function RobotControlPanel() {
               
                        
             </div>
-
-            <Joystick onMove={handleJoystickUpdate}/>
+            </div>
             <Compass  yaw= {telemetry.heading}/>
             <Mapping bx = {telemetry.x} by = {telemetry.y} bYaw = {telemetry.heading}
             vx = {telemetry.vector_x} vy = {telemetry.vector_y} 
@@ -177,9 +182,8 @@ export default function RobotControlPanel() {
             pathData = {telemetry.paths}/>
             <GPS gpsData = {telemetry.gps_data}/>
 
-          </div>
           {/* Telemetry Section */}
-          <div>
+          <div style={{width : '400px', height : '800px'}}>
             <h2>Telemetry</h2>
 
             <div>

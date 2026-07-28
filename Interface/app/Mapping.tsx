@@ -384,7 +384,10 @@ export default function Mapping({bx=0,by=0,bYaw=0,vx=0,vy=0, mapData, pathData, 
 
   return (
     
-    <div>
+    <div style={{
+        width: '600px',
+        height: '900px'
+      }}>
       <h1 className='big-text' style={{
         marginTop: 100
       }}>

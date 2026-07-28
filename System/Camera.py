@@ -5,6 +5,7 @@ from System.Constants import *
 from timer import *
 from enum import Enum
 import cv2
+import base64
 
 # Inject your local Release folder to the top of the search path
 sys.path.insert(0, os.path.expanduser('~/librealsense/build/Release/'))
@@ -48,6 +49,8 @@ class Camera:
 
     prev_frame = None
     canvas = np.zeros((HEIGHT, WIDTH), dtype=np.uint8)
+
+    base64_frame = ""
 
     def exception():
         ctx = rs.context()
@@ -95,7 +98,7 @@ class Camera:
             print("IMU NOT CONNECTED", e)
 
         try:
-            #vision_cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
+            vision_cfg.enable_stream(rs.stream.color, Camera.WIDTH,Camera.HEIGHT, rs.format.bgr8, Camera.FPS)
             vision_cfg.enable_stream(rs.stream.depth, Camera.WIDTH,Camera.HEIGHT, rs.format.z16, Camera.FPS)
             Camera.vision_pipe.start(vision_cfg)
             Camera.on = True
@@ -118,11 +121,15 @@ class Camera:
         Camera.current_frame = 0
         frame = Camera.vision_pipe.wait_for_frames()
         depth_frame = frame.get_depth_frame()
-        #color_frame = frame.get_color_frame()
+        color_frame = frame.get_color_frame()
 
-        #depth_image = np.asanyarray(depth_frame.get_data())
-        #color_image = np.asanyarray(color_frame.get_data())
+       # depth_image = np.asanyarray(depth_frame.get_data())
+        color_image = np.asanyarray(color_frame.get_data())
         #depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,alpha = 0.03), cv2.COLORMAP_JET)
+
+        _, buffer = cv2.imencode('.jpg', color_image, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        Camera.base64_frame = base64.b64encode(buffer).decode('utf-8')
+        
         #cv2.imshow('depth', depth_cm)
         #cv2.imshow('rgb', color_image)
 

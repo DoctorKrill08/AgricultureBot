@@ -27,7 +27,7 @@ async def telemetry_task(websocket: WebSocket):
             **Robot.telemetry.model_dump()
         })
 
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
 
 async def command_task(websocket: WebSocket):
     while True:

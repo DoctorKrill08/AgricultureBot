@@ -17,10 +17,11 @@ export default function Compass({yaw}: any) {
   
 
   return (
-    <div>
-      <h1 className='big-text' style={{
-        marginTop: 100
+    <div style={{
+        width: '300px',
+        height: '300px',
       }}>
+      <h1 className='big-text'>
         COMPASS
       </h1>
         <div className='compass-outer' style={{
