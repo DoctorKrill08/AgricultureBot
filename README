@@ -67,6 +67,14 @@ nmcli show robot
 Set correct wifi interface:
 nmcli connection modify robot connection.interface-name wlP1p1s0
 
+To connect to wifi via terminal:
+look at wifi: nmcli device wifi list
+sudo nmcli device wifi connect "YOUR_SSID" password "YOUR_PASSWORD"
+ex.
+sudo nmcli device wifi connect rokoko_suit1 password rokoko_suit2024!
+
+
+
 http://10.42.0.124:3000/
 
 

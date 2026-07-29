@@ -373,9 +373,6 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
             else:
                 print("MOVING!")
                # plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
-        if (GPS.timer.time_passed() < GPS.PERIOD):
-            asyncio.sleep(GPS.PERIOD - GPS.timer.time_passed())
-        GPS.timer.reset()
         
 
         

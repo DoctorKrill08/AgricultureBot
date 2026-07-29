@@ -12,7 +12,7 @@ async def robot_loop():
 
     while True:
         Robot.update()
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.1)
 
 @app.on_event("startup")
 async def startup():
@@ -27,7 +27,7 @@ async def telemetry_task(websocket: WebSocket):
             **Robot.telemetry.model_dump()
         })
 
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.2)
 
 async def command_task(websocket: WebSocket):
     while True:
@@ -53,6 +53,7 @@ async def command_task(websocket: WebSocket):
             DynamicWindow.CHANGE_PENALTY = float(data[VALUES])
         elif data[COMMAND] == Command.SET_MAX_CLEARANCE.value:
             DynamicWindow.MAX_CLEARANCE = float(data[VALUES])
+        await asyncio.sleep(0.05)
         
         
 

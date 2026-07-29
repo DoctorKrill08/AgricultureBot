@@ -11,16 +11,13 @@ export default function Joystick({ onMove }: JoystickProps) {
   const requestRef = useRef<number | null>(null);
   const [gamepadConnected,setGamepadConnected] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [prev_position, setPrevPosition] = useState({ x: 0, y: 0 });
-
+  const lastSentValues = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
    useEffect(() => {    
     // 1. If not connected yet, stop here. 
     // When gamepadConnected changes to true, this entire effect will re-run!
     if (!gamepadConnected) {
       return; 
     }
-
-    const DEADZONE = 0.15;
 
     const pollGamepad = () => {
       const gamepads = navigator.getGamepads();
@@ -29,16 +26,34 @@ export default function Joystick({ onMove }: JoystickProps) {
       if (activeGamepad && activeGamepad.axes.length >= 2) {
         let x = activeGamepad.axes[2];
         let y = activeGamepad.axes[1];
+        
+        const DEADZONE = 0.05;
+        const CHANGE_THRESHOLD = 0.02; 
+        if (Math.abs(x) < DEADZONE){
+          x = 0
+        }
+        if (Math.abs(y) < DEADZONE){
+          y = 0
+        }
 
-        if (Math.abs(x) < DEADZONE) x = 0;
-        if (Math.abs(y) < DEADZONE) y = 0;
-        
-        // Note: Make sure updatePosition is defined or changed to onMove
-        
-        updatePosition(
-          x,
-          y
-        );
+        const diffX = Math.abs(x - lastSentValues.current.x);
+        const diffY = Math.abs(y - lastSentValues.current.y);
+
+        // 3. Check for specific zero-return (release) or a meaningful movement step
+        const isReturningToZero = (x === 0 && lastSentValues.current.x !== 0) || 
+                                  (y === 0 && lastSentValues.current.y !== 0);
+        const passedThreshold = diffX > CHANGE_THRESHOLD || diffY > CHANGE_THRESHOLD;
+
+        if (passedThreshold || isReturningToZero) {
+          // Update the tracking ref immediately (synchronous)
+          lastSentValues.current = { x, y };
+          
+          // Fire your callback only when data actually shifts
+          updatePosition(
+            x,
+            y
+          );
+        }
       }
       
       requestRef.current = requestAnimationFrame(pollGamepad);
@@ -66,22 +81,21 @@ export default function Joystick({ onMove }: JoystickProps) {
 
   const updatePosition = (clientX: number, clientY: number) => {
     if (gamepadConnected){
-      let x = clientX
-      let y = clientY
-      onMove(x,y)
+      onMove(clientX,-clientY)
       const maxDistance = radius - knobRadius;
-      let distance = Math.sqrt(Math.pow(x,2) + Math.pow(y,2)) * maxDistance
+      let distance = Math.sqrt(Math.pow(clientX,2) + Math.pow(clientY,2)) * maxDistance
       if (distance <= 0){
-        x = 0
-        y = 0
-        setPosition({ x, y })
+        clientX = 0
+        clientY = 0
+        setPosition({ 'x' : clientX, 'y' : clientY })
+        return
       }
 
-      const angle = Math.atan2(y, x);
+      const angle = Math.atan2(clientY, clientX);
 
-      x = Math.cos(angle) * distance;
-      y = Math.sin(angle) * distance;
-      setPosition({ x, y })
+      clientX = Math.cos(angle) * distance;
+      clientY = Math.sin(angle) * distance;
+      setPosition({ 'x' : clientX, 'y' : clientY })
       return
     }
     if (!joystickRef.current) return;
