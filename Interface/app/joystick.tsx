@@ -27,7 +27,7 @@ export default function Joystick({ onMove }: JoystickProps) {
         let x = activeGamepad.axes[2];
         let y = activeGamepad.axes[1];
         
-        const DEADZONE = 0.05;
+        const DEADZONE = 0.15;
         const CHANGE_THRESHOLD = 0.02; 
         if (Math.abs(x) < DEADZONE){
           x = 0
