@@ -3,7 +3,7 @@ from System.robot import Robot, RobotState,Localizer,Camera,Drivetrain
 from System.Pathing import DynamicWindow
 from System.interface_map import *
 import asyncio
-
+import time
 
 app = FastAPI()
 
@@ -17,6 +17,8 @@ async def robot_loop():
 @app.on_event("startup")
 async def startup():
     Robot.initiate()
+    time.sleep(1)
+
     asyncio.create_task(robot_loop())
 
 
@@ -27,7 +29,7 @@ async def telemetry_task(websocket: WebSocket):
             **Robot.telemetry.model_dump()
         })
 
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.1)
 
 async def command_task(websocket: WebSocket):
     while True:

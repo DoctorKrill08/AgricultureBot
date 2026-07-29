@@ -12,7 +12,7 @@ class Arduino:
     NANO = "NANO"
     WINDOWS = "WINDOWS"
     SERIAL_PORTS = {
-        NANO: '/dev/ttyACM1',
+        NANO: '/dev/arduino_device',
         WINDOWS : 'COM5'
     }
     TIMEOUT = 0.1
@@ -32,7 +32,7 @@ class Arduino:
                 Arduino.connected = False
         time.sleep(1.5)
         if (Arduino.connected):
-            send_command(f"{Device.Ping.value},0,0",override=True)
+            send_command(f"{Device.Ping.value},0",override=True)
 def send_command(command,read = False,override = False):
     if (not Arduino.connected and not override):
         print("Arduino not connected")
@@ -52,26 +52,11 @@ def close_arduino():
     Arduino.serial.close()
     Arduino.connected = False
 def stop_arduino():
-    cmd = send_command(f"{Device.Stop.value},0,0",read=True,override=True)
+    cmd = send_command(f"{Device.Stop.value},0",read=True,override=True)
     if (not cmd == None and not cmd == ""):
         close_arduino()
 def ping():
-    send_command(f"{Device.Ping.value},0,0",read=True)
-class Servo:
-    TYPE = HardwareType.SERVO
-    id = None
-    initiated = False
-    target = 0
-    def __init__(self,id):
-        self.id = id
-        self.initiated = True
-    def set(self,target):
-        self.target = target
-        send_command(f'{self.id},{target}')
-    def get(self):
-        send_command(f'{self.id},{"0"}')
-    def turn_off(self):
-        send_command(f'{self.id},{"0"}')
+    send_command(f"{Device.Ping.value},0",read=True)
 class Motor:
     TYPE = HardwareType.MOTOR
     target = 0

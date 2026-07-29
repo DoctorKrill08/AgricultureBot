@@ -130,9 +130,6 @@ class Robot:
             Robot.joy_y = 0
         if (not Robot.on):
             return
-        if (Robot.update_timer.time_passed() < UPDATE_TIME):
-            asyncio.sleep(UPDATE_TIME - Robot.update_timer.time_passed())
-        Robot.update_timer.reset()
         if (Robot.ping_stopwatch.time_passed() > PING_TIME):
             ping()
             Robot.ping_stopwatch.go()
