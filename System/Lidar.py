@@ -8,7 +8,7 @@ class Lidar:
     ANGLE_RANGE = 70 #Degrees
     LIDAR_X = 12
     LIDAR_Y = 0
-    port = "COM3"
+    PORT  = "/dev/ttyUSB0"
     BAUD_RATE = 1000000
     ANGLE_INCREMENT = 2 #Degrees
     driver = None
@@ -17,7 +17,7 @@ class Lidar:
 
     connected = False
     def start():
-        Lidar.driver = pyrplidarsdk.RplidarDriver(port="COM3")
+        Lidar.driver = pyrplidarsdk.RplidarDriver(port=Lidar.PORT)
         Lidar.connected = False
         # Connect to the device
         if not Lidar.driver.connect():

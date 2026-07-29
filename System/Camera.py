@@ -7,10 +7,6 @@ from enum import Enum
 import cv2
 import base64
 
-# Inject your local Release folder to the top of the search path
-sys.path.insert(0, os.path.expanduser('~/librealsense/build/Release/'))
-os.environ["LD_LIBRARY_PATH"] = os.path.expanduser('~/librealsense/build/Release/') + ":" + os.environ.get("LD_LIBRARY_PATH", "")
-
 import pyrealsense2 as rs
 
 class Camera:
