@@ -14,6 +14,7 @@ export const Command = Object.freeze({
   SET_CHANGE_PENALTY : "SET_CHANGE_PENALTY",
   SET_ANGLE_INCREMENT : "SET_ANGLE_INCREMENT",
   SET_MAX_CLEARANCE : "SET_MAX_CLEARANCE",
+  SET_MAX_POWER : "SET_MAX_POWER",
 
 });
 export const RobotState = Object.freeze({

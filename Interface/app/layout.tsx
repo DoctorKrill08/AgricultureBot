@@ -145,6 +145,10 @@ export default function RobotControlPanel() {
               </button>
               <br/> 
               ------ROBOT-------
+               <br/>
+              Max Power:
+              <input enterKeyHint="done" type = "number" className="button" defaultValue={0} placeholder="..." onKeyDown={inputChange(Command.SET_MAX_POWER)}/>
+              <br/>
               <br/>
               -----Dynamic Window Approach------
               <br/>
