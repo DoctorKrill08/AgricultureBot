@@ -35,6 +35,7 @@ async def telemetry_task(websocket: WebSocket):
             await websocket.send_json(payload)
             
             if Camera.binary_frame:
+                await asyncio.sleep(0.05)
                 await websocket.send_bytes(Camera.binary_frame)
                 
         except Exception as e:
