@@ -69,21 +69,23 @@ export default function RobotControlPanel() {
     };
     //socket.binaryType = 'blob';
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data[COMMAND] === Command.TELEMETRY) {
-         setTelemetry({
-          mode: data.mode,
-          x: data.x,
-          y: data.y,
-          vector_x: data.vector_x,
-          vector_y: data.vector_y,
-          heading: data.heading,
-          arduino_connected: data.arduino_connected,
-          gps_data: data.gps_data,
-          obstacles: data.obstacles,
-          paths : data.paths,
-          status: data.status,
-        });
+      if (typeof event.data === 'string') {
+        const data = JSON.parse(event.data);
+        if (data[COMMAND] === Command.TELEMETRY) {
+          setTelemetry({
+            mode: data.mode,
+            x: data.x,
+            y: data.y,
+            vector_x: data.vector_x,
+            vector_y: data.vector_y,
+            heading: data.heading,
+            arduino_connected: data.arduino_connected,
+            gps_data: data.gps_data,
+            obstacles: data.obstacles,
+            paths: data.paths,
+            status: data.status,
+          });
+        }
       } /*else if (data[COMMAND] == Command.CAMERA) {
         if (event.data instanceof Blob) {
           if (imgRef.current) {
@@ -138,7 +140,7 @@ export default function RobotControlPanel() {
           flexDirection: 'row',
           flexWrap: 'wrap'
         }}>
-          <img  style={{ width: '640px', height: '480px', transform: "scale(-1)" }} />
+          <img style={{ width: '640px', height: '480px', transform: "scale(-1)" }} />
           <Joystick onMove={handleJoystickUpdate} />
           <div style={{ width: '400px', }}>
             <h2>Command</h2>
