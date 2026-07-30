@@ -136,7 +136,7 @@ export default function RobotControlPanel() {
           flexDirection: 'row',
           flexWrap: 'wrap'
         }}>
-          <img ref={imgRef} style={{ width: '640px', height: '480px', transform: "scale(-1)" }} />
+          <img  style={{ width: '640px', height: '480px', transform: "scale(-1)" }} />
           <Joystick onMove={handleJoystickUpdate} />
           <div style={{ width: '400px', }}>
             <h2>Command</h2>
