@@ -38,36 +38,38 @@ async def camera_task(websocket: WebSocket):
 
 async def command_task(websocket: WebSocket):
     while True:
-        data = await websocket.receive_json()
-        print(data)
-        if data[COMMAND] == Command.SET_STATE.value:
-            Robot.set_state(RobotState(data[VALUES]))
-        elif data[COMMAND] == Command.OFF.value:
-            Robot.turn_off()
-        elif data[COMMAND] == Command.ON.value:
-            Robot.initiate()
-        elif data[COMMAND] == Command.JOYSTICK.value:
-            Robot.set_joystick(data[VALUES])
-        elif data[COMMAND] == Command.ADD_PATH.value or data[COMMAND] == Command.DELETE_PATH.value or data[COMMAND] == Command.DELETE_ALL_PATHS.value or data[COMMAND] == Command.SET_PATH_YAW.value or data[COMMAND] == Command.SET_PATH_INDEX.value:
-            Robot.modify_path(data[COMMAND],data[VALUES])
-        elif data[COMMAND] == Command.SET_CLEARANCE.value:
-            DynamicWindow.CLEARANCE_SCORE = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_ANGLE_PENALTY.value:
-            DynamicWindow.ANGLE_PENALTY = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_ANGLE_INCREMENT.value:
-            DynamicWindow.ANGLE_INCREMENT = int(data[VALUES])
-        elif data[COMMAND] == Command.SET_CHANGE_PENALTY.value:
-            DynamicWindow.CHANGE_PENALTY = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_MAX_CLEARANCE.value:
-            DynamicWindow.MAX_CLEARANCE = float(data[VALUES])
-        elif data[COMMAND] == Command.SET_MAX_POWER.value:
-            power = float(data[VALUES])
-            if (power > 0.5):
-                power = 0.5
-            if (power < -0.5):
-                power = -0.5
-            Drivetrain.MAX_POWER = power
-        await asyncio.sleep(0.05)
+        try:
+            data = await websocket.receive_json()
+            print(data)
+            if data[COMMAND] == Command.SET_STATE.value:
+                Robot.set_state(RobotState(data[VALUES]))
+            elif data[COMMAND] == Command.OFF.value:
+                Robot.turn_off()
+            elif data[COMMAND] == Command.ON.value:
+                Robot.initiate()
+            elif data[COMMAND] == Command.JOYSTICK.value:
+                Robot.set_joystick(data[VALUES])
+            elif data[COMMAND] == Command.ADD_PATH.value or data[COMMAND] == Command.DELETE_PATH.value or data[COMMAND] == Command.DELETE_ALL_PATHS.value or data[COMMAND] == Command.SET_PATH_YAW.value or data[COMMAND] == Command.SET_PATH_INDEX.value:
+                Robot.modify_path(data[COMMAND],data[VALUES])
+            elif data[COMMAND] == Command.SET_CLEARANCE.value:
+                DynamicWindow.CLEARANCE_SCORE = float(data[VALUES])
+            elif data[COMMAND] == Command.SET_ANGLE_PENALTY.value:
+                DynamicWindow.ANGLE_PENALTY = float(data[VALUES])
+            elif data[COMMAND] == Command.SET_ANGLE_INCREMENT.value:
+                DynamicWindow.ANGLE_INCREMENT = int(data[VALUES])
+            elif data[COMMAND] == Command.SET_CHANGE_PENALTY.value:
+                DynamicWindow.CHANGE_PENALTY = float(data[VALUES])
+            elif data[COMMAND] == Command.SET_MAX_CLEARANCE.value:
+                DynamicWindow.MAX_CLEARANCE = float(data[VALUES])
+            elif data[COMMAND] == Command.SET_MAX_POWER.value:
+                power = float(data[VALUES])
+                if (power > 0.5):
+                    power = 0.5
+                if (power < -0.5):
+                    power = -0.5
+                Drivetrain.MAX_POWER = power
+        finally:
+            await asyncio.sleep(0.1)
         
         
 
