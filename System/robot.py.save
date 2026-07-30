@@ -122,7 +122,7 @@ class Robot:
             obstacles = Map.print_nodes(Map.nodes),
             paths=Pathing.paths_to_string(),
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
-            camera_stream=Camera.binary_frame
+            camera_stream=Camera.base64_frame
         )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):
@@ -130,10 +130,7 @@ class Robot:
             Robot.joy_y = 0
         if (not Robot.on):
             return
-	if (Robot.ping_stopwatch.time_passed() > PING_TIME):
-	    ping()
-	    Robot.ping_stopwatch.go()
-        if (Robot.state == RobotState.MAP_CONTROL):
+            pass
             turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Map.nodes)
             Robot.joy_y = drive
             Robot.joy_x = turn

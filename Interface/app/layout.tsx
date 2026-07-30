@@ -46,7 +46,7 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.42.0.124:8000/ws");
+    const socket = new WebSocket("ws://10.54.132.65:8000/ws");
 
     socketRef.current = socket;
 
@@ -117,7 +117,7 @@ export default function RobotControlPanel() {
           width: '100vw',
           flexDirection: 'row',
           flexWrap: 'wrap'}}>
-          <img src = {`data:image/jpeg;base64,${telemetry.camera_stream}`} style={{width: '640px', height: '480px', transform: "scaleY(-1)"}}/>          {/* Command Section */}
+          <img src = {`data:image/jpeg;base64,${telemetry.camera_stream}`} style={{width: '640px', height: '480px', transform: "scale(-1)"}}/>          {/* Command Section */}
           <Joystick onMove={handleJoystickUpdate}/>
           <div style={{width : '400px',}}>
             <h2>Command</h2>
