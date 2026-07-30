@@ -81,7 +81,6 @@ export default function RobotControlPanel() {
             URL.revokeObjectURL(oldUrl);
           }
         }
-        return
       }
       try {
         const data = JSON.parse(event.data);
