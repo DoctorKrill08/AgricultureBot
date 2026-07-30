@@ -130,10 +130,10 @@ class Robot:
             Robot.joy_y = 0
         if (not Robot.on):
             return
-	if (Robot.ping_stopwatch.time_passed() > PING_TIME):
-	    ping()
-	    Robot.ping_stopwatch.go()
-        if (Robot.state == RobotState.MAP_CONTROL):
+        if (Robot.ping_stopwatch.time_passed() > PING_TIME):
+            ping()
+            Robot.ping_stopwatch.go()
+        elif (Robot.state == RobotState.MAP_CONTROL):
             turn,drive,status = Pathing.calculate(Localizer.x,Localizer.y,Localizer.yaw,Map.nodes)
             Robot.joy_y = drive
             Robot.joy_x = turn

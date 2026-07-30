@@ -49,7 +49,7 @@ export type Telemetry ={
   paths : string;
   obstacles : string;
   status : string;
-  camera_stream : string;
+  camera_stream : Blob;
 
 };
 export const COMMAND = "0";
