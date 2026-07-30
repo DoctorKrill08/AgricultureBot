@@ -66,7 +66,7 @@ export default function RobotControlPanel() {
     socket.onerror = (error) => {
       console.error("WebSocket Error:", error);
     };
-    socket.binaryType = 'blob';
+    //socket.binaryType = 'blob';
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data[COMMAND] === Command.TELEMETRY) {
@@ -84,7 +84,7 @@ export default function RobotControlPanel() {
           paths: data.paths ?? prevTelemetry.paths,
           status: data.status ?? prevTelemetry.status,
         }));
-      } else if (data[COMMAND] == Command.CAMERA) {
+      } /*else if (data[COMMAND] == Command.CAMERA) {
         if (event.data instanceof Blob) {
           if (imgRef.current) {
             const blobUrl = URL.createObjectURL(event.data);
@@ -99,7 +99,9 @@ export default function RobotControlPanel() {
             }
           }
         }
+          
       }
+        */
     }
     return () => {
       socket.close();
