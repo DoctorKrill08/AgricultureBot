@@ -47,7 +47,7 @@ class Camera:
     prev_frame = None
     canvas = np.zeros((HEIGHT, WIDTH), dtype=np.uint8)
 
-    binary_frame = None
+    binary_frame : bytes = b""
 
     def exception():
         ctx = rs.context()
