@@ -56,7 +56,12 @@ async def command_task(websocket: WebSocket):
         elif data[COMMAND] == Command.SET_MAX_CLEARANCE.value:
             DynamicWindow.MAX_CLEARANCE = float(data[VALUES])
         elif data[COMMAND] == Command.SET_MAX_POWER.value:
-            Drivetrain.MAX_POWER = float(data[VALUES])
+            power = float(data[VALUES])
+            if (power > 0.5):
+                power = 0.5
+            if (power < -0.5):
+                power = -0.5
+            Drivetrain.MAX_POWER = power
         await asyncio.sleep(0.05)
         
         
