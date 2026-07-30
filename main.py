@@ -38,7 +38,11 @@ async def telemetry_task(websocket: WebSocket):
             print(f"Telemetry stream error: {e}")
             
         await asyncio.sleep(0.1)
-
+async def camera_task(websocket: WebSocket):
+    while True:
+        if (Camera.binary_frame):
+            await websocket.send_bytes(Camera.binary_frame)
+            await asyncio.sleep(0.05)
 
 async def command_task(websocket: WebSocket):
     while True:
@@ -87,5 +91,5 @@ async def websocket_endpoint(websocket: WebSocket):
     await asyncio.gather(
         telemetry_task(websocket),
         command_task(websocket),
-        await websocket.send_bytes(Camera.binary_frame)
+        camera_task(websocket)
     )
