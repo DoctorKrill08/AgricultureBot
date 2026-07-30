@@ -46,7 +46,18 @@ export default function RobotControlPanel() {
   //Nano -> 172.17.0.1
   //Rokoko ->10.54.132.8, 10.54.132.13,10.54.132.53
   useEffect(() => {
-    const socket = new WebSocket("ws://10.54.132.65:8000/ws");
+     // 1. Detect if the current page is served over HTTPS
+    const isSecure = window.location.protocol === 'https:';
+    
+    // 2. Automatically pick up the host (e.g., "192.168.1.50:3000" or "example.com")
+    const host = window.location.host; 
+    
+    // 3. Construct the WS URL (Use 'wss' for production HTTPS)
+    // NOTE: If your WebSocket server runs on a different port than Next.js (e.g. 8080), 
+    // replace the port dynamically using window.location.hostname
+    const wsProtocol = isSecure ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.hostname}:8000/ws`;
+    const socket = new WebSocket(wsUrl);
 
     socketRef.current = socket;
 
