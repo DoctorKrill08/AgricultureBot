@@ -85,5 +85,5 @@ async def websocket_endpoint(websocket: WebSocket):
     await asyncio.gather(
         telemetry_task(websocket),
         command_task(websocket),
-        #camera_task(websocket)
+        camera_task(websocket)
     )
