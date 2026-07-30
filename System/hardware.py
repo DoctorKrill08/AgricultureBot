@@ -37,7 +37,6 @@ def send_command(command,read = False,override = False):
     if (not Arduino.connected and not override):
         print("Arduino not connected")
         return
-    print("Command: ",command)
     encoded_command = (command + "\n").encode('utf-8')
 
     Arduino.serial.write(encoded_command)
@@ -45,7 +44,6 @@ def send_command(command,read = False,override = False):
     if read:
         raw_data = Arduino.serial.readline()
         decoded = raw_data.decode('utf-8').strip()
-        print(decoded)
         return decoded
 
 def close_arduino():

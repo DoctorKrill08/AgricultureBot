@@ -33,9 +33,6 @@ async def telemetry_task(websocket: WebSocket):
             }
             
             await websocket.send_json(payload)
-            
-            if Camera.binary_frame:
-                await websocket.send_bytes(Camera.binary_frame)
                 
         except Exception as e:
             print(f"Telemetry stream error: {e}")
@@ -89,5 +86,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
     await asyncio.gather(
         telemetry_task(websocket),
-        command_task(websocket)
+        command_task(websocket),
+        await websocket.send_bytes(Camera.binary_frame)
     )
