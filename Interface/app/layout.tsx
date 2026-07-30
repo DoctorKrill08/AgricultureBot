@@ -52,6 +52,7 @@ export default function RobotControlPanel() {
     const socket = new WebSocket(wsUrl);
 
     socketRef.current = socket;
+    socket.binaryType = 'blob'
 
     socket.onopen = () => {
       console.log("Connected to robot");
