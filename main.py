@@ -24,7 +24,7 @@ async def startup():
 
 async def telemetry_task(websocket: WebSocket):
     while True:
-        telemetry_dict = Robot.telemetry.model_dump(mode='json')
+        telemetry_dict = Robot.telemetry.model_dump()
         payload = {
             "COMMAND": Command.TELEMETRY.value,
             **telemetry_dict
