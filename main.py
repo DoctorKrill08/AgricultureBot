@@ -12,7 +12,7 @@ async def robot_loop():
 
     while True:
         Robot.update()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
 
 @app.on_event("startup")
 async def startup():
@@ -35,13 +35,12 @@ async def telemetry_task(websocket: WebSocket):
             await websocket.send_json(payload)
             
             if Camera.binary_frame:
-                await asyncio.sleep(0.05)
                 await websocket.send_bytes(Camera.binary_frame)
                 
         except Exception as e:
             print(f"Telemetry stream error: {e}")
             
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.1)
 
 
 async def command_task(websocket: WebSocket):
