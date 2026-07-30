@@ -36,7 +36,6 @@ class Robot:
         paths="",
         obstacles = "",
         status="",
-        camera_stream = ""
     )
     
     def set_joystick(values : str):
@@ -121,9 +120,7 @@ class Robot:
             arduino_connected=Arduino.connected,
             obstacles = Map.print_nodes(Map.nodes),
             paths=Pathing.paths_to_string(),
-            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
-            camera_stream=Camera.base64_frame
-        )
+            status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),        )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):
             Robot.joy_x = 0
