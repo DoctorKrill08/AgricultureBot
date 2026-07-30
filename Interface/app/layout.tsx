@@ -68,40 +68,37 @@ export default function RobotControlPanel() {
     };
     socket.binaryType = 'blob';
     socket.onmessage = (event) => {
-      if (event.data instanceof Blob) {
-        if (imgRef.current) {
-          const blobUrl = URL.createObjectURL(event.data);
+      const data = JSON.parse(event.data);
+      if (data[COMMAND] === Command.TELEMETRY) {
+        setTelemetry((prevTelemetry) => ({
+          ...prevTelemetry,
+          mode: data.mode ?? prevTelemetry.mode,
+          x: data.x ?? prevTelemetry.x,
+          y: data.y ?? prevTelemetry.y,
+          vector_x: data.vector_x ?? prevTelemetry.vector_x,
+          vector_y: data.vector_y ?? prevTelemetry.vector_y,
+          heading: data.heading ?? prevTelemetry.heading,
+          arduino_connected: data.arduino_connected ?? prevTelemetry.arduino_connected,
+          gps_data: data.gps_data ?? prevTelemetry.gps_data,
+          obstacles: data.obstacles ?? prevTelemetry.obstacles,
+          paths: data.paths ?? prevTelemetry.paths,
+          status: data.status ?? prevTelemetry.status,
+        }));
+      } else if (data[COMMAND] == Command.CAMERA) {
+        if (event.data instanceof Blob) {
+          if (imgRef.current) {
+            const blobUrl = URL.createObjectURL(event.data);
 
-          // Cache the old URL to clean up memory
-          const oldUrl = imgRef.current.src;
-          imgRef.current.src = blobUrl;
+            // Cache the old URL to clean up memory
+            const oldUrl = imgRef.current.src;
+            imgRef.current.src = blobUrl;
 
-          // Prevent severe memory leaks by revoking the old URL
-          if (oldUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(oldUrl);
+            // Prevent severe memory leaks by revoking the old URL
+            if (oldUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(oldUrl);
+            }
           }
         }
-      }
-      try {
-        const data = JSON.parse(event.data);
-        if (data[COMMAND] === Command.TELEMETRY) {
-          setTelemetry((prevTelemetry) => ({
-            ...prevTelemetry,
-            mode: data.mode ?? prevTelemetry.mode,
-            x: data.x ?? prevTelemetry.x,
-            y: data.y ?? prevTelemetry.y,
-            vector_x: data.vector_x ?? prevTelemetry.vector_x,
-            vector_y: data.vector_y ?? prevTelemetry.vector_y,
-            heading: data.heading ?? prevTelemetry.heading,
-            arduino_connected: data.arduino_connected ?? prevTelemetry.arduino_connected,
-            gps_data: data.gps_data ?? prevTelemetry.gps_data,
-            obstacles: data.obstacles ?? prevTelemetry.obstacles,
-            paths: data.paths ?? prevTelemetry.paths,
-            status: data.status ?? prevTelemetry.status,
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to parse telemetry JSON:", error);
       }
     }
     return () => {

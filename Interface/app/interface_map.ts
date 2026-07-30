@@ -1,6 +1,7 @@
 export const Command = Object.freeze({
   OFF : "OFF",
   TELEMETRY : "TELEMETRY",
+  CAMERA: "CAMERA",
   ON : "ON",
   SET_STATE : "SET_STATE",
   JOYSTICK : "JOYSTICK",

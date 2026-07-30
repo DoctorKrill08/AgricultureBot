@@ -35,6 +35,10 @@ async def telemetry_task(websocket: WebSocket):
 async def camera_task(websocket: WebSocket):
     while True:
         if (Camera.binary_frame):
+            payload = {
+                "COMMAND": Command.TELEMETRY.value,
+                **Camera.binary_frame
+            }
             await websocket.send_bytes(Camera.binary_frame)
             await asyncio.sleep(0.05)
 
@@ -84,6 +88,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
     await asyncio.gather(
         telemetry_task(websocket),
-        command_task(websocket),
+        #command_task(websocket),
         camera_task(websocket)
     )

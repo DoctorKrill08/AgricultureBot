@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class Command(Enum):
     OFF = "OFF"
     TELEMETRY = "TELEMETRY"
+    CAMERA = "CAMERA"
     ON = "ON"
     SET_STATE = "SET_STATE"
     JOYSTICK = "JOYSTICK"
@@ -42,7 +43,7 @@ class Telemetry(BaseModel):
     paths : str
     obstacles: str
     status: str
-    
+
 class ClientInputs(BaseModel):
     command: str
     joy_x: float
