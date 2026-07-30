@@ -24,11 +24,24 @@ async def startup():
 
 async def telemetry_task(websocket: WebSocket):
     while True:
-        await websocket.send_json({
-            COMMAND: Command.TELEMETRY.value,
-            **Robot.telemetry.model_dump()
-        })
-        await asyncio.sleep(0.1)
+        try:
+            telemetry_dict = Robot.telemetry.model_dump(mode='json')
+            
+            payload = {
+                "COMMAND": Command.TELEMETRY.value,
+                **telemetry_dict
+            }
+            
+            await websocket.send_json(payload)
+            
+            if Camera.binary_frame:
+                await websocket.send_bytes(Camera.binary_frame)
+                
+        except Exception as e:
+            print(f"Telemetry stream error: {e}")
+            
+        await asyncio.sleep(0.05)
+
 
 async def command_task(websocket: WebSocket):
     while True:
@@ -76,6 +89,5 @@ async def websocket_endpoint(websocket: WebSocket):
 
     await asyncio.gather(
         telemetry_task(websocket),
-        await websocket.send(Camera.binary_frame),
         command_task(websocket)
     )
