@@ -86,7 +86,7 @@ export default function RobotControlPanel() {
             status: data.status,
           });
         }
-      } /*else if (data[COMMAND] == Command.CAMERA) {
+      }else if (event.data instanceof Blob) {
         if (event.data instanceof Blob) {
           if (imgRef.current) {
             const blobUrl = URL.createObjectURL(event.data);
@@ -103,7 +103,6 @@ export default function RobotControlPanel() {
         }
           
       }
-        */
     }
     return () => {
       socket.close();
