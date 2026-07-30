@@ -122,7 +122,7 @@ class Robot:
             obstacles = Map.print_nodes(Map.nodes),
             paths=Pathing.paths_to_string(),
             status= "\n---ROBOT---\n" +  Robot.status() + Drivetrain.status() + Localizer.status(),
-            camera_stream=Camera.binary_frame
+            camera_stream=Camera.base64_frame
         )
         Localizer.run()
         if (not Robot.on or Robot.state == RobotState.RESTING):
