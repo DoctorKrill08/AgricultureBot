@@ -28,9 +28,7 @@ async def telemetry_task(websocket: WebSocket):
             COMMAND: Command.TELEMETRY.value,
             **Robot.telemetry.model_dump()
         })
-        await websocket.send(Camera.binary_frame) 
-
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.1)
 
 async def command_task(websocket: WebSocket):
     while True:
@@ -78,5 +76,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
     await asyncio.gather(
         telemetry_task(websocket),
+        await websocket.send(Camera.binary_frame),
         command_task(websocket)
     )
