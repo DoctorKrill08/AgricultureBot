@@ -42,7 +42,7 @@ class Telemetry(BaseModel):
     paths : str
     obstacles: str
     status: str
-    camera_stream: bytes
+    camera_stream: str
 
 class ClientInputs(BaseModel):
     command: str
@@ -76,8 +76,6 @@ def python_type_to_typescript(type:str):
         return "boolean"
     if (type == 'None' or type == None):
         return "Null"
-    if (type == 'bytes'):
-        return "Blob"
     return "Null"
 def clean_annotations(annotation:str):
     annotation = annotation.removeprefix("<class '")
