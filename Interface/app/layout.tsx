@@ -70,20 +70,19 @@ export default function RobotControlPanel() {
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data[COMMAND] === Command.TELEMETRY) {
-        setTelemetry((prevTelemetry) => ({
-          ...prevTelemetry,
-          mode: data.mode ?? prevTelemetry.mode,
-          x: data.x ?? prevTelemetry.x,
-          y: data.y ?? prevTelemetry.y,
-          vector_x: data.vector_x ?? prevTelemetry.vector_x,
-          vector_y: data.vector_y ?? prevTelemetry.vector_y,
-          heading: data.heading ?? prevTelemetry.heading,
-          arduino_connected: data.arduino_connected ?? prevTelemetry.arduino_connected,
-          gps_data: data.gps_data ?? prevTelemetry.gps_data,
-          obstacles: data.obstacles ?? prevTelemetry.obstacles,
-          paths: data.paths ?? prevTelemetry.paths,
-          status: data.status ?? prevTelemetry.status,
-        }));
+         setTelemetry({
+          mode: data.mode,
+          x: data.x,
+          y: data.y,
+          vector_x: data.vector_x,
+          vector_y: data.vector_y,
+          heading: data.heading,
+          arduino_connected: data.arduino_connected,
+          gps_data: data.gps_data,
+          obstacles: data.obstacles,
+          paths : data.paths,
+          status: data.status,
+        });
       } /*else if (data[COMMAND] == Command.CAMERA) {
         if (event.data instanceof Blob) {
           if (imgRef.current) {
