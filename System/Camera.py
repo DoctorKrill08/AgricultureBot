@@ -6,6 +6,7 @@ from timer import *
 from enum import Enum
 import cv2
 import base64
+from fastapi import FastAPI, WebSocket
 
 import pyrealsense2 as rs
 
@@ -46,7 +47,7 @@ class Camera:
     prev_frame = None
     canvas = np.zeros((HEIGHT, WIDTH), dtype=np.uint8)
 
-    base64_frame = ""
+    binary_frame = None
 
     def exception():
         ctx = rs.context()
@@ -124,7 +125,7 @@ class Camera:
         #depth_cm = cv2.applyColorMap(cv2.convertScaleAbs(depth_image,alpha = 0.03), cv2.COLORMAP_JET)
 
         _, buffer = cv2.imencode('.jpg', color_image, [cv2.IMWRITE_JPEG_QUALITY, 70])
-        Camera.base64_frame = base64.b64encode(buffer).decode('utf-8')
+        Camera.binary_frame = buffer.tobytes()
         
         #cv2.imshow('depth', depth_cm)
         #cv2.imshow('rgb', color_image)

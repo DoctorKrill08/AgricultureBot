@@ -42,8 +42,7 @@ class Telemetry(BaseModel):
     paths : str
     obstacles: str
     status: str
-    camera_stream: str
-
+    
 class ClientInputs(BaseModel):
     command: str
     joy_x: float
