@@ -10,7 +10,7 @@ class Lidar:
     LIDAR_Y = 0
     PORT  = "/dev/ttyUSB0"
     BAUD_RATE = 1000000
-    ANGLE_INCREMENT = 4 #Degrees
+    ANGLE_INCREMENT = 2 #Degrees
     driver = None
 
     obstacles = []
