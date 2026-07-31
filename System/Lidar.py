@@ -10,7 +10,7 @@ class Lidar:
     LIDAR_Y = 0
     PORT  = "/dev/ttyUSB0"
     BAUD_RATE = 1000000
-    ANGLE_INCREMENT = 2 #Degrees
+    ANGLE_INCREMENT = 4 #Degrees
     driver = None
 
     obstacles = []
@@ -92,7 +92,7 @@ class Lidar:
             if (not angle < math.radians(Lidar.ANGLE_RANGE / 2) and not angle > math.radians(360 - Lidar.ANGLE_RANGE / 2)):
                 continue
             distance = meters_to_inches(distance)
-            if quality < 5:
+            if quality < 3:
                 #print("low quality: ",quality)
                 continue
             if (distance > Lidar.MAX_DISTANCE):
