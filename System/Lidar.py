@@ -74,12 +74,16 @@ class Lidar:
         
     def calculate(bot_x,bot_y,yaw):
         prev_angle = 0
+        print("calculating")
         if (not isinstance(Lidar.driver,pyrplidarsdk.RplidarDriver)):
+            print("not instance")
             return 
         if not Lidar.connected:
+            print("lidar not connceted")
             return     
         scan_data = Lidar.driver.get_scan_data()
         if (not scan_data):
+            print("no scan data")
             return
         Lidar.obstacles.clear()
         angles, ranges, qualities = scan_data
@@ -89,19 +93,20 @@ class Lidar:
             quality = qualities[i] #idk bro
             #angle is in rads
             if (not angle < math.radians(Lidar.ANGLE_RANGE / 2) and not angle > math.radians(360 - Lidar.ANGLE_RANGE / 2)):
+                print("angle problem")
                 continue
             distance = meters_to_inches(distance)
             if quality < 5:
-                #print("low quality: ",quality)
+                print("low quality: ",quality)
                 continue
             if (distance > Lidar.MAX_DISTANCE):
-                #print("too far",distance)
+                print("too far",distance)
                 continue
             if (distance <= Lidar.MIN_DISTANCE):
-                #print("too close",distance)
+                print("too close",distance)
                 continue
             if (abs(math.degrees(shortest_angular_distance(angle,prev_angle))) < Lidar.ANGLE_INCREMENT):
-                #print("angle difference to small ",math.degrees(shortest_angular_distance(angle,prev_angle)) )
+                print("angle difference to small ",math.degrees(shortest_angular_distance(angle,prev_angle)) )
                 continue
             prev_angle = angle #rads
             # Ignore low-quality points
