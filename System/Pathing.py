@@ -104,7 +104,7 @@ class DynamicWindow:
         delta_y = ty - y
         target_yaw = math.atan2(delta_y,delta_x)
         distance = math.sqrt((delta_x ** 2) + (delta_y ** 2))
-        print("distance: ",distance, " target_yaw: ", target_yaw)
+        #print("distance: ",distance, " target_yaw: ", target_yaw)
 
         obstructed,clearance = DynamicWindow.calculate_obstruction(x,y,target_yaw,distance,obstacles)
         force = min(distance,DynamicWindow.MAX_VECTOR_STRENGTH)
@@ -161,7 +161,7 @@ class DynamicWindow:
                 score -= DynamicWindow.MIN_CHANGE_PENALTY
                 number_of_changes = abs(DynamicWindow.current_angle - degree_offset)
                 score -= DynamicWindow.CHANGE_PENALTY * number_of_changes
-            print("angle: ",angle," degree offset: ", degree_offset, "score: ",score)
+            #print("angle: ",angle," degree offset: ", degree_offset, "score: ",score)
             if (score > greatest_score):
                 greatest_score = score
                 goal_vector_x = vector_x
@@ -170,7 +170,7 @@ class DynamicWindow:
                 best_path_degree_offset = degree_offset
         print("---greatest  score---: ", greatest_score)
         DynamicWindow.current_angle = best_path_degree_offset
-        return vector_clamp(goal_vector_x,goal_vector_y,best_path_clearance)
+        return vector_clamp(goal_vector_x,goal_vector_y,DynamicWindow.score_to_strength(greatest_score))
 
 class PathState():
     #States
@@ -267,7 +267,7 @@ class Pathing:
         
         
         Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
-        print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
+        #print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
 
         if (abs(Pathing.vector_x) < 1 and abs(Pathing.vector_y) < 1):
             return 0,0,PathState.STUCK

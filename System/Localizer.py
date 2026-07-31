@@ -87,7 +87,7 @@ class Localizer():
     estimated_speed = 0
 
     def rotating_fast():
-        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 1.5 or abs(Localizer.estimated_rotational_velocity) > 1.5
+        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 1 or abs(Localizer.estimated_rotational_velocity) > 1.5
     def moving_fast():
         return Localizer.estimated_speed > 6
     def start():
