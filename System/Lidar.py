@@ -36,6 +36,7 @@ class Lidar:
         health = Lidar.driver.get_health()
         if health:
             print(f"Device health: {health.status}")
+        Lidar.connected = True
         Lidar.driver.start_scan()
         
 
