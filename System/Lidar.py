@@ -107,7 +107,7 @@ class Lidar:
             # Ignore low-quality points
             x,y = Lidar.relative_to_global(bot_x,bot_y,yaw,distance,angle)
             Lidar.obstacles.append([x,y])
-        #print(Lidar.obstacles)
+        print(Lidar.obstacles)
 
 #Windows: python -m System.Lidar
 RATE = 1
