@@ -37,12 +37,12 @@ class LocalizationKalman():
         
         gyro_delta_yaw = Camera.raw_gyro_reading[IMU.YAW] * delta_time
         
-        if (not Arduino.connected):
-            delta_yaw = gyro_delta_yaw
-        else:
+        """       if (not Arduino.connected): """
+        delta_yaw = gyro_delta_yaw
+        """  else:
             if (Camera.on):
                 delta_yaw = LocalizationKalman.gyro_odo_fusion(odo_delta_yaw = delta_yaw,
-                                                         gyro_delta_yaw=gyro_delta_yaw)
+                                                         gyro_delta_yaw=gyro_delta_yaw)"""
         
         Localizer.estimated_rotational_velocity = delta_yaw / delta_time
         
