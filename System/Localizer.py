@@ -47,7 +47,7 @@ class LocalizationKalman():
         Localizer.estimated_rotational_velocity = delta_yaw / delta_time
         
         look_at_angle = math.atan2(delta_y,delta_x)
-        position_angle = angle_wrap(look_at_angle + Localizer.yaw + (delta_yaw / 2))
+        position_angle = angle_wrap(look_at_angle + Localizer.yaw)
         Localizer.x += distance * math.cos(position_angle)
         Localizer.y += distance * math.sin(position_angle)
 
@@ -87,7 +87,7 @@ class Localizer():
     estimated_speed = 0
 
     def rotating_fast():
-        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 0.5 or abs(Localizer.estimated_rotational_velocity) > 0.5
+        return abs(Camera.raw_gyro_reading[IMU.YAW] ) > 1.5 or abs(Localizer.estimated_rotational_velocity) > 1.5
     def moving_fast():
         return Localizer.estimated_speed > 6
     def start():
@@ -111,7 +111,7 @@ class Localizer():
         GPS.update()
         Lidar.calculate(Localizer.x,Localizer.y,Localizer.yaw)
         LocalizationKalman.predict()
-        if (not Localizer.rotating_fast() and not Localizer.moving_fast()):
+        if (not Localizer.rotating_fast()):
             Map.update(Localizer.x,Localizer.y,Localizer.yaw,Lidar.obstacles,Camera.closest,abs(Localizer.estimated_rotational_velocity))
 
     def status():
