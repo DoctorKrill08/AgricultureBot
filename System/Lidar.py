@@ -93,16 +93,16 @@ class Lidar:
                 continue
             distance = meters_to_inches(distance)
             if quality < 5:
-                print("low quality: ",quality)
+                #print("low quality: ",quality)
                 continue
             if (distance > Lidar.MAX_DISTANCE):
-                print("too far",distance)
+                #print("too far",distance)
                 continue
             if (distance <= Lidar.MIN_DISTANCE):
-                print("too close",distance)
+                #print("too close",distance)
                 continue
             if (abs(math.degrees(shortest_angular_distance(angle,prev_angle))) < Lidar.ANGLE_INCREMENT):
-                print("angle difference to small ",math.degrees(shortest_angular_distance(angle,prev_angle)) )
+                #print("angle difference to small ",math.degrees(shortest_angular_distance(angle,prev_angle)) )
                 continue
             prev_angle = angle #rads
             # Ignore low-quality points
