@@ -3,7 +3,7 @@ from System.Constants import *
 import pyrplidarsdk
 
 class Lidar:
-    MAX_DISTANCE = 160
+    MAX_DISTANCE = 70
     MIN_DISTANCE = 3
     ANGLE_RANGE = 140 #Degrees
     LIDAR_X = 12

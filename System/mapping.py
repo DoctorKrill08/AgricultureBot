@@ -92,12 +92,12 @@ class Map:
             node = Node(x,y,OBSTACLE,raw_x=point[0],raw_y=point[1])
             Map.nodes[node.id] = node
         
-        """for point in camera_data:
+        for point in camera_data:
             if (point == None):
                 continue
             horizontal = point[0]
             forward = point[1]
-            Map.add_obstacle(horizontal,forward,x,y,yaw)"""
+            Map.add_obstacle(horizontal,forward,x,y,yaw)
             
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
