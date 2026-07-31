@@ -36,7 +36,7 @@ class Node():
 class Map:
     MAX_DISTANCE = 40 #Inches
     NON_VISIBLE_CONFIDENCE_DECAY= 1
-    VISIBLE_CONFIDENCE_DECAY = 15
+    VISIBLE_CONFIDENCE_DECAY = 10
     nodes =  {}
     def print_nodes(nodes):
         telemetry = ""
