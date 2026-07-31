@@ -5,7 +5,7 @@ import pyrplidarsdk
 class Lidar:
     MAX_DISTANCE = 25
     MIN_DISTANCE = 5
-    ANGLE_RANGE = 70 #Degrees
+    ANGLE_RANGE = 140 #Degrees
     LIDAR_X = 12
     LIDAR_Y = 0
     PORT  = "/dev/ttyUSB0"
