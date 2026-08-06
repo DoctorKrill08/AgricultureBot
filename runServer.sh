@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+echo "starting uvicorn..."
 ./venv/bin/python -u -m uvicorn \
     main:app \
     --host 0.0.0.0 \
@@ -9,3 +9,4 @@
 sleep 1
 cd Interface
 exec npm run dev -- --webpack
+echo "Done executing"

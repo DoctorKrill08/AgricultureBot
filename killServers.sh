@@ -10,6 +10,15 @@ echo "Searching for stuck servers..."
 echo "killing uvicorn"
 pkill -9 -f uvicorn
 
+echo "killing camera"
+systemctl --user stop tracker-miner-fs-3.service 2>/dev/null
+systemctl --user stop tracker-extract-3.service 2>/dev/null
+sudo fuser -k /dev/video*
+echo "killing gps"
+sudo fuser -k /dev/gps*
+echo "killing radio"
+sudo fuser -k /dev/radio*
+
 # 2. Kill Node/npm by Port
 NPM_PID=$(lsof -t -i:$NPM_PORT)
 if [ -not -z "$NPM_PID" ]; then

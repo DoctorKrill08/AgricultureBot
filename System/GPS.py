@@ -175,15 +175,22 @@ class GPSReceiver:
         if (not  self.connected):
             print(f"{self.type} NOT CONNECTED")
             return
-        lines = self.serial.read_all().decode('utf-8', errors='ignore').strip()
+        lines = ''
+        try:
+            lines = self.serial.read_all().decode('utf-8', errors='ignore').strip()
+        except:
+            print("gps read failed")
+            return
         lines = re.split(r'(\n)',lines)
         for line in (lines):
             if line.startswith(self.POSITION_STREAM):
+                print(line)
                 lat,lon,quality = GPSReceiver.parse_gps(line)
                 if (lat == None or lon == None or lat == "" or lon == ""):
                     return
                 lat = CoordinateSystem.DDM_TO_DD(lat,CoordinateSystem.LATITUDE)
                 lon = CoordinateSystem.DDM_TO_DD(lon,CoordinateSystem.LONGITUDE)
+                print(lat,lon)
                 if (lat == self.latitude):
                     return
                 if (lon == self.longitude):
@@ -316,7 +323,7 @@ class GPS:
     def start():
         GPS.rover.start()
         GPS.base.start()
-        GPS.calculate_start_pos()
+        #GPS.calculate_start_pos()
     @staticmethod
     def close():
         GPS.rover.close()
@@ -329,6 +336,9 @@ Local Grid: x: {GPS.local_grid[0]} y: {GPS.local_grid[1]}\n\
 Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
     @staticmethod
     def signal_base_to_rover():
+        #TODO TEST RADIO
+        return
+
         waiting = GPS.base.serial.in_waiting
         if waiting:
             data = GPS.base.serial.read(waiting)

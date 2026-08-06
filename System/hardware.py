@@ -7,7 +7,7 @@ from System.hardware_map import *
 
 
 class Arduino:
-    SERIAL_PORT = '/dev/arduino_device'
+    SERIAL_PORT = '/dev/arduino'
     TIMEOUT = 0.1
     serial = None
     connected = False
