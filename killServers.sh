@@ -7,14 +7,8 @@ NPM_PORT=3000
 
 echo "Searching for stuck servers..."
 
-# 1. Kill Uvicorn by Port
-UVICORN_PID=$(lsof -t -i:$UVICORN_PORT)
-if [ -not -z "$UVICORN_PID" ]; then
-    echo "Found Uvicorn on port $UVICORN_PORT (PID: $UVICORN_PID). Killing it..."
-    kill -9 $UVICORN_PID
-else
-    echo "No Uvicorn server found on port $UVICORN_PORT."
-fi
+echo "killing uvicorn"
+pkill -9 -f uvicorn
 
 # 2. Kill Node/npm by Port
 NPM_PID=$(lsof -t -i:$NPM_PORT)

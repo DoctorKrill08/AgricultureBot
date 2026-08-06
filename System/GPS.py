@@ -1,9 +1,7 @@
 import math
-from posix import stat
 import re
 import time
 from enum import Enum
-from turtle import st
 
 import matplotlib.pyplot as plt
 import serial
@@ -74,7 +72,7 @@ class CoordinateSystem(Enum):
     @staticmethod
     def average_coordinates(c1,c2):
         return (c2 + c1) / 2
-    @st
+    @staticmethod
     def cumulative_average_coordinates(coordinates):
         avg = 0
         for coordinate in coordinates:
@@ -123,7 +121,7 @@ class CoordinateSystem(Enum):
 
 
 
-class GPSReceiver():
+class GPSReceiver:
     POSITION_STREAM = '$GNGGA'
     VELOCITY_STREAM = '$GNVTG'
 
@@ -137,19 +135,19 @@ class GPSReceiver():
 
     RTK_STREAM = ''
 
-    ROVER_PORTS = '/dev/ttyACM2'
-    BASE_PORTS ='/dev/ttyACM3'
+    GPS_PORT = '/dev/gps'
+    RADIO_PORT = '/dev/radio'
 
     def __init__(self,type):
-        self.serial_port = GPSReceiver.ROVER_PORTS
+        self.serial_port = GPSReceiver.GPS_PORT
         if (type == GPSReceiver.BASE):
-            self.serial_port = GPSReceiver.BASE_PORTS
+            self.serial_port = GPSReceiver.RADIO_PORT
         self.type = type
         self.connected = False
 
-        self.longitude = 0
-        self.latitude = 0
-        self.fix_quality = 0
+        self.longitude : float = 0
+        self.latitude : float = 0
+        self.fix_quality : int = 0
 
         self.cogd = 0
         self.sogk = 0
@@ -190,10 +188,14 @@ class GPSReceiver():
                     return
                 if (lon == self.longitude):
                     return
-                self.start_position_found = True
-                self.latitude = lat
-                self.longitude = lon
-                self.fix_quality = quality
+                try:
+                    self.start_position_found = True
+                    self.latitude = float(lat)
+                    self.longitude = -float(lon)
+                    self.fix_quality = int(quality)
+                except:
+                    print("gps read failed")
+                    return
             if line.startswith(self.VELOCITY_STREAM):
                 cogd,sogk,quality = GPSReceiver.parse_gps(line)
                 if (cogd == None or cogd == ""):
@@ -214,10 +216,6 @@ class GPSReceiver():
                         GPS.prev_angles[i] = self.cogd
                     else:
                         GPS.prev_angles[i] = GPS.prev_angles[i + 1]
-                GPS.moving = False
-                for angle in GPS.prev_angles:
-                    if (not angle == 0):
-                        GPS.moving = True
 
 
     def close(self):
@@ -291,8 +289,6 @@ DIRECTION: {CoordinateSystem.degrees_to_direction(self.cogd)}"
             """
             return course_over_ground_degrees,speed_km,fix_quality
 class GPS:
-    moving = False
-
     rover = GPSReceiver(GPSReceiver.ROVER)
     base = GPSReceiver(GPSReceiver.BASE)
 
@@ -315,7 +311,7 @@ class GPS:
     speed_threshold = 4
     @staticmethod
     def get_data():
-        return ""
+        return f"{GPS.rover.latitude},{GPS.rover.longitude}"
     @staticmethod
     def start():
         GPS.rover.start()
@@ -360,13 +356,6 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
         if (GPS.started):
             d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates)
             GPS.local_grid = [d_lat,d_lon]
-
-            if (not GPS.moving):
-               # plt.scatter(time.perf_counter() - GPS.start_time,0,color = "red")
-               pass
-            else:
-                print("MOVING!")
-               # plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
 
 
 

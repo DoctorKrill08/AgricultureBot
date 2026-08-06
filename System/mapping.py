@@ -1,5 +1,4 @@
 import math
-from tkinter.constants import N
 
 from System.Constants import *
 from System.interface_map import INCHES_PER_NODE, MapKey
@@ -82,7 +81,7 @@ class Map:
         node = Node(rounded_x,rounded_y,OBSTACLE,raw_x = x, raw_y = y)
         Map.nodes[node.id] = node
     @staticmethod
-    def update(x,y,yaw,lidar_data,camera_data = None,rotational_movement = 0):
+    def update(x,y,yaw,lidar_data,camera_data = None,rotational_movement : float = 0):
         Map.calculate_visibility(x,y,yaw,rotational_movement)
         for point in lidar_data:
             if (point == None):
@@ -108,8 +107,8 @@ class Map:
 
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
-    @start_time
-    def calculate_visibility(bot_x=0,bot_y=0,yaw=0,rotational_movement = 0):
+    @staticmethod
+    def calculate_visibility(bot_x=0,bot_y=0,yaw=0,rotational_movement : float = 0):
         if len(Map.nodes) <= 0:
             return
         delete_list = {}

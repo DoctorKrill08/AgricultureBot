@@ -1,6 +1,5 @@
 import math
 from enum import Enum
-from turtle import st
 
 from System.Constants import *
 from System.Drivetrain import Drivetrain
@@ -189,7 +188,7 @@ class PathState:
     DONE_TURNING = "DONE_TURNING"
 
 class Path:
-    def __init__(self,x,y,yaw = 0):
+    def __init__(self,x,y,yaw : float = 0):
         self.x = x
         self.y = y
         self.yaw = yaw

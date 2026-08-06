@@ -20,7 +20,7 @@ export default function RobotControlPanel() {
     vector_y: 0,
     heading: 0,
     arduino_connected: false,
-    gps_data: "",
+    gps_data: "39.895746,-3.9056417",
     obstacles: "N/A",
     paths: "N/A",
     status: "Disconnected",
@@ -101,7 +101,7 @@ export default function RobotControlPanel() {
             }
           }
         }
-          
+
       }
     }
     return () => {

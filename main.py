@@ -1,9 +1,11 @@
-from fastapi import FastAPI, WebSocket
-from System.robot import Robot, RobotState,Localizer,Camera,Drivetrain
-from System.Pathing import DynamicWindow
-from System.interface_map import *
 import asyncio
 import time
+
+from fastapi import FastAPI, WebSocket
+
+from System.interface_map import *
+from System.Pathing import DynamicWindow
+from System.robot import Camera, Drivetrain, Localizer, Robot, RobotState
 
 app = FastAPI()
 
@@ -34,7 +36,7 @@ async def camera_task(websocket: WebSocket):
     while True:
         if (Camera.binary_frame):
             await websocket.send_bytes(Camera.binary_frame)
-            await asyncio.sleep(0.05)
+        await asyncio.sleep(0.1)
 
 async def command_task(websocket: WebSocket):
     while True:
@@ -69,9 +71,10 @@ async def command_task(websocket: WebSocket):
                     power = -0.5
                 Drivetrain.MAX_POWER = power
         finally:
-            await asyncio.sleep(0.1)
-        
-        
+            pass
+        await asyncio.sleep(0.1)
+
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -81,6 +84,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
     print("CLIENT CONNECTED")
+    await asyncio.sleep(1)
 
     await asyncio.gather(
         telemetry_task(websocket),

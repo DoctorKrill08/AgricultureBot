@@ -22,20 +22,22 @@ class Arduino:
             Arduino.connected = False
         time.sleep(1.5)
         if (Arduino.connected):
-            send_command(f"{Device.Ping.value},0",override=True)
+            Arduino.send_command(f"{Device.Ping.value},0",override=True)
     @staticmethod
     def send_command(command,read = False,override = False):
         if (not Arduino.connected and not override):
-            print("Arduino not connected")
             return
         encoded_command = (command + "\n").encode('utf-8')
+        try:
+            Arduino.serial.write(encoded_command)
 
-        Arduino.serial.write(encoded_command)
-
-        if read:
-            raw_data = Arduino.serial.readline()
-            decoded = raw_data.decode('utf-8').strip()
-            return decoded
+            if read:
+                raw_data = Arduino.serial.readline()
+                decoded = raw_data.decode('utf-8').strip()
+                return decoded
+        except:
+            Arduino.connected = False
+            print("Arduino disconnected")
     @staticmethod
     def close():
         if (not Arduino.connected):
