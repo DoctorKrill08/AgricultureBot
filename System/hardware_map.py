@@ -1,9 +1,8 @@
-from enum import Enum
 import os
+from enum import Enum
 
 
-
-#READ ME!!!! 
+#READ ME!!!!
 #If you change info here, run this file so the c++ equivalent updates too!!!!
 class Device(Enum):
     Stop = '-1' #Stop is a signal telling the arduino to stop everything
@@ -61,7 +60,7 @@ char getType(int key){
     command_list = []
     for key,type in hardware_type_map.items():
         command_list.append(f"\n        case {key}:\n         return '{type}';")
-            
+
     header_content += "\n".join(command_list)
     header_content += "\n   };\n};\n#endif"
 
@@ -91,4 +90,3 @@ char getType(int key){
 
 if __name__ == "__main__":
     generate_arduino_header()
-

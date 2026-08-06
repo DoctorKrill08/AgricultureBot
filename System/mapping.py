@@ -1,17 +1,17 @@
-import numpy as np
 import math
-from enum import Enum
+from tkinter.constants import N
+
 from System.Constants import *
+from System.interface_map import INCHES_PER_NODE, MapKey
 from System.Lidar import *
-from System.interface_map import INCHES_PER_NODE,MapKey
 from timer import *
 
 EMPTY = MapKey.EMPTY.value
 OBSTACLE = MapKey.OBSTACLE.value
 SAVED_OBSTACLE = MapKey.SAVED_OBSTACLE.value
 
-class Node():
-    DEFAULT_CONFIDENCE = 200
+class Node:
+    DEFAULT_CONFIDENCE = 200.0
     def __init__(self,x : float,y : float,status = EMPTY, raw_x = None, raw_y = None):
         self.x  = x
         self.y = y
@@ -20,6 +20,7 @@ class Node():
         self.raw_y = raw_y
         self.id = Node.generate_id(x,y)
         self.confidence = Node.DEFAULT_CONFIDENCE
+    @staticmethod
     def generate_id(x,y):
         return str(x) + "," + str(y)
     def to_string(self):
@@ -31,29 +32,34 @@ class Node():
         self.status = SAVED_OBSTACLE
     def is_obstacle(self):
         return self.status == OBSTACLE or self.status == SAVED_OBSTACLE
-    
+
 
 class Map:
     MAX_DISTANCE = 40 #Inches
     NON_VISIBLE_CONFIDENCE_DECAY= 1
     VISIBLE_CONFIDENCE_DECAY = 10
     nodes =  {}
+    @staticmethod
     def print_nodes(nodes):
         telemetry = ""
         for id, node in nodes.items():
             if node == None or node == "" or not isinstance(node,Node):
                 return
-            telemetry += f"{node.to_string()}/" 
+            telemetry += f"{node.to_string()}/"
         return telemetry
+    @staticmethod
     def status():
         telemetry = "\n---MAP---\n"
         telemetry += "NODES:\n"
         telemetry += Map.print_nodes(Map.nodes)
+        return telemetry
+    @staticmethod
     def point_to_node(x,y):
         x = round_nearest(x,INCHES_PER_NODE)
         y = round_nearest(y,INCHES_PER_NODE)
         return x,y
-    def add_obstacle(horizontal,forward,x=0,y=0,yaw=0):
+    @staticmethod
+    def add_obstacle(horizontal : float,forward : float,x=0,y=0,yaw=0):
         if (horizontal == None or forward == None):
             return
         d = math.sqrt((horizontal ** 2) + (forward ** 2))
@@ -75,7 +81,7 @@ class Map:
 
         node = Node(rounded_x,rounded_y,OBSTACLE,raw_x = x, raw_y = y)
         Map.nodes[node.id] = node
-
+    @staticmethod
     def update(x,y,yaw,lidar_data,camera_data = None,rotational_movement = 0):
         Map.calculate_visibility(x,y,yaw,rotational_movement)
         for point in lidar_data:
@@ -86,21 +92,23 @@ class Map:
             id = Node.generate_id(x,y)
             if id in Map.nodes:
                 node = Map.nodes[id]
-                if (isinstance(node,Node)):
-                    if (node.status == OBSTACLE):
-                        continue
+                if (not isinstance(node,Node)):
+                    continue
+                if (node.status == OBSTACLE):
+                    continue
             node = Node(x,y,OBSTACLE,raw_x=point[0],raw_y=point[1])
             Map.nodes[node.id] = node
-        
-        for point in camera_data:
-            if (point == None):
-                continue
-            horizontal = point[0]
-            forward = point[1]
-            Map.add_obstacle(horizontal,forward,x,y,yaw)
-            
+        if camera_data is not None:
+            for point in camera_data:
+                if (point == None):
+                    continue
+                horizontal = point[0]
+                forward = point[1]
+                Map.add_obstacle(horizontal,forward,x,y,yaw)
+
     #Look at each obstacle node and determine its visibility
     #Run this after add obstacles
+    @start_time
     def calculate_visibility(bot_x=0,bot_y=0,yaw=0,rotational_movement = 0):
         if len(Map.nodes) <= 0:
             return
@@ -138,16 +146,10 @@ class Map:
                 continue
             if (node.status == SAVED_OBSTACLE):
                 weight = 1
-                if (not rotational_movement == 0):
+                if (rotational_movement != 0):
                     weight = max(min((0.5 / rotational_movement),1),0.2)
                 node.confidence -= Map.VISIBLE_CONFIDENCE_DECAY * weight
             elif(node.status == OBSTACLE):
                 node.save_obstacle()
         for key,node in delete_list.items():
             del Map.nodes[key]
-
-
-        
-
-        
-    

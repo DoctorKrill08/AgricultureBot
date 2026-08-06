@@ -1,14 +1,17 @@
-import numpy as np
-import os
-import sys
-from System.Constants import *
-from timer import *
-from enum import Enum
-import cv2
 import base64
+import os
+from posix import stat
+import sys
+from enum import Enum
+
+import cv2
+import numpy as np
+import pyrealsense2 as rs
 from fastapi import FastAPI, WebSocket
 
-import pyrealsense2 as rs
+from System.Constants import *
+from timer import *
+
 
 class Camera:
     FPS = 15
@@ -20,7 +23,7 @@ class Camera:
     WIDTH_RANGE = CENTER_X - 40
     MIN_HEIGHT = HEIGHT - 30
     MAX_HEIGHT = 30
-    SPACE_BETWEEN_RAYS = int(10)
+    SPACE_BETWEEN_RAYS : int = 10
     MIN_NUM_OF_CLOSE_POINTS = 120
     OBSTRUCTED_PIXEL_THRESHOLD = 1500
     obstructed = False
@@ -30,12 +33,12 @@ class Camera:
 
     TURN_P = 1.5
     DRIVE_P = -0.1
-    
+
     closest_distance = 0
     closest = []
 
     relative_goal_angle = 0
-    
+
     turn = 0
     drive = 0
 
@@ -49,6 +52,7 @@ class Camera:
 
     binary_frame : bytes = b""
 
+    @staticmethod
     def exception():
         ctx = rs.context()
         devices = ctx.query_devices()
@@ -60,7 +64,7 @@ class Camera:
                 dev = devices[0]
                 print(f"Device found: {dev.get_info(rs.camera_info.name)}")
                 print(f"Serial Number: {dev.get_info(rs.camera_info.serial_number)}")
-                
+
                 # Check sensors directly
                 for sensor in dev.query_sensors():
                     sensor_name = sensor.get_info(rs.camera_info.name)
@@ -72,11 +76,11 @@ class Camera:
             except:
                 print("Camera not found")
 
-
+    @staticmethod
     def status():
         return f"\n-----CAMERA-----\nCamera on: {Camera.on}\nOBSTRUCTED: {Camera.obstructed}"
+    @staticmethod
     def start():
-
         Camera.angle = [0,0,0] #pitch roll yaw
         Camera.position = [0,0,0] #ground x, ground y, height
         Camera.vision_pipe = rs.pipeline()
@@ -105,9 +109,10 @@ class Camera:
             Camera.exception()
             print("CAMERA NOT CONNECTED", e)
 
-        
+
     UPDATE_FRAME_RATE = 2
     current_frame = 0
+    @staticmethod
     def update():
         if (not Camera.on):
             Camera.obstructed = True
@@ -126,7 +131,7 @@ class Camera:
 
         _, buffer = cv2.imencode('.jpg', color_image, [cv2.IMWRITE_JPEG_QUALITY, 70])
         Camera.binary_frame = buffer.tobytes()
-        
+
         #cv2.imshow('depth', depth_cm)
         #cv2.imshow('rgb', color_image)
 
@@ -159,7 +164,7 @@ class Camera:
                 array[IMU.FORWARD] = accel_data.z
                 Camera.raw_accel_reading = array
                 #print(f"Accel: x={accel_data.x:.3f}, y={accel_data.y:.3f}, z={accel_data.z:.3f}")
-                
+
             # Get Gyroscope data
             gyro_frame = imu_frame.first_or_default(rs.stream.gyro)
             if gyro_frame:
@@ -169,21 +174,24 @@ class Camera:
                 array[IMU.PITCH] = -gyro_data.x
                 array[IMU.YAW] = gyro_data.y
                 Camera.raw_gyro_reading = array
-                #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")            
+                #print(f"Gyro: x={gyro_data.x:.3f}, y={gyro_data.y:.3f}, z={gyro_data.z:.3f}")
         #cv2.imshow('to close', canvas_black)
-
+    @staticmethod
     def stop():
         if (Camera.on == False):
             return
         Camera.vision_pipe.stop()
         Camera.on = False
+    @staticmethod
     def blacklist(x,y,blacklist_array):
         key = str(x) + "," + str(y)
         blacklist_array[key] = [x,y]
         return blacklist_array
+    @staticmethod
     def paint_on_canvas(canvas,x,y,size,color = [0,0,255]):
         canvas[y-(size):y+(size), x-(size):x+(size)] = color
         return canvas
+    @staticmethod
     def filter_camera(depth_frame):
         depth_image = np.asanyarray(depth_frame.get_data())
         blacklisted_pixels = {}
@@ -192,7 +200,7 @@ class Camera:
             Camera.prev_frame = depth_frame
             return blacklisted_pixels,depth_image
         for x in range(Camera.CENTER_X - Camera.WIDTH_RANGE, Camera.CENTER_X + Camera.WIDTH_RANGE, Camera.SPACE_BETWEEN_RAYS):
-            for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS): 
+            for y in range(Camera.MAX_HEIGHT,Camera.MIN_HEIGHT, Camera.SPACE_BETWEEN_RAYS):
                 z = meters_to_inches(depth_frame.get_distance(x,y))
                 prev_z = meters_to_inches(Camera.prev_frame.get_distance(x,y))
                 if (z <= CAMERA_MIN_DEPTH  or prev_z <= CAMERA_MIN_DEPTH):
@@ -206,6 +214,7 @@ class Camera:
                     continue
         Camera.prev_frame = depth_frame
         return blacklisted_pixels,blacklist_image
+    @staticmethod
     def closest_pixels_1D(depth_frame,blacklisted_pixels = None):
         depth_intrin = depth_frame.profile.as_video_stream_profile().get_intrinsics()
         closest_y = 1000
@@ -220,7 +229,7 @@ class Camera:
         prev_horizontal = 0
         for x in range(x_start, x_end, Camera.SPACE_BETWEEN_RAYS):
             closest_y = 1000
-            for y in range(y_start,y_end, Camera.SPACE_BETWEEN_RAYS): 
+            for y in range(y_start,y_end, Camera.SPACE_BETWEEN_RAYS):
                 if (not blacklisted_pixels == None):
                     key = str(x) + "," + str(y)
                     if key in blacklisted_pixels:
@@ -274,9 +283,9 @@ class Camera:
                 if (z_depth < closest_y):
                     closest_y = z_depth
                     points_1D[x] = [horizontal_distance,z_depth]
-        return points_1D                
+        return points_1D
 
-class IMU():
+class IMU:
 
     LEFT = 0 #X
     DOWN = 1 #Y
@@ -285,7 +294,7 @@ class IMU():
     ROLL = 0
     PITCH = 1
     YAW = 2
-            
+
 #Windows: python -m System.Camera
 if __name__ == "__main__":
     Camera.start()

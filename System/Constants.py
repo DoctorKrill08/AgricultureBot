@@ -1,4 +1,5 @@
 import math
+
 ROBOT_WIDTH = 20 #inches
 ROBOT_HEIGHT = 8
 CAMERA_Y = 5
@@ -38,7 +39,7 @@ def add_angle(a1,a2):
         if (a1 < 0):
             pos = a2
             neg = a1
-        
+
         neg += (2 * math.pi)
         sum = pos + neg
     else:

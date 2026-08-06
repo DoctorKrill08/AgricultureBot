@@ -1,13 +1,16 @@
-from System.hardware import*
-from timer import Timer
 import math
+
 import numpy as np
+
 from System.Constants import *
+from System.hardware import *
+from timer import Timer
+
 
 class Drivetrain:
 
-    left_motor = None
-    right_motor = None
+    left_motor : Motor
+    right_motor : Motor
     telemetry = ""
 
 
@@ -18,37 +21,41 @@ class Drivetrain:
     DRIVE_P = 0.015
 
     timer = Timer()
-
+    @staticmethod
     def initiate():
         Drivetrain.left_motor = Motor(Device.DriveLeft.value)
         Drivetrain.right_motor = Motor(Device.DriveRight.value)
         Drivetrain.timer.reset()
+    @staticmethod
     def status():
         telemetry = "\n--- DRIVETRAIN ---\n"
         telemetry += Drivetrain.left_motor.status()
         telemetry += Drivetrain.right_motor.status()
         telemetry += f'\nDRIVE_P: {Drivetrain.DRIVE_P}\nTURN_P: {Drivetrain.TURN_P}'
         return telemetry
-    def to_scale(drive,turn,gamepad = True):
+    @staticmethod
+    def to_scale(drive : float,turn : float,gamepad = True):
         if (abs(drive) + abs(turn) < Drivetrain.MAX_POWER):
             return drive,turn
         sum = abs(drive) + abs(turn)
         scale = Drivetrain.MAX_POWER/sum
         return (drive * scale),(turn * scale)
+    @staticmethod
     def stop():
         Drivetrain.left_motor.stop()
         Drivetrain.right_motor.stop()
-    def run(drive,turn,gamepad = True):
+    @staticmethod
+    def run(drive : float,turn : float,gamepad = True):
         drive = -drive
         drive,turn = Drivetrain.to_scale(drive,turn,gamepad)
-        Drivetrain.left_motor.set((drive + turn))
-        Drivetrain.right_motor.set((drive - turn))
+        Drivetrain.left_motor.set(drive + turn)
+        Drivetrain.right_motor.set(drive - turn)
 
         Drivetrain.timer.reset()
-
-    def calculate_turn(delta_yaw):
+    @staticmethod
+    def calculate_turn(delta_yaw : float):
         return Drivetrain.TURN_P * delta_yaw
-    
+    @staticmethod
     def vector_to_drive(vector_x,vector_y,yaw):
         distance = math.sqrt((vector_x ** 2) + (vector_y  ** 2))
         target_yaw = math.atan2(vector_y,vector_x)

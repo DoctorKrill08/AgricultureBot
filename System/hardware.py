@@ -1,60 +1,55 @@
 import time
-import serial
-import json
-from System.hardware_map import *
-
 from enum import Enum
 
+import serial
 
+from System.hardware_map import *
 
 
 class Arduino:
-    NANO = "NANO"
-    WINDOWS = "WINDOWS"
-    SERIAL_PORTS = {
-        NANO: '/dev/arduino_device',
-        WINDOWS : 'COM5'
-    }
+    SERIAL_PORT = '/dev/arduino_device'
     TIMEOUT = 0.1
     serial = None
     connected = False
+    @staticmethod
     def connect_arduino():
         Arduino.connected = False
-        for key,value in Arduino.SERIAL_PORTS.items():
-            if (Arduino.connected):
-                return
-            try:
-                Arduino.serial = serial.Serial(value, 115200, timeout= Arduino.TIMEOUT)
-                print(f"Connected to Arduino via {key}: {value}")
-                Arduino.connected = True
-                print(f"Arduino connected: {Arduino.connected}")
-            except:
-                Arduino.connected = False
+        try:
+            Arduino.serial = serial.Serial(Arduino.SERIAL_PORT, 115200, timeout= Arduino.TIMEOUT)
+            Arduino.connected = True
+            print(f"Arduino connected: {Arduino.connected}")
+        except:
+            Arduino.connected = False
         time.sleep(1.5)
         if (Arduino.connected):
             send_command(f"{Device.Ping.value},0",override=True)
-def send_command(command,read = False,override = False):
-    if (not Arduino.connected and not override):
-        print("Arduino not connected")
-        return
-    encoded_command = (command + "\n").encode('utf-8')
+    @staticmethod
+    def send_command(command,read = False,override = False):
+        if (not Arduino.connected and not override):
+            print("Arduino not connected")
+            return
+        encoded_command = (command + "\n").encode('utf-8')
 
-    Arduino.serial.write(encoded_command)
+        Arduino.serial.write(encoded_command)
 
-    if read:
-        raw_data = Arduino.serial.readline()
-        decoded = raw_data.decode('utf-8').strip()
-        return decoded
-
-def close_arduino():
-    Arduino.serial.close()
-    Arduino.connected = False
-def stop_arduino():
-    cmd = send_command(f"{Device.Stop.value},0",read=True,override=True)
-    if (not cmd == None and not cmd == ""):
-        close_arduino()
-def ping():
-    send_command(f"{Device.Ping.value},0",read=True)
+        if read:
+            raw_data = Arduino.serial.readline()
+            decoded = raw_data.decode('utf-8').strip()
+            return decoded
+    @staticmethod
+    def close():
+        if (not Arduino.connected):
+            return
+        Arduino.serial.close()
+        Arduino.connected = False
+    @staticmethod
+    def stop():
+        cmd = Arduino.send_command(f"{Device.Stop.value},0",read=True,override=True)
+        if (cmd != None and cmd != ""):
+            Arduino.close()
+    @staticmethod
+    def ping():
+        Arduino.send_command(f"{Device.Ping.value},0",read=True)
 class Motor:
     TYPE = HardwareType.MOTOR
     target = 0
@@ -86,7 +81,7 @@ class Motor:
         target = int(target)
         if (target > MOTOR_RANGE):
             target = MOTOR_RANGE
-        send_command(f'{self.id},{target}')
+        Arduino.send_command(f'{self.id},{target}')
     def stop(self):
         self.target = 0
-        send_command(f'{self.id},{"0"}')
+        Arduino.send_command(f'{self.id},{"0"}')

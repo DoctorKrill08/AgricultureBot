@@ -4,6 +4,13 @@ Create venv:
 cd AgricultureBot
 python3 -m venv venv
 source venv/bin/activate
+pip3 install pyserial inputs fastapi uvicorn websockets opencv-python numpy pyrealsense2 matplotlib
+
+
+---LIDAR---
+git clone --recursive https://github.com/dexmate-ai/pyrplidarsdk.git
+cd pyrplidarsdk
+pip3 install .
 
 Create agbot (should only have to do once):
 sudo nano /etc/systemd/system/agbot.service
@@ -37,16 +44,6 @@ journalctl -u agbot -f
 source ~/AgricultureBot/venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000
 
-pip3 install pyserial
-pip3 install inputs
-pip3 install fastapi
-pip3 install uvicorn
-pip3 install websockets
-pip3 install opencv-python numpy pyrealsense2
-pip3 install matplotlib
-
-
-
 
 install node js:
 curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -73,28 +70,4 @@ sudo nmcli device wifi connect "YOUR_SSID" password "YOUR_PASSWORD"
 ex.
 sudo nmcli device wifi connect rokoko_suit1 password rokoko_suit2024!
 
-
-
 http://10.42.0.124:3000/
-
-
-
-
-
-----WINDOWS-----
-python -m venv venv
-venv/Scripts/Activate
-
-
-pip install pyserial
-pip install inputs
-pip install fastapi
-pip install uvicorn
-pip install websockets
-pip install opencv-python pyrealsense2
-pip install numpy 
-pip install matplotlib
-
-#uvicorn file_to_be_ran:app_name -- reload -> runs uvicorn server
-uvicorn main:app --reload
-uvicorn main:app --host 0.0.0.0 --port 8000

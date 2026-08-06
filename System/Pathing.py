@@ -1,10 +1,13 @@
 import math
-from System.mapping import Node
-from System.Drivetrain import Drivetrain
-from System.Constants import *
-from System.interface_map import MapKey
-from timer import Timer
 from enum import Enum
+from turtle import st
+
+from System.Constants import *
+from System.Drivetrain import Drivetrain
+from System.interface_map import MapKey
+from System.mapping import Node
+from timer import Timer
+
 
 def vector_clamp(vx,vy,max):
     v = math.sqrt((vx ** 2)+ (vy ** 2))
@@ -21,7 +24,7 @@ class DynamicWindow:
 
     MAX_VECTOR_STRENGTH = 30
     MIN_VECTOR_STRENGTH = 5
-    
+
     ANGLE_INCREMENT = 10 #Degrees
     ANGLE_RANGE = 270 #Degrees
 
@@ -47,10 +50,10 @@ class DynamicWindow:
 
     timer = Timer()
     remapping = False
-
+    @staticmethod
     def score_to_strength(score):
         return max(min((DynamicWindow.DEFAULT_SCORE + score) * DynamicWindow.SCORE_TO_STRENGTH_RATIO,DynamicWindow.MAX_VECTOR_STRENGTH),DynamicWindow.MIN_VECTOR_STRENGTH)
-
+    @staticmethod
     def calculate_clearance(x,y,obstacles):
         obstructed = False
         clearance = 1000000
@@ -68,8 +71,8 @@ class DynamicWindow:
                 obstructed = True
             continue
         return obstructed,clearance
-
-    def calculate_obstruction(bot_x,bot_y,angle,check_distance,obstacles):
+    @staticmethod
+    def calculate_obstruction(bot_x,bot_y,angle,check_distance : float,obstacles):
         if (check_distance > 40):
             check_distance = 40
         check_distance -= (ROBOT_WIDTH / 2)
@@ -77,7 +80,7 @@ class DynamicWindow:
         increment = DynamicWindow.MIN_CLEARANCE / 2
         i = 0
         clearance = 100000
-        obstructed = False        
+        obstructed = False
         complete = False
         if (check_distance < increment):
             return obstructed,clearance
@@ -97,8 +100,8 @@ class DynamicWindow:
             if furthest == check_distance:
                 complete = True
         return obstructed,clearance
-    
-    
+
+    @staticmethod
     def calculate(x,y,yaw,tx,ty,obstacles):
         delta_x = tx - x
         delta_y = ty - y
@@ -110,7 +113,7 @@ class DynamicWindow:
         force = min(distance,DynamicWindow.MAX_VECTOR_STRENGTH)
         if (obstructed and not DynamicWindow.obstructed):
             DynamicWindow.timer.reset()
-        
+
         DynamicWindow.obstructed = obstructed
         if (not DynamicWindow.obstructed):
             best_path_clearance =  -10000
@@ -157,7 +160,7 @@ class DynamicWindow:
             #greater angle offset, less score
             score += abs(degree_offset) * -DynamicWindow.ANGLE_PENALTY
 
-            if (not degree_offset == DynamicWindow.current_angle):
+            if (degree_offset != DynamicWindow.current_angle):
                 score -= DynamicWindow.MIN_CHANGE_PENALTY
                 number_of_changes = abs(DynamicWindow.current_angle - degree_offset)
                 score -= DynamicWindow.CHANGE_PENALTY * number_of_changes
@@ -166,13 +169,13 @@ class DynamicWindow:
                 greatest_score = score
                 goal_vector_x = vector_x
                 goal_vector_y = vector_y
-                best_path_clearance = min(max(clearance,0),DynamicWindow.MAX_VECTOR_STRENGTH)
+                #best_path_clearance = min(max(clearance,0),DynamicWindow.MAX_VECTOR_STRENGTH)
                 best_path_degree_offset = degree_offset
         print("---greatest  score---: ", greatest_score)
         DynamicWindow.current_angle = best_path_degree_offset
         return vector_clamp(goal_vector_x,goal_vector_y,DynamicWindow.score_to_strength(greatest_score))
 
-class PathState():
+class PathState:
     #States
     TURNING = "TURNING"
     WAITING = "WAITING"
@@ -192,6 +195,7 @@ class Path:
         self.yaw = yaw
     def to_string(self,index):
         return f"{self.x},{self.y},{Path.index_to_status(index)},{self.yaw}"
+    @staticmethod
     def index_to_status(index):
         if (index == 0):
             return MapKey.CURRENT_PATH.value
@@ -207,8 +211,8 @@ class Pathing:
     TURN_TIME = 1.5
 
     timer = Timer()
-    
 
+    @staticmethod
     def paths_to_string():
         output = ""
         if (len(Pathing.paths) == 0):
@@ -220,9 +224,11 @@ class Pathing:
             output += path.to_string(i) + "/"
         return output
 
+    @staticmethod
     def status():
         return f'\n---PATHING---\nPath obstructed: {DynamicWindow.obstructed}\nState: {Pathing.state}\nANGLE_INCREMENT:{DynamicWindow.ANGLE_INCREMENT}\nANGLE_PENALTY:{DynamicWindow.ANGLE_PENALTY}\nCLEARANCE_SCORE:{DynamicWindow.CLEARANCE_SCORE}\nCHANGE_PENALTY:{DynamicWindow.CHANGE_PENALTY}\nMAX_CLEARANCE:{DynamicWindow.MAX_CLEARANCE}'
-    
+
+    @staticmethod
     def calculate(x,y,yaw,obstacles):
         #No paths -> Dont go
         if (len(Pathing.paths) == 0):
@@ -238,8 +244,8 @@ class Pathing:
                 return 0,0,PathState.DONE_WAITING
             else:
                 return 0,0,PathState.WAITING
-            
-        
+
+
         target = Pathing.paths[0]
         if (not isinstance(target,Path)):
             return 0,0,PathState.IDLE
@@ -254,23 +260,22 @@ class Pathing:
             delta_yaw = shortest_angular_distance(yaw,target_yaw)
             turn = Drivetrain.calculate_turn(delta_yaw)
             #Near target yaw -> Wait
-            if (abs(turn) < Drivetrain.MIN_TURN):
-                if (Pathing.timer.time_passed() > Pathing.TURN_TIME):
-                    Pathing.state = PathState.WAITING
-                    return 0,0,PathState.DONE_TURNING
+            if (abs(turn) < Drivetrain.MIN_TURN and Pathing.timer.time_passed() > Pathing.TURN_TIME):
+                Pathing.state = PathState.WAITING
+                return 0,0,PathState.DONE_TURNING
             return turn,0,PathState.TURNING
-        
+
         if (distance < Pathing.GOAL_DISTANCE_THRESHOLD):
             Pathing.timer.reset()
             Pathing.state = PathState.TURNING
             return 0,0,PathState.GOAL_REACHED
-        
-        
+
+
         Pathing.vector_x,Pathing.vector_y = DynamicWindow.calculate(x,y,yaw,tx,ty,obstacles)
         #print("DW VECTORS",Pathing.vector_x,Pathing.vector_y)
 
         if (abs(Pathing.vector_x) < 1 and abs(Pathing.vector_y) < 1):
             return 0,0,PathState.STUCK
-        
+
         turn,drive = Drivetrain.vector_to_drive(Pathing.vector_x,Pathing.vector_y,yaw)
         return turn,drive,PathState.DRIVING

@@ -1,11 +1,15 @@
-import serial
-import time
-from timer import Timer
-from enum import Enum
 import math
+from posix import stat
 import re
+import time
+from enum import Enum
+from turtle import st
+
 import matplotlib.pyplot as plt
-import asyncio
+import serial
+
+from timer import Timer
+
 
 def recursive_average(prev,current,quantity):
         if (quantity <= 0):
@@ -32,6 +36,7 @@ class CoordinateSystem(Enum):
     LOCAL = "LOCAL"
     LONGITUDE = "LONGITUDE"
     LATITUDE = "LATITUDE"
+    @staticmethod
     def DDM_TO_DD(ddm : str, coordinate_type = LATITUDE):
         #latitude: ddmm.mmmmm
         #longitude: dddmm.mmmmm
@@ -47,7 +52,7 @@ class CoordinateSystem(Enum):
         m = ddm[index:]
         m = float(m)
         return (dd + (m / 60))
-
+    @staticmethod
     def displacement(coordinates1,coordinates2):
         start_lat = coordinates2[0]
         start_lon = coordinates2[1]
@@ -66,10 +71,10 @@ class CoordinateSystem(Enum):
         distance = math.sqrt((delta_lat ** 2) + (delta_lon ** 2))
 
         return delta_lat,delta_lon,distance
-
+    @staticmethod
     def average_coordinates(c1,c2):
         return (c2 + c1) / 2
-
+    @st
     def cumulative_average_coordinates(coordinates):
         avg = 0
         for coordinate in coordinates:
@@ -77,8 +82,8 @@ class CoordinateSystem(Enum):
             avg += coordinate
         avg /= len(coordinates)
         return avg
-
-    def degrees_to_direction(angle):
+    @staticmethod
+    def degrees_to_direction(angle : float):
         if angle < 0:
             angle += 360
         if angle > 360:
@@ -95,7 +100,7 @@ class CoordinateSystem(Enum):
 
         if (angle == 0.0):
             return "N/A"
-        
+
 
         if (angle > 360 - increment or angle < 0 + increment):
             return "NORTH"
@@ -132,23 +137,15 @@ class GPSReceiver():
 
     RTK_STREAM = ''
 
-    ROVER_PORTS = {
-            NANO: '/dev/ttyACM2',
-            WINDOWS : 'COM8',
-    }
-    BASE_PORTS = {
-            NANO: '/dev/ttyACM2',
-            WINDOWS : 'COM11',
-    }
+    ROVER_PORTS = '/dev/ttyACM2'
+    BASE_PORTS ='/dev/ttyACM3'
 
     def __init__(self,type):
-        self.serial_ports = GPSReceiver.ROVER_PORTS
+        self.serial_port = GPSReceiver.ROVER_PORTS
         if (type == GPSReceiver.BASE):
-            self.serial_ports = GPSReceiver.BASE_PORTS
+            self.serial_port = GPSReceiver.BASE_PORTS
         self.type = type
         self.connected = False
-        
-        self.serial = self.serial_ports[self.NANO]
 
         self.longitude = 0
         self.latitude = 0
@@ -165,15 +162,14 @@ class GPSReceiver():
 
     def start(self):
         self.connected = False
-        for key,value in self.serial_ports.items():
-            if (self.connected):
-                return
-            try:
-                self.serial = serial.Serial(value,  self.BAUD_RATE, timeout=1)
-                self.connected = True
-                print(f"Connected to {self.type} RTK receiver via {key}: {value}")
-            except:
-                pass
+        try:
+            self.serial = serial.Serial(self.serial_port,  self.BAUD_RATE, timeout=1)
+            self.connected = True
+            print(f"Connected to {self.type} RTK receiver via {self.serial_port}")
+        except:
+            print(f"Failed to connect to {self.serial_port} for {self.type} RTK receiver")
+            return
+
 
     def read(self):
         if (self.type == self.BASE):
@@ -223,7 +219,7 @@ class GPSReceiver():
                     if (not angle == 0):
                         GPS.moving = True
 
-    
+
     def close(self):
         if (self.connected):
             self.serial.close()
@@ -317,27 +313,25 @@ class GPS:
     prev_speeds = [0,0,0,0,0,0,0,0]
 
     speed_threshold = 4
-
+    @staticmethod
     def get_data():
         return ""
-
-    def global_to_local():
-        return
-    def local_to_global():
-        return
+    @staticmethod
     def start():
         GPS.rover.start()
         GPS.base.start()
         GPS.calculate_start_pos()
+    @staticmethod
     def close():
         GPS.rover.close()
         GPS.base.close()
+    @staticmethod
     def status():
         return "\n---GPS---\n"+ GPS.rover.status()+\
         GPS.base.status() + f"\n\
 Local Grid: x: {GPS.local_grid[0]} y: {GPS.local_grid[1]}\n\
 Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
-
+    @staticmethod
     def signal_base_to_rover():
         waiting = GPS.base.serial.in_waiting
         if waiting:
@@ -345,7 +339,8 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
             print("base wrote to rover")
             GPS.rover.serial.write(data)
             GPS.rover.serial.flush()
-    
+
+    @staticmethod
     def calculate_start_pos():
         GPS.started = False
         if not GPS.rover.connected:
@@ -355,8 +350,7 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
             GPS.start_coordinates[0] = GPS.rover.latitude
             GPS.start_coordinates[1] = GPS.rover.longitude
         GPS.started = True
-
-
+    @staticmethod
     def update():
        # print(GPS.status())
         if (GPS.rover.connected and GPS.base.connected):
@@ -364,7 +358,7 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
         if (GPS.rover.connected):
             GPS.rover.read()
         if (GPS.started):
-            d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates) 
+            d_lat,d_lon,distance = CoordinateSystem.displacement([GPS.rover.latitude,GPS.rover.longitude],GPS.start_coordinates)
             GPS.local_grid = [d_lat,d_lon]
 
             if (not GPS.moving):
@@ -373,14 +367,13 @@ Start Coords: lat: {GPS.start_coordinates[0]} lon: {GPS.start_coordinates[1]}"
             else:
                 print("MOVING!")
                # plt.scatter(time.perf_counter() - GPS.start_time,1,color = "green")
-        
 
-        
+
+
 
 
 #To run:
-#Windows: python -m System.GPS
-#Linux: python3 -m System.GPS (I think)
+#Linux: python3 -m System.GPS
 if __name__ == "__main__":
     GPS.start()
     while time.perf_counter() - GPS.start_time < 20:
